@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MYK 生态操作面板</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        h1 { text-align: center; color: #e94560; margin-bottom: 20px; font-size: 24px; }
+        .card { background: #16213e; border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid #0f3460; }
+        .card h2 { font-size: 18px; margin-bottom: 12px; color: #e94560; }
+        input { width: 100%; padding: 12px; border: 1px solid #0f3460; border-radius: 8px; background: #0f3460; color: #fff; font-size: 16px; margin-bottom: 10px; }
+        button { width: 100%; padding: 14px; background: #e94560; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #c73652; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        .info { background: #0f3460; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 14px; word-break: break-all; }
+        .success { color: #4ecca3; }
+        .error { color: #e94560; }
+        .address-bar { background: #16213e; padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: center; font-size: 14px; border: 1px solid #0f3460; }
+        .address-bar span { color: #4ecca3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 MYK 生态操作面板</h1>
+        
+        <!-- 钱包地址 -->
+        <div class="address-bar">
+            钱包：<span id="walletAddr">未连接</span>
+            <br><button onclick="connectWallet()" style="margin-top:8px; padding:8px;">连接钱包</button>
+        </div>
+
+        <!-- 存入USDT激活身份 -->
+        <div class="card">
+            <h2>💰 存入USDT激活身份</h2>
+            <p style="font-size:13px;color:#888;margin-bottom:8px;">≥200 USDT 自动获得PRIMARY身份（1.2%日收益）</p>
+            <input id="usdtAmount" type="number" placeholder="USDT数量（最小200）" value="200">
+            <button id="btnDeposit" onclick="depositUSDT()">存入并激活</button>
+            <div id="depositResult" class="info" style="display:none;"></div>
+        </div>
+
+        <!-- MYK转账激活身份 -->
+        <div class="card">
+            <h2>📤 MYK转账激活身份</h2>
+            <p style="font-size:13px;color:#888;margin-bottom:8px;">转账 ≥2 USDT 等值 MYK 到 RewardPool 自动激活</p>
+            <input id="mykAmount" type="number" placeholder="MYK数量（≥2 USDT等值）" value="10">
+            <button id="btnTransfer" onclick="transferMYK()">转账并激活</button>
+            <div id="transferResult" class="info" style="display:none;"></div>
+        </div>
+
+        <!-- 查看身份状态 -->
+        <div class="card">
+            <h2>🔍 查看身份状态</h2>
+            <input id="checkAddr" type="text" placeholder="钱包地址（留空查自己）">
+            <button onclick="checkStatus()">查询</button>
+            <div id="statusResult" class="info" style="display:none;"></div>
+        </div>
+
+        <!-- MYK余额 -->
+        <div class="card">
+            <h2>📊 MYK余额</h2>
+            <button onclick="checkMYKBalance()">查询余额</button>
+            <div id="balanceResult" class="info" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 合约地址 ====================
+        const MYK_ADDR = '0x4f08eb649A9BbC047cfAe4C9dcE050BBdfE857d1';
+        const REWARD_POOL_ADDR = '0xE657505E4397a143d4c4810b03EB408D02D5d33d';
+        const LOCKER_ADDR = '0xa69c5F9952C2a917C744dCBbde47b394f6E7D765';
+        const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
+
+        let web3, userAddress;
+
+        // ==================== 连接钱包 ====================
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    web3 = new Web3(window.ethereum);
+                    const accounts = await web3.eth.getAccounts();
+                    userAddress = accounts[0];
+                    document.getElementById('walletAddr').innerHTML = userAddress.slice(0,6)+'...'+userAddress.slice(-4);
+                    document.getElementById('checkAddr').value = userAddress;
+                } catch (e) {
+                    alert('请安装MetaMask或TP钱包');
+                }
+            } else {
+                alert('请安装MetaMask或TP钱包');
+            }
+        }
+
+        // ==================== 存入USDT激活身份 ====================
+        async function depositUSDT() {
+            if (!userAddress) return alert('请先连接钱包');
+            const btn = document.getElementById('btnDeposit');
+            const result = document.getElementById('depositResult');
+            btn.disabled = true; btn.textContent = '处理中...';
+            result.style.display = 'block'; result.innerHTML = '⏳ 正在授权USDT...';
+
+            try {
+                const amount = document.getElementById('usdtAmount').value;
+                const usdtAmount = web3.utils.toWei(amount, 'ether');
+
+                // 1. 授权USDT
+                const usdtABI = [{ "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }], "type": "function" }];
+                const usdtContract = new web3.eth.Contract(usdtABI, USDT_ADDR);
+                await usdtContract.methods.approve(LOCKER_ADDR, usdtAmount).send({ from: userAddress });
+                
+                result.innerHTML = '⏳ 正在存入USDT...';
+
+                // 2. 存入USDT
+                const lockerABI = [{ "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "depositUSDT", "outputs": [], "stateMutability": "nonpayable", "type": "function" }];
+                const lockerContract = new web3.eth.Contract(lockerABI, LOCKER_ADDR);
+                await lockerContract.methods.depositUSDT(usdtAmount).send({ from: userAddress });
+
+                result.innerHTML = '<span class="success">✅ 激活成功！你已获得PRIMARY身份，享受1.2%日收益</span>';
+            } catch (e) {
+                result.innerHTML = '<span class="error">❌ 失败：' + (e.message || '未知错误').slice(0, 200) + '</span>';
+            }
+            btn.disabled = false; btn.textContent = '存入并激活';
+        }
+
+        // ==================== MYK转账激活身份 ====================
+        async function transferMYK() {
+            if (!userAddress) return alert('请先连接钱包');
+            const btn = document.getElementById('btnTransfer');
+            const result = document.getElementById('transferResult');
+            btn.disabled = true; btn.textContent = '处理中...';
+            result.style.display = 'block'; result.innerHTML = '⏳ 正在转账MYK...';
+
+            try {
+                const amount = document.getElementById('mykAmount').value;
+                const mykAmount = web3.utils.toWei(amount, 'ether');
+
+                const erc20ABI = [{ "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "", "type": "bool" }], "type": "function" }];
+                const mykContract = new web3.eth.Contract(erc20ABI, MYK_ADDR);
+                await mykContract.methods.transfer(REWARD_POOL_ADDR, mykAmount).send({ from: userAddress });
+
+                result.innerHTML = '<span class="success">✅ 转账成功！自动激活已完成</span>';
+            } catch (e) {
+                result.innerHTML = '<span class="error">❌ 失败：' + (e.message || '未知错误').slice(0, 200) + '</span>';
+            }
+            btn.disabled = false; btn.textContent = '转账并激活';
+        }
+
+        // ==================== 查看身份状态 ====================
+        async function checkStatus() {
+            const addr = document.getElementById('checkAddr').value || userAddress;
+            if (!addr) return alert('请输入地址');
+            const result = document.getElementById('statusResult');
+            result.style.display = 'block'; result.innerHTML = '⏳ 查询中...';
+
+            try {
+                const abi = [{ "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "users", "outputs": [
+                    { "internalType": "address", "name": "referrer", "type": "address" },
+                    { "internalType": "uint96", "name": "invited", "type": "uint96" },
+                    { "internalType": "uint96", "name": "todayBuy", "type": "uint96" },
+                    { "internalType": "uint96", "name": "todayReward", "type": "uint96" },
+                    { "internalType": "uint40", "name": "activatedAt", "type": "uint40" },
+                    { "internalType": "uint40", "name": "lastRewardDay", "type": "uint40" },
+                    { "internalType": "uint40", "name": "lastClaim", "type": "uint40" },
+                    { "internalType": "uint8", "name": "role", "type": "uint8" },
+                    { "internalType": "bool", "name": "isActive", "type": "bool" }
+                ], "stateMutability": "view", "type": "function" }];
+                const contract = new web3.eth.Contract(abi, REWARD_POOL_ADDR);
+                const user = await contract.methods.users(addr).call();
+
+                const roleNames = ['无', 'PRIMARY', 'MIDDLE', 'COMMUNITY'];
+                result.innerHTML = `
+                    <b>身份：</b>${roleNames[user.role]}<br>
+                    <b>激活：</b>${user.isActive ? '✅ 已激活' : '❌ 未激活'}<br>
+                    <b>推荐人：</b>${user.referrer === '0x0000000000000000000000000000000000000000' ? '无' : user.referrer.slice(0,6)+'...'}<br>
+                    <b>已邀请：</b>${user.invited}人<br>
+                    <b>激活时间：</b>${user.activatedAt > 0 ? new Date(user.activatedAt*1000).toLocaleString() : '未激活'}
+                `;
+            } catch (e) {
+                result.innerHTML = '<span class="error">❌ 查询失败</span>';
+            }
+        }
+
+        // ==================== 查看MYK余额 ====================
+        async function checkMYKBalance() {
+            if (!userAddress) return alert('请先连接钱包');
+            const result = document.getElementById('balanceResult');
+            result.style.display = 'block'; result.innerHTML = '⏳ 查询中...';
+
+            try {
+                const abi = [{ "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" }];
+                const contract = new web3.eth.Contract(abi, MYK_ADDR);
+                const balance = await contract.methods.balanceOf(userAddress).call();
+                result.innerHTML = `<b>MYK余额：</b>${web3.utils.fromWei(balance, 'ether')} MYK`;
+            } catch (e) {
+                result.innerHTML = '<span class="error">❌ 查询失败</span>';
+            }
+        }
+
+        // 自动连接
+        window.onload = () => { if (window.ethereum) connectWallet(); };
+    </script>
+</body>
+</html>
