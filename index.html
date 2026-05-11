@@ -292,9 +292,9 @@
             <div id="balanceResult" class="info" style="display:none; margin-top:8px;"></div>
         </div>
 
-        <!-- 底部介绍：仅中文单语 -->
+        <!-- 底部介绍：随语言切换，单语显示 -->
         <div class="footer-note" id="footerNote">
-            ✨ 这是为您生成的 MYK 生态操作面板。它是一个用于与去中心化应用（DApp）交互的前端界面，集成了钱包连接、代币激活和分级认购等核心功能。
+            ✨ 这是 MYK 生态操作面板。是一个用于与去中心化应用（DApp）交互的前端界面，集成了钱包连接、提供可视化便捷操作工具。
         </div>
     </div>
 
@@ -323,7 +323,7 @@
                 checkAddrPlaceholder: '钱包地址 (留空查询自己)',
                 checkStatusBtn: '📋 查询身份',
                 checkBalanceBtn: '💰 MYK余额',
-                footer: '✨ 这是为您生成的 MYK 生态操作面板。它是一个用于与去中心化应用（DApp）交互的前端界面，集成了钱包连接、代币激活和分级认购等核心功能。',
+                footer: '✨ 这是 MYK 生态操作面板。是一个用于与去中心化应用（DApp）交互的前端界面，集成了钱包连接、提供可视化便捷操作工具。',
                 badgeNode: '社区节点',
                 badgeComm4: '第四社区',
                 badgeComm5: '第五社区',
@@ -353,7 +353,7 @@
                 checkAddrPlaceholder: 'Wallet address (empty for self)',
                 checkStatusBtn: '📋 Check Status',
                 checkBalanceBtn: '💰 MYK Balance',
-                footer: '✨ This is the MYK Ecosystem Operation Panel. A front-end interface for interacting with DApps, integrating wallet connection, token activation, and tiered subscription features.',
+                footer: '✨ This is the MYK Ecosystem Operation Panel. A front-end interface for DApp interaction, integrating wallet connection and providing visual convenient operation tools.',
                 badgeNode: 'Community Node',
                 badgeComm4: '4th Community',
                 badgeComm5: '5th Community',
@@ -394,8 +394,8 @@
             document.getElementById('checkAddr').placeholder = t.checkAddrPlaceholder;
             document.getElementById('checkStatusBtn').textContent = t.checkStatusBtn;
             document.getElementById('checkBalanceBtn').textContent = t.checkBalanceBtn;
-            // 底部始终保持中文单语介绍，不受语言切换影响
-            document.getElementById('footerNote').innerHTML = '✨ 这是为您生成的 MYK 生态操作面板。它是一个用于与去中心化应用（DApp）交互的前端界面，集成了钱包连接、代币激活和分级认购等核心功能。';
+            // 底部介绍随语言切换
+            document.getElementById('footerNote').textContent = t.footer;
             // 更新徽章
             document.querySelectorAll('.badge-silver').forEach(b => b.textContent = t.badgeNode);
             const goldBadges = document.querySelectorAll('.badge-gold');
@@ -542,8 +542,8 @@
                 const lockerContract2 = new web3.eth.Contract(subscribeABI, LOCKER_ADDR);
                 await lockerContract2.methods.subscribeMYK(amountWei).send({ from: userAddress });
 
-                const labelsZh = { 200: '社区节点 MIDDLE · 2%日收益', 500: '第四社区 COMMUNITY · 2.5%日奖币 + 四成社区奖励',
-                    1000: '第五社区 COMMUNITY · 2.5%日奖币 + 五成社区奖励' };
+                const labelsZh = { 200: '社区节点 MIDDLE · 2%日收益', 500: '第四社区 COMMUNITY · 2.5%日奖币 + 四层社区奖励',
+                    1000: '第五社区 COMMUNITY · 2.5%日奖币 + 五层社区奖励' };
                 const labelsEn = { 200: 'Community Node MIDDLE · 2% daily', 500: '4th Community · 2.5% daily + 40% reward',
                     1000: '5th Community · 2.5% daily + 50% reward' };
                 const msg = currentLang === 'zh' ? labelsZh[usdtAmount] : labelsEn[usdtAmount];
