@@ -223,6 +223,39 @@
             line-height: 1.6;
             letter-spacing: 0.3px;
         }
+        /* 滑动切换开关样式 */
+        .tab-switch {
+            display: flex;
+            background: #0f1422;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 14px;
+            border: 1px solid #2a2f52;
+        }
+        .tab-switch button {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            color: #888;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: none;
+            text-transform: none;
+            letter-spacing: 0;
+            transition: all 0.2s;
+        }
+        .tab-switch button.active {
+            background: #e94560;
+            color: #fff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -244,13 +277,30 @@
             <button class="btn-sm" id="connectWalletBtn" onclick="connectWallet()">🔓 连接钱包</button>
         </div>
 
-        <!-- 第一排：激活初级做市商 -->
+        <!-- 第一排：激活初级做市商（带左右滑动切换） -->
         <div class="card">
             <h2><span id="activateTitle">🥉 激活初级</span> <span class="badge badge-bronze">PRIMARY</span></h2>
-            <p class="subtitle" id="activateDesc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币<br>推荐3个节点激活 → 升级 <span class="highlight">MIDDLE (2%)</span></p>
-            <input id="activateAmount" type="number" placeholder="MYK数量 (≥2 USDT等值)" value="10" step="0.1">
-            <button id="btnActivate" onclick="activatePrimary()">💸 支付MYK并激活</button>
-            <div id="activateResult" class="info" style="display:none;"></div>
+            <!-- 滑动切换 -->
+            <div class="tab-switch">
+                <button id="tabMYK" class="active" onclick="switchActivateTab('myk')">💎 MYK激活</button>
+                <button id="tabUSDT" onclick="switchActivateTab('usdt')">💵 USDT激活</button>
+            </div>
+
+            <!-- MYK激活面板 -->
+            <div id="panelMYK" class="tab-content active">
+                <p class="subtitle" id="activateDescMYK">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币<br>推荐3个节点激活 → 升级 <span class="highlight">MIDDLE (2%)</span></p>
+                <input id="activateAmount" type="number" placeholder="MYK数量 (≥2 USDT等值)" value="10" step="0.1">
+                <button id="btnActivateMYK" onclick="activatePrimary()">💸 支付MYK并激活</button>
+                <div id="activateResult" class="info" style="display:none;"></div>
+            </div>
+
+            <!-- USDT激活面板 -->
+            <div id="panelUSDT" class="tab-content">
+                <p class="subtitle" id="activateDescUSDT">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.2%</span>日奖币<br>推荐人获得25% USDT奖励，社区获得递减分成</p>
+                <input id="activateReferrer" type="text" placeholder="推荐人地址（必填）">
+                <button id="btnActivateUSDT" onclick="activateWithUSDT()">💵 支付2 USDT激活</button>
+                <div id="activateUSDTResult" class="info" style="display:none;"></div>
+            </div>
         </div>
 
         <!-- 第二排：认购200 USDT -->
@@ -292,7 +342,7 @@
             <div id="balanceResult" class="info" style="display:none; margin-top:8px;"></div>
         </div>
 
-        <!-- 底部介绍：随语言切换，单语显示 -->
+        <!-- 底部介绍 -->
         <div class="footer-note" id="footerNote">
             ✨ 这是 MYK 生态操作面板。是一个用于与去中心化应用（DApp）交互的前端界面，集成了钱包连接、提供可视化便捷操作工具。
         </div>
@@ -307,9 +357,12 @@
                 connectBtn: '🔓 连接钱包',
                 notConnected: '未连接',
                 activateTitle: '🥉 激活初级',
-                activateDesc: '支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币<br>推荐3个节点激活 → 升级 <span class="highlight">MIDDLE (2%)</span>',
+                activateDescMYK: '支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币<br>推荐3个节点激活 → 升级 <span class="highlight">MIDDLE (2%)</span>',
+                activateDescUSDT: '支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.2%</span>日奖币<br>推荐人获得25% USDT奖励，社区获得递减分成',
                 activatePlaceholder: 'MYK数量 (≥2 USDT等值)',
-                activateBtn: '💸 支付MYK并激活',
+                activateBtnMYK: '💸 支付MYK并激活',
+                activateBtnUSDT: '💵 支付2 USDT激活',
+                activateReferrerPlaceholder: '推荐人地址（必填）',
                 sub200Title: '🥈 认购200U',
                 sub200Desc: '获得 <span class="highlight">MIDDLE</span> 身份，享受 <span class="highlight">2%</span> 日收益',
                 sub200Btn: '💰 认购200U升级',
@@ -330,6 +383,10 @@
                 processing: '处理中...',
                 authUSDT: '⏳ 请稍候，授权USDT...',
                 depositMYK: '⏳ 存入USDT并认购MYK...',
+                activateUSDTSuccess: '激活成功！已获得 PRIMARY 身份，享受1.2%日奖币',
+                subscribeSuccess200: '认购成功！社区节点 MIDDLE · 2%日收益',
+                subscribeSuccess500: '认购成功！第四社区 COMMUNITY · 2.5%日奖币 + 四成社区奖励',
+                subscribeSuccess1000: '认购成功！第五社区 COMMUNITY · 2.5%日奖币 + 五成社区奖励',
             },
             en: {
                 mainTitle: '🌐 MYK Ecosystem',
@@ -337,9 +394,12 @@
                 connectBtn: '🔓 Connect Wallet',
                 notConnected: 'Not Connected',
                 activateTitle: '🥉 Activate Primary',
-                activateDesc: 'Pay <span class="highlight">2 USDT</span> worth of MYK, get <span class="highlight">1.2%</span> daily reward<br>Refer 3 nodes → upgrade to <span class="highlight">MIDDLE (2%)</span>',
+                activateDescMYK: 'Pay <span class="highlight">2 USDT</span> worth of MYK, get <span class="highlight">1.2%</span> daily reward<br>Refer 3 nodes → upgrade to <span class="highlight">MIDDLE (2%)</span>',
+                activateDescUSDT: 'Pay <span class="highlight">2 USDT</span>, get <span class="highlight">1.2%</span> daily reward<br>Referrer gets 25% USDT, community gets cascade share',
                 activatePlaceholder: 'MYK amount (≥2 USDT equivalent)',
-                activateBtn: '💸 Pay MYK & Activate',
+                activateBtnMYK: '💸 Pay MYK & Activate',
+                activateBtnUSDT: '💵 Pay 2 USDT Activate',
+                activateReferrerPlaceholder: 'Referrer address (required)',
                 sub200Title: '🥈 Subscribe 200U',
                 sub200Desc: 'Get <span class="highlight">MIDDLE</span> role, enjoy <span class="highlight">2%</span> daily profit',
                 sub200Btn: '💰 Subscribe 200U',
@@ -360,6 +420,10 @@
                 processing: 'Processing...',
                 authUSDT: '⏳ Approving USDT...',
                 depositMYK: '⏳ Depositing USDT & subscribing MYK...',
+                activateUSDTSuccess: 'Activated! PRIMARY role with 1.2% daily reward',
+                subscribeSuccess200: 'Subscribed! Community Node MIDDLE · 2% daily',
+                subscribeSuccess500: 'Subscribed! 4th Community · 2.5% daily + 40% reward',
+                subscribeSuccess1000: 'Subscribed! 5th Community · 2.5% daily + 50% reward',
             }
         };
 
@@ -378,9 +442,12 @@
             document.getElementById('connectWalletBtn').textContent = t.connectBtn;
             if (!userAddress) document.getElementById('walletAddr').textContent = t.notConnected;
             document.getElementById('activateTitle').textContent = t.activateTitle;
-            document.getElementById('activateDesc').innerHTML = t.activateDesc;
+            document.getElementById('activateDescMYK').innerHTML = t.activateDescMYK;
+            document.getElementById('activateDescUSDT').innerHTML = t.activateDescUSDT;
             document.getElementById('activateAmount').placeholder = t.activatePlaceholder;
-            document.getElementById('btnActivate').textContent = t.activateBtn;
+            document.getElementById('btnActivateMYK').textContent = t.activateBtnMYK;
+            document.getElementById('btnActivateUSDT').textContent = t.activateBtnUSDT;
+            document.getElementById('activateReferrer').placeholder = t.activateReferrerPlaceholder;
             document.getElementById('sub200Title').textContent = t.sub200Title;
             document.getElementById('sub200Desc').innerHTML = t.sub200Desc;
             document.getElementById('btnSubscribe200').textContent = t.sub200Btn;
@@ -394,14 +461,27 @@
             document.getElementById('checkAddr').placeholder = t.checkAddrPlaceholder;
             document.getElementById('checkStatusBtn').textContent = t.checkStatusBtn;
             document.getElementById('checkBalanceBtn').textContent = t.checkBalanceBtn;
-            // 底部介绍随语言切换
             document.getElementById('footerNote').textContent = t.footer;
-            // 更新徽章
             document.querySelectorAll('.badge-silver').forEach(b => b.textContent = t.badgeNode);
             const goldBadges = document.querySelectorAll('.badge-gold');
             if (goldBadges.length >= 2) {
                 goldBadges[0].textContent = t.badgeComm4;
                 goldBadges[1].textContent = t.badgeComm5;
+            }
+        }
+
+        // ==================== 滑动切换 ====================
+        function switchActivateTab(tab) {
+            document.getElementById('tabMYK').classList.remove('active');
+            document.getElementById('tabUSDT').classList.remove('active');
+            document.getElementById('panelMYK').classList.remove('active');
+            document.getElementById('panelUSDT').classList.remove('active');
+            if (tab === 'myk') {
+                document.getElementById('tabMYK').classList.add('active');
+                document.getElementById('panelMYK').classList.add('active');
+            } else {
+                document.getElementById('tabUSDT').classList.add('active');
+                document.getElementById('panelUSDT').classList.add('active');
             }
         }
 
@@ -472,10 +552,10 @@
                 `<span class="error">❌ ${message}</span>`;
         }
 
-        // ==================== 激活初级 ====================
+        // ==================== MYK激活 ====================
         async function activatePrimary() {
             if (!userAddress) { alert(currentLang === 'zh' ? '请先连接钱包' : 'Please connect wallet first'); return; }
-            const btn = document.getElementById('btnActivate');
+            const btn = document.getElementById('btnActivateMYK');
             const resultId = 'activateResult';
             btn.disabled = true;
             btn.textContent = langTexts[currentLang].processing;
@@ -497,7 +577,49 @@
                 showResult(resultId, (e.message || '失败').slice(0, 200), false);
             } finally {
                 btn.disabled = false;
-                btn.textContent = langTexts[currentLang].activateBtn;
+                btn.textContent = langTexts[currentLang].activateBtnMYK;
+            }
+        }
+
+        // ==================== USDT激活 ====================
+        async function activateWithUSDT() {
+            if (!userAddress) { alert(currentLang === 'zh' ? '请先连接钱包' : 'Please connect wallet first'); return; }
+            const ref = document.getElementById('activateReferrer').value.trim();
+            if (!ref || !web3.utils.isAddress(ref)) {
+                alert(currentLang === 'zh' ? '请输入有效的推荐人地址' : 'Please enter a valid referrer address');
+                return;
+            }
+            const btn = document.getElementById('btnActivateUSDT');
+            const resultId = 'activateUSDTResult';
+            btn.disabled = true;
+            btn.textContent = langTexts[currentLang].processing;
+            document.getElementById(resultId).style.display = 'block';
+            document.getElementById(resultId).innerHTML = '⏳ 正在授权USDT...';
+
+            try {
+                const activationFee = web3.utils.toWei('2', 'ether');
+
+                // 1. 授权USDT
+                const usdtABI = [{ "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value",
+                        "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }],
+                    "type": "function" }];
+                const usdtContract = new web3.eth.Contract(usdtABI, USDT_ADDR);
+                await usdtContract.methods.approve(REWARD_POOL_ADDR, activationFee).send({ from: userAddress });
+
+                document.getElementById(resultId).innerHTML = '⏳ 正在支付2 USDT激活...';
+
+                // 2. 调用激活
+                const activateABI = [{ "inputs": [{ "internalType": "address", "name": "ref", "type": "address" }],
+                    "name": "activateWithUSDT", "outputs": [], "stateMutability": "nonpayable", "type": "function" }];
+                const rewardPoolContract = new web3.eth.Contract(activateABI, REWARD_POOL_ADDR);
+                await rewardPoolContract.methods.activateWithUSDT(ref).send({ from: userAddress });
+
+                showResult(resultId, langTexts[currentLang].activateUSDTSuccess, true);
+            } catch (e) {
+                showResult(resultId, (e.message || '失败').slice(0, 200), false);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = langTexts[currentLang].activateBtnUSDT;
             }
         }
 
@@ -542,12 +664,8 @@
                 const lockerContract2 = new web3.eth.Contract(subscribeABI, LOCKER_ADDR);
                 await lockerContract2.methods.subscribeMYK(amountWei).send({ from: userAddress });
 
-                const labelsZh = { 200: '社区节点 MIDDLE · 2%日收益', 500: '第四社区 COMMUNITY · 2.5%日奖币 + 四层社区奖励',
-                    1000: '第五社区 COMMUNITY · 2.5%日奖币 + 五层社区奖励' };
-                const labelsEn = { 200: 'Community Node MIDDLE · 2% daily', 500: '4th Community · 2.5% daily + 40% reward',
-                    1000: '5th Community · 2.5% daily + 50% reward' };
-                const msg = currentLang === 'zh' ? labelsZh[usdtAmount] : labelsEn[usdtAmount];
-                showResult(resultId, `认购成功！${msg}`, true);
+                const successKeys = { 200: 'subscribeSuccess200', 500: 'subscribeSuccess500', 1000: 'subscribeSuccess1000' };
+                showResult(resultId, langTexts[currentLang][successKeys[usdtAmount]], true);
             } catch (e) {
                 showResult(resultId, (e.message || '失败').slice(0, 200), false);
             } finally {
