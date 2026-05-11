@@ -11,7 +11,9 @@
         .container { max-width: 500px; margin: 0 auto; }
         h1 { text-align: center; color: #e94560; margin-bottom: 20px; font-size: 24px; }
         .card { background: #16213e; border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid #0f3460; }
-        .card h2 { font-size: 18px; margin-bottom: 12px; color: #e94560; }
+        .card h2 { font-size: 18px; margin-bottom: 6px; color: #e94560; }
+        .card .subtitle { font-size: 13px; color: #888; margin-bottom: 10px; line-height: 1.5; }
+        .card .highlight { color: #4ecca3; font-weight: bold; }
         input { width: 100%; padding: 12px; border: 1px solid #0f3460; border-radius: 8px; background: #0f3460; color: #fff; font-size: 16px; margin-bottom: 10px; }
         button { width: 100%; padding: 14px; background: #e94560; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
         button:hover { background: #c73652; }
@@ -21,17 +23,10 @@
         .error { color: #e94560; }
         .address-bar { background: #16213e; padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: center; font-size: 14px; border: 1px solid #0f3460; }
         .address-bar span { color: #4ecca3; }
-
-        /* 滑动模块 */
-        .slider-container { position: relative; overflow: hidden; }
-        .slider-wrapper { display: flex; transition: transform 0.3s ease; }
-        .slider-item { min-width: 100%; padding: 10px; }
-        .slider-nav { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
-        .slider-dot { width: 10px; height: 10px; border-radius: 50%; background: #0f3460; cursor: pointer; }
-        .slider-dot.active { background: #e94560; width: 24px; border-radius: 5px; }
-        .slider-arrows { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .slider-arrows button { width: 40px; height: 30px; padding: 0; font-size: 18px; background: #0f3460; }
-        .tag { display: inline-block; background: #e94560; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 8px; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 4px; }
+        .badge-gold { background: #ffd700; color: #000; }
+        .badge-silver { background: #c0c0c0; color: #000; }
+        .badge-bronze { background: #cd7f32; color: #fff; }
     </style>
 </head>
 <body>
@@ -44,52 +39,40 @@
             <br><button onclick="connectWallet()" style="margin-top:8px; padding:8px;">连接钱包</button>
         </div>
 
-        <!-- ==================== 模块1：激活身份（左右滑动） ==================== -->
+        <!-- ==================== 第一排：支付2 USDT激活 ==================== -->
         <div class="card">
-            <h2>🎯 激活身份 <span style="font-size:12px;color:#888;">← 左右滑动 →</span></h2>
-            <div class="slider-arrows">
-                <button onclick="slideActivate(-1)">◀</button>
-                <span id="activateTitle" style="font-size:14px;">支付2U激活</span>
-                <button onclick="slideActivate(1)">▶</button>
-            </div>
-            <div class="slider-container">
-                <div class="slider-wrapper" id="activateSlider">
-                    <!-- 页1：支付2U激活 -->
-                    <div class="slider-item">
-                        <p style="font-size:13px;color:#888;margin-bottom:8px;">支付2 USDT等值MYK自动获取 <b>初级做市商身份（1.2%日奖币）</b></p>
-                        <input id="activateMYKAmount" type="number" placeholder="MYK数量（≥2 USDT等值）" value="10">
-                        <button id="btnActivateMYK" onclick="activateByMYK()">转账并激活</button>
-                        <div id="activateMYKResult" class="info" style="display:none;"></div>
-                    </div>
-                    <!-- 页2：认购200U激活 -->
-                    <div class="slider-item">
-                        <p style="font-size:13px;color:#888;margin-bottom:8px;">认购200 USDT等值MYK自动获取 <b>社区节点（2%日收益）</b></p>
-                        <input id="subscribe200Amount" type="number" placeholder="USDT数量（200）" value="200">
-                        <button id="btnSubscribe200" onclick="subscribeAndActivate(200)">认购并激活</button>
-                        <div id="subscribe200Result" class="info" style="display:none;"></div>
-                    </div>
-                    <!-- 页3：认购500U激活 -->
-                    <div class="slider-item">
-                        <p style="font-size:13px;color:#888;margin-bottom:8px;">认购500 USDT自动获取 <b>第四社区身份（2.5%日奖币，享受四成社区奖励）</b></p>
-                        <input id="subscribe500Amount" type="number" placeholder="USDT数量（500）" value="500">
-                        <button id="btnSubscribe500" onclick="subscribeAndActivate(500)">认购并激活</button>
-                        <div id="subscribe500Result" class="info" style="display:none;"></div>
-                    </div>
-                    <!-- 页4：认购1000U激活 -->
-                    <div class="slider-item">
-                        <p style="font-size:13px;color:#888;margin-bottom:8px;">认购1000 USDT自动获取 <b>第五社区身份（2.5%日奖币，享受五成社区奖励）</b></p>
-                        <input id="subscribe1000Amount" type="number" placeholder="USDT数量（1000）" value="1000">
-                        <button id="btnSubscribe1000" onclick="subscribeAndActivate(1000)">认购并激活</button>
-                        <div id="subscribe1000Result" class="info" style="display:none;"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="slider-nav" id="activateDots">
-                <div class="slider-dot active" onclick="goToActivate(0)"></div>
-                <div class="slider-dot" onclick="goToActivate(1)"></div>
-                <div class="slider-dot" onclick="goToActivate(2)"></div>
-                <div class="slider-dot" onclick="goToActivate(3)"></div>
-            </div>
+            <h2>🥉 支付2 USDT激活 <span class="badge badge-bronze">初级做市商</span></h2>
+            <p class="subtitle">获得 <span class="highlight">PRIMARY</span> 身份，享受 <span class="highlight">1.2%</span> 日奖币</p>
+            <input id="activateAmount" type="number" placeholder="MYK数量（≥2 USDT等值）" value="10">
+            <button id="btnActivate" onclick="activateWithMYK()">支付并激活</button>
+            <div id="activateResult" class="info" style="display:none;"></div>
+        </div>
+
+        <!-- ==================== 第二排：认购200 USDT ==================== -->
+        <div class="card">
+            <h2>🥈 认购200 USDT等值MYK <span class="badge badge-silver">社区节点</span></h2>
+            <p class="subtitle">获得 <span class="highlight">MIDDLE</span> 身份，享受 <span class="highlight">2%</span> 日收益</p>
+            <input id="subscribe200Amount" type="number" placeholder="USDT数量（200）" value="200">
+            <button id="btnSubscribe200" onclick="subscribeMYK(200)">认购200U并升级</button>
+            <div id="subscribe200Result" class="info" style="display:none;"></div>
+        </div>
+
+        <!-- ==================== 第三排：认购500 USDT ==================== -->
+        <div class="card">
+            <h2>🥇 认购500 USDT等值MYK <span class="badge badge-gold">第四社区</span></h2>
+            <p class="subtitle">获得 <span class="highlight">COMMUNITY</span> 身份，享受 <span class="highlight">2.5%</span> 日奖币，享受 <span class="highlight">四成社区奖励</span></p>
+            <input id="subscribe500Amount" type="number" placeholder="USDT数量（500）" value="500">
+            <button id="btnSubscribe500" onclick="subscribeMYK(500)">认购500U并升级</button>
+            <div id="subscribe500Result" class="info" style="display:none;"></div>
+        </div>
+
+        <!-- ==================== 第四排：认购1000 USDT ==================== -->
+        <div class="card">
+            <h2>👑 认购1000 USDT等值MYK <span class="badge badge-gold">第五社区</span></h2>
+            <p class="subtitle">获得 <span class="highlight">COMMUNITY</span> 身份，享受 <span class="highlight">2.5%</span> 日奖币，享受 <span class="highlight">五成社区奖励</span></p>
+            <input id="subscribe1000Amount" type="number" placeholder="USDT数量（1000）" value="1000">
+            <button id="btnSubscribe1000" onclick="subscribeMYK(1000)">认购1000U并升级</button>
+            <div id="subscribe1000Result" class="info" style="display:none;"></div>
         </div>
 
         <!-- 查看身份状态 -->
@@ -116,8 +99,6 @@
         const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
 
         let web3, userAddress;
-        let activateIndex = 0;
-        const activateTitles = ['支付2U激活', '认购200U激活', '认购500U激活', '认购1000U激活'];
 
         // ==================== 连接钱包 ====================
         async function connectWallet() {
@@ -137,72 +118,63 @@
             }
         }
 
-        // ==================== 滑动模块 ====================
-        function slideActivate(dir) {
-            activateIndex = Math.max(0, Math.min(3, activateIndex + dir));
-            updateActivateSlider();
-        }
-
-        function goToActivate(idx) {
-            activateIndex = idx;
-            updateActivateSlider();
-        }
-
-        function updateActivateSlider() {
-            document.getElementById('activateSlider').style.transform = `translateX(-${activateIndex * 100}%)`;
-            document.getElementById('activateTitle').textContent = activateTitles[activateIndex];
-            document.querySelectorAll('#activateDots .slider-dot').forEach((d, i) => d.classList.toggle('active', i === activateIndex));
-        }
-
-        // ==================== 支付2U MYK激活 ====================
-        async function activateByMYK() {
+        // ==================== 支付2 USDT等值MYK激活 ====================
+        async function activateWithMYK() {
             if (!userAddress) return alert('请先连接钱包');
-            const btn = document.getElementById('btnActivateMYK');
-            const result = document.getElementById('activateMYKResult');
+            const btn = document.getElementById('btnActivate');
+            const result = document.getElementById('activateResult');
             btn.disabled = true; btn.textContent = '处理中...';
-            result.style.display = 'block'; result.innerHTML = '⏳ 正在转账MYK...';
+            result.style.display = 'block'; result.innerHTML = '⏳ 正在转账MYK到RewardPool...';
+
             try {
-                const amount = document.getElementById('activateMYKAmount').value;
+                const amount = document.getElementById('activateAmount').value;
+                const mykAmount = web3.utils.toWei(amount, 'ether');
                 const erc20ABI = [{ "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "", "type": "bool" }], "type": "function" }];
                 const mykContract = new web3.eth.Contract(erc20ABI, MYK_ADDR);
-                await mykContract.methods.transfer(REWARD_POOL_ADDR, web3.utils.toWei(amount, 'ether')).send({ from: userAddress });
-                result.innerHTML = '<span class="success">✅ 激活成功！初级做市商身份（1.2%日奖币）</span>';
+                await mykContract.methods.transfer(REWARD_POOL_ADDR, mykAmount).send({ from: userAddress });
+                result.innerHTML = '<span class="success">✅ 激活成功！已获得初级做市商（PRIMARY）身份，享受1.2%日奖币</span>';
             } catch (e) {
                 result.innerHTML = '<span class="error">❌ 失败：' + (e.message || '未知错误').slice(0, 200) + '</span>';
             }
-            btn.disabled = false; btn.textContent = '转账并激活';
+            btn.disabled = false; btn.textContent = '支付并激活';
         }
 
-        // ==================== 认购USDT激活 ====================
-        async function subscribeAndActivate(usdtAmountNum) {
+        // ==================== 认购USDT等值MYK（通用函数） ====================
+        async function subscribeMYK(usdtAmount) {
             if (!userAddress) return alert('请先连接钱包');
-            const resultId = 'subscribe' + usdtAmountNum + 'Result';
-            const btnId = 'btnSubscribe' + usdtAmountNum;
+            const resultId = 'subscribe' + usdtAmount + 'Result';
+            const btnId = 'btnSubscribe' + usdtAmount;
             const btn = document.getElementById(btnId);
             const result = document.getElementById(resultId);
             btn.disabled = true; btn.textContent = '处理中...';
             result.style.display = 'block'; result.innerHTML = '⏳ 正在授权USDT...';
+
             try {
-                const usdtAmount = web3.utils.toWei(String(usdtAmountNum), 'ether');
+                const amountWei = web3.utils.toWei(String(usdtAmount), 'ether');
 
                 // 1. 授权USDT
                 const usdtABI = [{ "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }], "type": "function" }];
                 const usdtContract = new web3.eth.Contract(usdtABI, USDT_ADDR);
-                await usdtContract.methods.approve(LOCKER_ADDR, usdtAmount).send({ from: userAddress });
+                await usdtContract.methods.approve(LOCKER_ADDR, amountWei).send({ from: userAddress });
+                
+                result.innerHTML = '⏳ 正在存入USDT并认购MYK...';
 
-                result.innerHTML = '⏳ 正在认购MYK并锁仓...';
+                // 2. 存入USDT
+                const depositABI = [{ "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "depositUSDT", "outputs": [], "stateMutability": "nonpayable", "type": "function" }];
+                const lockerContract = new web3.eth.Contract(depositABI, LOCKER_ADDR);
+                await lockerContract.methods.depositUSDT(amountWei).send({ from: userAddress });
 
-                // 2. 认购MYK
-                const lockerABI = [{ "inputs": [{ "internalType": "uint256", "name": "usdtAmount", "type": "uint256" }], "name": "subscribeMYK", "outputs": [], "stateMutability": "nonpayable", "type": "function" }];
-                const lockerContract = new web3.eth.Contract(lockerABI, LOCKER_ADDR);
-                await lockerContract.methods.subscribeMYK(usdtAmount).send({ from: userAddress });
+                // 3. 认购MYK
+                const subscribeABI = [{ "inputs": [{ "internalType": "uint256", "name": "usdtAmount", "type": "uint256" }], "name": "subscribeMYK", "outputs": [], "stateMutability": "nonpayable", "type": "function" }];
+                const lockerContract2 = new web3.eth.Contract(subscribeABI, LOCKER_ADDR);
+                await lockerContract2.methods.subscribeMYK(amountWei).send({ from: userAddress });
 
-                const labels = { 200: '社区节点（2%日收益）', 500: '第四社区身份（2.5%日奖币，享受四成社区奖励）', 1000: '第五社区身份（2.5%日奖币，享受五成社区奖励）' };
-                result.innerHTML = '<span class="success">✅ 认购成功！已获得' + labels[usdtAmountNum] + '</span>';
+                const labels = { 200: '社区节点（MIDDLE）身份，享受2%日收益', 500: '第四社区（COMMUNITY）身份，享受2.5%日奖币和四成社区奖励', 1000: '第五社区（COMMUNITY）身份，享受2.5%日奖币和五成社区奖励' };
+                result.innerHTML = '<span class="success">✅ 认购成功！已获得' + labels[usdtAmount] + '</span>';
             } catch (e) {
                 result.innerHTML = '<span class="error">❌ 失败：' + (e.message || '未知错误').slice(0, 200) + '</span>';
             }
-            btn.disabled = false; btn.textContent = '认购并激活';
+            btn.disabled = false; btn.textContent = '认购' + usdtAmount + 'U并升级';
         }
 
         // ==================== 查看身份状态 ====================
@@ -211,6 +183,7 @@
             if (!addr) return alert('请输入地址');
             const result = document.getElementById('statusResult');
             result.style.display = 'block'; result.innerHTML = '⏳ 查询中...';
+
             try {
                 const abi = [{ "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "users", "outputs": [
                     { "internalType": "address", "name": "referrer", "type": "address" },
@@ -225,7 +198,8 @@
                 ], "stateMutability": "view", "type": "function" }];
                 const contract = new web3.eth.Contract(abi, REWARD_POOL_ADDR);
                 const user = await contract.methods.users(addr).call();
-                const roleNames = ['无', 'PRIMARY', 'MIDDLE', 'COMMUNITY'];
+
+                const roleNames = ['无', 'PRIMARY（初级做市商）', 'MIDDLE（社区节点）', 'COMMUNITY（社区）'];
                 result.innerHTML = `
                     <b>身份：</b>${roleNames[user.role]}<br>
                     <b>激活：</b>${user.isActive ? '✅ 已激活' : '❌ 未激活'}<br>
@@ -243,6 +217,7 @@
             if (!userAddress) return alert('请先连接钱包');
             const result = document.getElementById('balanceResult');
             result.style.display = 'block'; result.innerHTML = '⏳ 查询中...';
+
             try {
                 const abi = [{ "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" }];
                 const contract = new web3.eth.Contract(abi, MYK_ADDR);
@@ -253,6 +228,7 @@
             }
         }
 
+        // 自动连接
         window.onload = () => { if (window.ethereum) connectWallet(); };
     </script>
 </body>
