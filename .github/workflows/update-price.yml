@@ -1,0 +1,27 @@
+name: Auto Update MYK Price
+
+on:
+  schedule:
+    - cron: '*/6 * * * *'  # 每6分钟执行一次
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  update-price:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm init -y && npm install web3
+
+      - name: Update Price
+        run: node update-price.js
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          RPC_URL: https://bsc-dataseed.binance.org/
