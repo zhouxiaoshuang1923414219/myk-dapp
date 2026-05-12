@@ -20,7 +20,6 @@
             margin-bottom: 14px; border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .card h2 { font-size: 16px; color: #4ecca3; margin-bottom: 10px; }
-        .card h3 { font-size: 14px; color: #f0a500; margin: 8px 0; }
         input {
             width: 100%; padding: 10px; border: 1px solid #2a2f52; border-radius: 10px;
             background: #0f1422; color: #fff; font-size: 14px; margin-bottom: 8px;
@@ -75,6 +74,17 @@
         <div class="result" id="userResult"></div>
     </div>
 
+    <!-- 上级奖励查询 -->
+    <div class="card">
+        <h2>🎁 上级奖励查询</h2>
+        <p style="font-size:12px;color:#888;margin-bottom:8px;">查询6层上级社区的奖励到账情况</p>
+        <div class="row">
+            <button onclick="checkUpRewards('MYK')">查MYK奖励</button>
+            <button onclick="checkUpRewards('USDT')">查USDT奖励</button>
+        </div>
+        <div class="result" id="rewardResult"></div>
+    </div>
+
     <!-- 锁仓状态 -->
     <div class="card">
         <h2>🔒 锁仓状态</h2>
@@ -115,7 +125,6 @@
 
     let web3, userAddress;
 
-    // 初始化
     window.addEventListener('load', async () => {
         if (window.ethereum) {
             web3 = new Web3(window.ethereum);
@@ -126,13 +135,74 @@
             `MYK: <span class="green">${MYK}</span>\nRewardPool: <span class="green">${REWARD_POOL}</span>\nLocker: <span class="green">${LOCKER}</span>\nFundManager: <span class="green">${FUND}</span>`;
     });
 
-    async function connect() {
-        const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        userAddress = accs[0]; document.getElementById('userAddr').value = userAddress;
-    }
-
     function R(elId) { return document.getElementById(elId); }
     function show(elId, text) { const e = R(elId); e.style.display = 'block'; e.innerHTML = text; }
+
+    // ==================== 上级奖励查询 ====================
+    async function checkUpRewards(tokenType) {
+        const addr = R('userAddr').value || userAddress;
+        if (!addr) { alert('请输入地址或连接钱包'); return; }
+        const r = R('rewardResult'); r.style.display = 'block'; r.innerHTML = '⏳ 查询6层上级社区...';
+
+        try {
+            // 1. 获取6层社区地址
+            const rpABI = [{ "inputs": [{ "type": "address" }], "name": "getAllCommunities", "outputs": [
+                { "type": "address" },{ "type": "address" },{ "type": "address" },
+                { "type": "address" },{ "type": "address" },{ "type": "address" }
+            ], "stateMutability": "view", "type": "function" }];
+            const rp = new web3.eth.Contract(rpABI, REWARD_POOL);
+            const communities = await rp.methods.getAllCommunities(addr).call();
+
+            const names = ['第一社区(C1)','第二社区(C2)','第三社区(C3)','第四社区(C4)','第五社区(C5)','第六社区(C6)'];
+            let lines = [`查询地址: <span class="yellow">${addr.slice(0,6)}...${addr.slice(-4)}</span>`, `代币类型: <span class="yellow">${tokenType}</span>`, ''];
+
+            if (communities[0] === '0x0000000000000000000000000000000000000000') {
+                lines.push('<span class="red">该用户没有上级社区</span>');
+            } else {
+                for (let i = 0; i < 6; i++) {
+                    const up = communities[i];
+                    if (up === '0x0000000000000000000000000000000000000000') {
+                        lines.push(`<span class="yellow">${names[i]}: 不存在</span>`);
+                    } else {
+                        try {
+                            // 查询上级的激活状态
+                            const userABI = [{ "inputs": [{ "type": "address" }], "name": "users", "outputs": [
+                                { "type": "address" },{ "type": "uint96" },{ "type": "uint96" },{ "type": "uint96" },
+                                { "type": "uint40" },{ "type": "uint40" },{ "type": "uint40" },{ "type": "uint8" },{ "type": "bool" }
+                            ], "stateMutability": "view", "type": "function" }];
+                            const userInfo = await new web3.eth.Contract(userABI, REWARD_POOL).methods.users(up).call();
+                            const active = userInfo[8];
+                            const roleNames = ['无','PRIMARY','MIDDLE','COMMUNITY'];
+
+                            // 查询余额
+                            let balance = '0';
+                            if (tokenType === 'MYK') {
+                                const balABI = [{ "inputs": [{ "type": "address" }], "name": "balanceOf", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" }];
+                                balance = await new web3.eth.Contract(balABI, MYK).methods.balanceOf(up).call();
+                                balance = parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(4) + ' MYK';
+                            } else {
+                                const balABI = [{ "inputs": [{ "type": "address" }], "name": "balanceOf", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" }];
+                                balance = await new web3.eth.Contract(balABI, USDT).methods.balanceOf(up).call();
+                                balance = parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(4) + ' USDT';
+                            }
+
+                            const status = active ? '<span class="green">已激活</span>' : '<span class="red">未激活</span>';
+                            lines.push(`${names[i]}: <span class="yellow">${up.slice(0,6)}...${up.slice(-4)}</span> | ${roleNames[userInfo[7]]} | ${status} | 余额: ${balance}`);
+                        } catch (e) {
+                            lines.push(`${names[i]}: <span class="yellow">${up.slice(0,6)}...${up.slice(-4)}</span> | <span class="red">查询失败</span>`);
+                        }
+                    }
+                }
+            }
+
+            lines.push('');
+            lines.push('<span class="yellow">💡 提示：奖励自动发放到上级钱包，查看余额即可确认是否到账</span>');
+
+            r.innerHTML = lines.join('\n');
+        } catch (e) {
+            r.innerHTML = '<span class="red">❌ 查询失败: ' + (e.message||'').slice(0, 200) + '</span>';
+        }
+    }
 
     // ==================== 关联核对 ====================
     async function checkAllLinks() {
@@ -141,30 +211,30 @@
         let lines = [];
 
         const mykABI = [
-            { "inputs": [], "name": "rewardPool", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "communityLocker", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
+            { "inputs": [], "name": "rewardPool", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "communityLocker", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" }
         ];
         const rpABI = [
-            { "inputs": [], "name": "mykToken", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "pair", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "communityLocker", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "fundManager", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
+            { "inputs": [], "name": "mykToken", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "pair", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "communityLocker", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "fundManager", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" }
         ];
         const lockABI = [
-            { "inputs": [], "name": "mykToken", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "rewardPool", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "dividendSource", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "usdt", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "pair", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
+            { "inputs": [], "name": "mykToken", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "rewardPool", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "dividendSource", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "usdt", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "pair", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" }
         ];
         const fundABI = [
-            { "inputs": [], "name": "myk", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "communityLocker", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "pair", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
-            { "inputs": [], "name": "rewardPool", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
+            { "inputs": [], "name": "myk", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "communityLocker", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "pair", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "rewardPool", "outputs": [{ "type": "address" }], "stateMutability": "view", "type": "function" }
         ];
 
-        function ok(n, a, e) { return a.toLowerCase() === e.toLowerCase() ? `<span class="tag tag-ok">✅</span> ${n}: ${a.slice(0,6)}...` : `<span class="tag tag-err">❌</span> ${n}: ${a.slice(0,6)}... 预期 ${e.slice(0,6)}...`; }
+        function ok(n, a, e) { return a === e ? `<span class="tag tag-ok">✅</span> ${n}: ${a.slice(0,6)}...` : `<span class="tag tag-err">❌</span> ${n}: ${a.slice(0,6)}... 预期 ${e.slice(0,6)}...`; }
 
         try {
             const m = new web3.eth.Contract(mykABI, MYK);
@@ -191,7 +261,7 @@
             lines.push(ok('mykToken', lk_m, MYK));
             lines.push(ok('rewardPool', lk_rp, REWARD_POOL));
             lines.push('dividendSource: ' + (lk_ds === '0x0000000000000000000000000000000000000000' ? '<span class="red">未设置</span>' : lk_ds.slice(0,6)+'...'));
-            lines.push('usdt: ' + (lk_u.toLowerCase() === USDT.toLowerCase() ? `<span class="tag tag-ok">✅</span> ${lk_u.slice(0,6)}...` : `<span class="red">错误</span>`));
+            lines.push('usdt: ' + (lk_u === USDT ? `<span class="tag tag-ok">✅</span> ${lk_u.slice(0,6)}...` : `<span class="red">错误</span>`));
             lines.push('pair: ' + (lk_p === '0x0000000000000000000000000000000000000000' ? '<span class="red">未设置</span>' : lk_p.slice(0,6)+'...'));
             lines.push('');
             lines.push('=== FundManager ===');
@@ -211,16 +281,9 @@
         if (!addr) { alert('请输入地址或连接钱包'); return; }
         const r = R('userResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "users", "outputs": [
-                { "internalType": "address", "name": "referrer", "type": "address" },
-                { "internalType": "uint96", "name": "invited", "type": "uint96" },
-                { "internalType": "uint96", "name": "todayBuy", "type": "uint96" },
-                { "internalType": "uint96", "name": "todayReward", "type": "uint96" },
-                { "internalType": "uint40", "name": "activatedAt", "type": "uint40" },
-                { "internalType": "uint40", "name": "lastRewardDay", "type": "uint40" },
-                { "internalType": "uint40", "name": "lastClaim", "type": "uint40" },
-                { "internalType": "uint8", "name": "role", "type": "uint8" },
-                { "internalType": "bool", "name": "isActive", "type": "bool" }
+            const abi = [{ "inputs": [{ "type": "address" }], "name": "users", "outputs": [
+                { "type": "address" },{ "type": "uint96" },{ "type": "uint96" },{ "type": "uint96" },
+                { "type": "uint40" },{ "type": "uint40" },{ "type": "uint40" },{ "type": "uint8" },{ "type": "bool" }
             ], "stateMutability": "view", "type": "function" }];
             const u = await new web3.eth.Contract(abi, REWARD_POOL).methods.users(addr).call();
             const roles = ['无','PRIMARY','MIDDLE','COMMUNITY'];
@@ -240,7 +303,7 @@
         if (!addr) { alert('请输入地址或连接钱包'); return; }
         const r = R('userResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [{ "internalType": "address", "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "internalType": "uint256", "name": "balance", "type": "uint256" }], "stateMutability": "view", "type": "function" }];
+            const abi = [{ "inputs": [{ "type": "address" }], "name": "balanceOf", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" }];
             const bal = await new web3.eth.Contract(abi, MYK).methods.balanceOf(addr).call();
             r.innerHTML = `💰 MYK余额: <span class="green">${parseFloat(web3.utils.fromWei(bal,'ether')).toFixed(4)}</span> MYK`;
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
@@ -252,12 +315,8 @@
         if (!addr) { alert('请输入地址'); return; }
         const r = R('lockResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [{ "internalType": "address", "name": "_u", "type": "address" }], "name": "getLockInfo", "outputs": [
-                { "internalType": "uint256", "name": "amount", "type": "uint256" },
-                { "internalType": "uint256", "name": "usdtValue", "type": "uint256" },
-                { "internalType": "uint256", "name": "unlockTime", "type": "uint256" },
-                { "internalType": "bool", "name": "isLocked", "type": "bool" },
-                { "internalType": "uint256", "name": "lockedAt", "type": "uint256" }
+            const abi = [{ "inputs": [{ "type": "address" }], "name": "getLockInfo", "outputs": [
+                { "type": "uint256" },{ "type": "uint256" },{ "type": "uint256" },{ "type": "bool" },{ "type": "uint256" }
             ], "stateMutability": "view", "type": "function" }];
             const info = await new web3.eth.Contract(abi, LOCKER).methods.getLockInfo(addr).call();
             r.innerHTML = [
@@ -275,7 +334,7 @@
         if (!addr) { alert('请输入地址'); return; }
         const r = R('lockResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [{ "internalType": "address", "name": "user", "type": "address" }], "name": "getUserRank", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }];
+            const abi = [{ "inputs": [{ "type": "address" }], "name": "getUserRank", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" }];
             const rank = await new web3.eth.Contract(abi, LOCKER).methods.getUserRank(addr).call();
             r.innerHTML = `🏅 排名: <span class="yellow">#${rank}</span>`;
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
@@ -286,32 +345,33 @@
         const r = R('globalResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
             const abi = [
-                { "inputs": [], "name": "totalActiveUsers", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "getContractBalance", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "getCurrentPrice", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "totalActiveUsers", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "getTotalCommunities", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "getContractBalance", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "getCurrentPrice", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" },
             ];
             const rp = new web3.eth.Contract(abi, REWARD_POOL);
-            const [users, bal, price] = await Promise.all([
-                rp.methods.totalActiveUsers().call(),
-                rp.methods.getContractBalance().call(),
-                rp.methods.getCurrentPrice().call(),
+            const [users, comm, bal, price] = await Promise.all([
+                rp.methods.totalActiveUsers().call(), rp.methods.getTotalCommunities().call(),
+                rp.methods.getContractBalance().call(), rp.methods.getCurrentPrice().call(),
             ]);
             r.innerHTML = [
                 `👥 活跃用户: <span class="yellow">${users}</span>`,
+                `🏘️ 社区总数: <span class="yellow">${comm}</span>`,
                 `💰 MYK余额: <span class="yellow">${parseFloat(web3.utils.fromWei(bal,'ether')).toFixed(2)}</span> MYK`,
                 `💵 当前价格: <span class="yellow">${parseFloat(web3.utils.fromWei(price,'ether')).toFixed(6)}</span> USDT/MYK`,
             ].join('\n');
-        } catch (e) { r.innerHTML = '<span class="red">失败: ' + (e.message||'').slice(0, 100) + '</span>'; }
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
     async function checkLockerStats() {
         const r = R('globalResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
             const abi = [
-                { "inputs": [], "name": "totalLockedValue", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "totalCommunities", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "getLockersCount", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "activeLockerCount", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "totalLockedValue", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "totalCommunities", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "getLockersCount", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "activeLockerCount", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" },
             ];
             const lk = new web3.eth.Contract(abi, LOCKER);
             const [tlv, tc, lc, alc] = await Promise.all([
@@ -324,18 +384,14 @@
                 `👤 锁仓人数: <span class="yellow">${lc}</span>`,
                 `📊 活跃排名数: <span class="yellow">${alc}</span>`,
             ].join('\n');
-        } catch (e) { r.innerHTML = '<span class="red">失败: ' + (e.message||'').slice(0, 100) + '</span>'; }
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
     async function checkFundStats() {
         const r = R('globalResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
             const abi = [{ "inputs": [], "name": "getContractInfo", "outputs": [
-                { "internalType": "uint256", "name": "usdtBalance", "type": "uint256" },
-                { "internalType": "uint256", "name": "mykBalance", "type": "uint256" },
-                { "internalType": "uint256", "name": "activeLP", "type": "uint256" },
-                { "internalType": "uint256", "name": "buyPool", "type": "uint256" },
-                { "internalType": "uint256", "name": "orderCount", "type": "uint256" }
+                { "type": "uint256" },{ "type": "uint256" },{ "type": "uint256" },{ "type": "uint256" },{ "type": "uint256" }
             ], "stateMutability": "view", "type": "function" }];
             const info = await new web3.eth.Contract(abi, FUND).methods.getContractInfo().call();
             r.innerHTML = [
@@ -345,15 +401,15 @@
                 `🛒 采购池: <span class="yellow">${web3.utils.fromWei(info[3],'ether')}</span> USDT`,
                 `📋 LP订单: <span class="yellow">${info[4]}</span>`,
             ].join('\n');
-        } catch (e) { r.innerHTML = '<span class="red">失败: ' + (e.message||'').slice(0, 100) + '</span>'; }
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
     async function checkPrice() {
         const r = R('priceResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
             const abi = [
-                { "inputs": [], "name": "getCurrentPrice", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "isPriceFresh", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "getCurrentPrice", "outputs": [{ "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "isPriceFresh", "outputs": [{ "type": "bool" }], "stateMutability": "view", "type": "function" },
             ];
             const rp = new web3.eth.Contract(abi, REWARD_POOL);
             const [price, fresh] = await Promise.all([rp.methods.getCurrentPrice().call(), rp.methods.isPriceFresh().call()]);
@@ -361,7 +417,7 @@
                 `💵 价格: <span class="yellow">${parseFloat(web3.utils.fromWei(price,'ether')).toFixed(8)}</span> USDT/MYK`,
                 `🕐 有效: ${fresh?'<span class="green">✅</span>':'<span class="red">❌ 过期</span>'}`,
             ].join('\n');
-        } catch (e) { r.innerHTML = '<span class="red">失败: ' + (e.message||'').slice(0, 100) + '</span>'; }
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 </script>
 </body>
