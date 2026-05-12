@@ -1,7 +1,0 @@
-{
-    "name": "myk-price-updater",
-    "version": "1.0.0",
-    "dependencies": {
-        "web3": "^1.10.0"
-    }
-}
