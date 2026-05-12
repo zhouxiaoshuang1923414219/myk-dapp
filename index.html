@@ -223,7 +223,6 @@
             line-height: 1.6;
             letter-spacing: 0.3px;
         }
-        /* 滑动切换开关样式 */
         .tab-switch {
             display: flex;
             background: #0f1422;
@@ -260,7 +259,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- 语言切换按钮 -->
         <div class="lang-switch" id="langToggle" onclick="toggleLanguage()">
             <span class="lang-icon">🌐</span>
             <span class="lang-text" id="langDisplay">EN</span>
@@ -268,7 +266,6 @@
 
         <h1 id="mainTitle">🌐 MYK 生态面板</h1>
 
-        <!-- 钱包连接区域 -->
         <div class="address-bar" id="walletSection">
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <span style="color:#aaa;" id="walletLabel">🔗 钱包</span>
@@ -277,24 +274,18 @@
             <button class="btn-sm" id="connectWalletBtn" onclick="connectWallet()">🔓 连接钱包</button>
         </div>
 
-        <!-- 第一排：激活初级做市商（带左右滑动切换） -->
         <div class="card">
             <h2><span id="activateTitle">🥉 激活初级</span> <span class="badge badge-bronze">PRIMARY</span></h2>
-            <!-- 滑动切换 -->
             <div class="tab-switch">
                 <button id="tabMYK" class="active" onclick="switchActivateTab('myk')">💎 MYK激活</button>
                 <button id="tabUSDT" onclick="switchActivateTab('usdt')">💵 USDT激活</button>
             </div>
-
-            <!-- MYK激活面板 -->
             <div id="panelMYK" class="tab-content active">
                 <p class="subtitle" id="activateDescMYK">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币<br>推荐3个节点激活 → 升级 <span class="highlight">MIDDLE (2%)</span></p>
                 <input id="activateAmount" type="number" placeholder="MYK数量 (≥2 USDT等值)" value="10" step="0.1">
                 <button id="btnActivateMYK" onclick="activatePrimary()">💸 支付MYK并激活</button>
                 <div id="activateResult" class="info" style="display:none;"></div>
             </div>
-
-            <!-- USDT激活面板 -->
             <div id="panelUSDT" class="tab-content">
                 <p class="subtitle" id="activateDescUSDT">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.2%</span>日奖币<br>推荐人获得25% USDT奖励，社区获得递减分成</p>
                 <input id="activateReferrer" type="text" placeholder="推荐人地址（必填）">
@@ -303,7 +294,6 @@
             </div>
         </div>
 
-        <!-- 第二排：认购200 USDT -->
         <div class="card">
             <h2><span id="sub200Title">🥈 认购200U</span> <span class="badge badge-silver">社区节点</span></h2>
             <p class="subtitle" id="sub200Desc">获得 <span class="highlight">MIDDLE</span> 身份，享受 <span class="highlight">2%</span> 日收益</p>
@@ -312,7 +302,6 @@
             <div id="subscribe200Result" class="info" style="display:none;"></div>
         </div>
 
-        <!-- 第三排：认购500 USDT -->
         <div class="card">
             <h2><span id="sub500Title">🥇 认购500U</span> <span class="badge badge-gold">第四社区</span></h2>
             <p class="subtitle" id="sub500Desc"><span class="highlight">COMMUNITY</span> 身份 · 2.5%日奖币 · <span class="highlight">四层社区奖励</span></p>
@@ -321,7 +310,6 @@
             <div id="subscribe500Result" class="info" style="display:none;"></div>
         </div>
 
-        <!-- 第四排：认购1000 USDT -->
         <div class="card">
             <h2><span id="sub1000Title">👑 认购1000U</span> <span class="badge badge-gold">第五社区</span></h2>
             <p class="subtitle" id="sub1000Desc"><span class="highlight">COMMUNITY</span> 身份 · 2.5%日奖币 · <span class="highlight">五层社区奖励</span></p>
@@ -330,7 +318,6 @@
             <div id="subscribe1000Result" class="info" style="display:none;"></div>
         </div>
 
-        <!-- 工具卡片 -->
         <div class="card" style="background: rgba(15, 20, 34, 0.9);">
             <h2 style="color:#ccc;" id="toolsTitle">🔍 身份与余额</h2>
             <input id="checkAddr" type="text" placeholder="钱包地址 (留空查询自己)" style="margin-bottom:8px;">
@@ -342,14 +329,12 @@
             <div id="balanceResult" class="info" style="display:none; margin-top:8px;"></div>
         </div>
 
-        <!-- 底部介绍 -->
         <div class="footer-note" id="footerNote">
             ✨ 这是 MYK 生态操作面板。是一个用于与去中心化应用（DApp）交互的前端界面，集成了钱包连接、提供可视化便捷操作工具。
         </div>
     </div>
 
     <script>
-        // ==================== 多语言文本配置 ====================
         const langTexts = {
             zh: {
                 mainTitle: '🌐 MYK 生态面板',
@@ -367,10 +352,10 @@
                 sub200Desc: '获得 <span class="highlight">MIDDLE</span> 身份，享受 <span class="highlight">2%</span> 日收益',
                 sub200Btn: '💰 认购200U升级',
                 sub500Title: '🥇 认购500U',
-                sub500Desc: '<span class="highlight">COMMUNITY</span> 身份 · 2.5%日奖币 · <span class="highlight">四成社区奖励</span>',
+                sub500Desc: '<span class="highlight">COMMUNITY</span> 身份 · 2.5%日奖币 · <span class="highlight">四层社区奖励</span>',
                 sub500Btn: '🌟 认购500U升级',
                 sub1000Title: '👑 认购1000U',
-                sub1000Desc: '<span class="highlight">COMMUNITY</span> 身份 · 2.5%日奖币 · <span class="highlight">五成社区奖励</span>',
+                sub1000Desc: '<span class="highlight">COMMUNITY</span> 身份 · 2.5%日奖币 · <span class="highlight">五层社区奖励</span>',
                 sub1000Btn: '🔥 认购1000U升级',
                 toolsTitle: '🔍 身份与余额',
                 checkAddrPlaceholder: '钱包地址 (留空查询自己)',
@@ -385,8 +370,8 @@
                 depositMYK: '⏳ 存入USDT并认购MYK...',
                 activateUSDTSuccess: '激活成功！已获得 PRIMARY 身份，享受1.2%日奖币',
                 subscribeSuccess200: '认购成功！社区节点 MIDDLE · 2%日收益',
-                subscribeSuccess500: '认购成功！第四社区 COMMUNITY · 2.5%日奖币 + 四成社区奖励',
-                subscribeSuccess1000: '认购成功！第五社区 COMMUNITY · 2.5%日奖币 + 五成社区奖励',
+                subscribeSuccess500: '认购成功！第四社区 COMMUNITY · 2.5%日奖币 + 四层社区奖励',
+                subscribeSuccess1000: '认购成功！第五社区 COMMUNITY · 2.5%日奖币 + 五层社区奖励',
             },
             en: {
                 mainTitle: '🌐 MYK Ecosystem',
@@ -404,10 +389,10 @@
                 sub200Desc: 'Get <span class="highlight">MIDDLE</span> role, enjoy <span class="highlight">2%</span> daily profit',
                 sub200Btn: '💰 Subscribe 200U',
                 sub500Title: '🥇 Subscribe 500U',
-                sub500Desc: '<span class="highlight">COMMUNITY</span> role · 2.5% daily · <span class="highlight">40% community reward</span>',
+                sub500Desc: '<span class="highlight">COMMUNITY</span> role · 2.5% daily · <span class="highlight">4-layer community reward</span>',
                 sub500Btn: '🌟 Subscribe 500U',
                 sub1000Title: '👑 Subscribe 1000U',
-                sub1000Desc: '<span class="highlight">COMMUNITY</span> role · 2.5% daily · <span class="highlight">50% community reward</span>',
+                sub1000Desc: '<span class="highlight">COMMUNITY</span> role · 2.5% daily · <span class="highlight">5-layer community reward</span>',
                 sub1000Btn: '🔥 Subscribe 1000U',
                 toolsTitle: '🔍 Status & Balance',
                 checkAddrPlaceholder: 'Wallet address (empty for self)',
@@ -422,8 +407,8 @@
                 depositMYK: '⏳ Depositing USDT & subscribing MYK...',
                 activateUSDTSuccess: 'Activated! PRIMARY role with 1.2% daily reward',
                 subscribeSuccess200: 'Subscribed! Community Node MIDDLE · 2% daily',
-                subscribeSuccess500: 'Subscribed! 4th Community · 2.5% daily + 40% reward',
-                subscribeSuccess1000: 'Subscribed! 5th Community · 2.5% daily + 50% reward',
+                subscribeSuccess500: 'Subscribed! 4th Community · 2.5% daily + 4-layer reward',
+                subscribeSuccess1000: 'Subscribed! 5th Community · 2.5% daily + 5-layer reward',
             }
         };
 
@@ -470,7 +455,6 @@
             }
         }
 
-        // ==================== 滑动切换 ====================
         function switchActivateTab(tab) {
             document.getElementById('tabMYK').classList.remove('active');
             document.getElementById('tabUSDT').classList.remove('active');
@@ -485,7 +469,6 @@
             }
         }
 
-        // ==================== 合约配置 ====================
         const MYK_ADDR = '0x4f08eb649A9BbC047cfAe4C9dcE050BBdfE857d1';
         const REWARD_POOL_ADDR = '0xF09558B770e8863C069462BB57EDa05fE6900Ca8';
         const LOCKER_ADDR = '0xa69c5F9952C2a917C744dCBbde47b394f6E7D765';
@@ -494,7 +477,6 @@
         let web3 = null;
         let userAddress = null;
 
-        // ==================== 初始化与钱包连接 ====================
         window.addEventListener('load', async () => {
             if (window.ethereum) {
                 try {
@@ -552,7 +534,6 @@
                 `<span class="error">❌ ${message}</span>`;
         }
 
-        // ==================== MYK激活 ====================
         async function activatePrimary() {
             if (!userAddress) { alert(currentLang === 'zh' ? '请先连接钱包' : 'Please connect wallet first'); return; }
             const btn = document.getElementById('btnActivateMYK');
@@ -581,7 +562,6 @@
             }
         }
 
-        // ==================== USDT激活 ====================
         async function activateWithUSDT() {
             if (!userAddress) { alert(currentLang === 'zh' ? '请先连接钱包' : 'Please connect wallet first'); return; }
             const ref = document.getElementById('activateReferrer').value.trim();
@@ -598,8 +578,6 @@
 
             try {
                 const activationFee = web3.utils.toWei('2', 'ether');
-
-                // 1. 授权USDT
                 const usdtABI = [{ "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value",
                         "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }],
                     "type": "function" }];
@@ -608,7 +586,6 @@
 
                 document.getElementById(resultId).innerHTML = '⏳ 正在支付2 USDT激活...';
 
-                // 2. 调用激活
                 const activateABI = [{ "inputs": [{ "internalType": "address", "name": "ref", "type": "address" }],
                     "name": "activateWithUSDT", "outputs": [], "stateMutability": "nonpayable", "type": "function" }];
                 const rewardPoolContract = new web3.eth.Contract(activateABI, REWARD_POOL_ADDR);
@@ -623,7 +600,6 @@
             }
         }
 
-        // ==================== 认购USDT ====================
         async function subscribeMYK(usdtAmount) {
             if (!userAddress) { alert(currentLang === 'zh' ? '请先连接钱包' : 'Please connect wallet first'); return; }
             const resultId = `subscribe${usdtAmount}Result`;
@@ -674,7 +650,6 @@
             }
         }
 
-        // ==================== 查询身份 ====================
         async function checkStatus() {
             const addrInput = document.getElementById('checkAddr').value.trim();
             const targetAddr = addrInput || userAddress;
@@ -715,7 +690,6 @@
             }
         }
 
-        // ==================== 查询MYK余额 ====================
         async function checkMYKBalance() {
             if (!userAddress) { alert(currentLang === 'zh' ? '请先连接钱包' : 'Connect wallet first'); return; }
             const resultEl = document.getElementById('balanceResult');
