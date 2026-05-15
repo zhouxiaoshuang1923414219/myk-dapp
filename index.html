@@ -62,13 +62,10 @@
 <body>
 <div class="container">
   <div class="lang-bar">
-    <div class="lang-toggle" id="langToggle">
-      <span>🌐</span> <span id="langText">EN</span>
-    </div>
+    <div class="lang-toggle" id="langToggle"><span>🌐</span> <span id="langText">EN</span></div>
   </div>
   <h1>🌐 MYK 生态面板</h1>
 
-  <!-- 钱包区域 -->
   <div class="glass-card" style="padding: 14px;">
     <div class="wallet-row">
       <span style="color:#b0b8d0;">🔗 钱包</span>
@@ -77,7 +74,6 @@
     <button class="btn btn-outline" id="connectWalletBtn" style="margin-top: 8px;">🔓 连接钱包</button>
   </div>
 
-  <!-- 激活卡片 -->
   <div class="glass-card">
     <h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2>
     <div class="tab-container" id="activateTabSwitch">
@@ -85,324 +81,226 @@
       <div class="tab" data-tab="usdt">💵 USDT激活</div>
     </div>
     <div id="panelMYK">
-      <div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币</div>
+      <div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK</div>
       <div class="price-row">
-        <span>当前价格: <span class="price-value" id="currentPrice">加载中...</span> USDT/MYK</span>
-        <span>建议量: <span class="price-value" id="suggestedMYK">--</span> MYK</span>
+        <span>价格: <span class="price-value" id="currentPrice">--</span> USDT/MYK</span>
+        <span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK</span>
       </div>
-      <input class="input-field" id="mykAmount" type="number" placeholder="MYK数量 (≥2 USDT等值)" value="10" step="0.1">
+      <input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="2.2" step="0.1">
       <button class="btn" id="activateMYKBtn">💸 支付MYK激活</button>
       <div class="info-box" id="activateMYKResult" style="display:none;"></div>
     </div>
     <div id="panelUSDT" style="display:none;">
-      <div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.2%</span>日奖币</div>
-      <div class="hint-text">⚠️ 推荐人由链上绑定关系自动识别</div>
+      <div class="desc">支付 <span class="highlight">2 USDT</span></div>
+      <div class="hint-text">推荐人由链上绑定关系自动识别</div>
       <input class="input-field" id="usdtRefInput" type="text" placeholder="推荐人地址（可选留空）">
       <button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button>
       <div class="info-box" id="activateUSDTResult" style="display:none;"></div>
     </div>
   </div>
 
-  <!-- 认购卡片 -->
   <div class="glass-card">
-    <h2>🥈 认购200U <span class="badge badge-silver">社区节点</span></h2>
-    <div class="desc">获得 <span class="highlight">MIDDLE</span> 身份 · 2%日奖币</div>
-    <input class="input-field" id="sub200Amount" type="number" placeholder="USDT数量" value="200" step="1">
-    <button class="btn" id="subscribe200Btn">💰 认购200U升级</button>
+    <h2>🥈 200U <span class="badge badge-silver">MIDDLE</span></h2>
+    <input class="input-field" id="sub200Amount" type="number" placeholder="USDT" value="200" step="1">
+    <button class="btn" id="subscribe200Btn">💰 认购200U</button>
     <div class="info-box" id="subscribe200Result" style="display:none;"></div>
   </div>
 
   <div class="glass-card">
-    <h2>🥇 认购500U <span class="badge badge-gold">第四社区</span></h2>
-    <div class="desc"><span class="highlight">COMMUNITY</span> · 2.5%日奖币 · 四层奖励</div>
-    <input class="input-field" id="sub500Amount" type="number" placeholder="USDT数量" value="500" step="1">
-    <button class="btn" id="subscribe500Btn">🌟 认购500U升级</button>
+    <h2>🥇 500U <span class="badge badge-gold">第四社区</span></h2>
+    <input class="input-field" id="sub500Amount" type="number" placeholder="USDT" value="500" step="1">
+    <button class="btn" id="subscribe500Btn">🌟 认购500U</button>
     <div class="info-box" id="subscribe500Result" style="display:none;"></div>
   </div>
 
   <div class="glass-card">
-    <h2>👑 认购1000U <span class="badge badge-gold">第五社区</span></h2>
-    <div class="desc"><span class="highlight">COMMUNITY</span> · 2.5%日奖币 · 五层奖励</div>
-    <input class="input-field" id="sub1000Amount" type="number" placeholder="USDT数量" value="1000" step="1">
-    <button class="btn" id="subscribe1000Btn">🔥 认购1000U升级</button>
+    <h2>👑 1000U <span class="badge badge-gold">第五社区</span></h2>
+    <input class="input-field" id="sub1000Amount" type="number" placeholder="USDT" value="1000" step="1">
+    <button class="btn" id="subscribe1000Btn">🔥 认购1000U</button>
     <div class="info-box" id="subscribe1000Result" style="display:none;"></div>
   </div>
 
-  <!-- 查询工具 -->
   <div class="glass-card">
-    <h2>🔍 身份与余额</h2>
-    <input class="input-field" id="checkAddrInput" type="text" placeholder="钱包地址 (留空查自己)">
+    <h2>🔍 查询</h2>
+    <input class="input-field" id="checkAddrInput" type="text" placeholder="地址 (留空=自己)">
     <div class="row-buttons">
-      <button class="btn" id="checkStatusBtn" style="flex:1;">📋 查询身份</button>
-      <button class="btn" id="checkBalanceBtn" style="flex:1;">💰 MYK余额</button>
+      <button class="btn" id="checkStatusBtn" style="flex:1;">📋 身份</button>
+      <button class="btn" id="checkBalanceBtn" style="flex:1;">💰 MYK</button>
+      <button class="btn" id="checkUSDTBtn" style="flex:1;">💵 USDT</button>
     </div>
     <div class="info-box" id="statusResult" style="display:none;"></div>
-    <div class="info-box" id="balanceResult" style="display:none; margin-top:8px;"></div>
   </div>
-  <div class="footer-note">
-    ✨ MYK 生态操作面板 · 去中心化交互工具
-  </div>
+  <div class="footer-note">✨ MYK 生态操作面板</div>
 </div>
 
 <script>
   (function() {
-    // ====== 最新合约地址 ======
-    const MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    const REWARD_POOL_ADDR = '0xdDc7ccc9620075a9107d2F2dE48f3374F67AB5Ce';
-    const GOV_ADDR = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
-    const FUND_ADDR = '0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027';
-    const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
+    const MYK = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
+    const RP = '0xdDc7ccc9620075a9107d2F2dE48f3374F67AB5Ce';
+    const GOV = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
+    const USDT = '0x55d398326f99059fF775485246999027B3197955';
 
-    let web3 = null;
-    let userAddress = null;
-    let currentLang = 'zh';
-    let currentPrice = 1e18; // 默认 1 USDT/MYK
+    let web3, userAddress, currentPrice = '1000000000000000000';
 
-    const i18n = {
-      zh: {
-        connectWallet: '🔓 连接钱包', notConnected: '未连接', processing: '处理中...',
-        authUSDT: '⏳ 授权USDT中...', activating: '⏳ 支付2 USDT激活...',
-        activateMYKSuccess: '激活成功！已获得 PRIMARY 身份，1.2%日奖币',
-        activateUSDTSuccess: 'USDT激活成功！PRIMARY身份已开启',
-        subscribeSuccess: '认购成功！',
-        noReferrer: '❌ 未绑定推荐人，请先通过MYK转账绑定关系',
-      },
-      en: {
-        connectWallet: '🔓 Connect Wallet', notConnected: 'Not Connected', processing: 'Processing...',
-        authUSDT: '⏳ Approving USDT...', activating: '⏳ Paying 2 USDT...',
-        activateMYKSuccess: 'Activated! PRIMARY role, 1.2% daily',
-        activateUSDTSuccess: 'USDT Activated! PRIMARY role',
-        subscribeSuccess: 'Subscribed!',
-        noReferrer: '❌ No referrer bound. Bind via MYK transfer first.',
-      }
-    };
+    function t(k) { return k; }
+    function $(id) { return document.getElementById(id); }
+    function a6(a) { return a.slice(0,6)+'...'+a.slice(-4); }
+    function n(w) { return parseFloat(Web3.utils.fromWei(w+'','ether')); }
 
-    function t(key) { return i18n[currentLang]?.[key] || key; }
-
-    // DOM
-    const walletDisplay = document.getElementById('walletDisplay');
-    const connectBtn = document.getElementById('connectWalletBtn');
-    const langToggle = document.getElementById('langToggle');
-    const langTextSpan = document.getElementById('langText');
-
-    function updateLangUI() {
-      langTextSpan.textContent = currentLang === 'zh' ? 'EN' : '中';
-      connectBtn.textContent = userAddress ? t('connectWallet') : t('connectWallet');
-      if (!userAddress) walletDisplay.textContent = t('notConnected');
-    }
-
-    function showResult(elementId, message, isSuccess = true) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      el.style.display = 'block';
-      el.innerHTML = isSuccess ? `✅ ${message}` : `${message}`;
-    }
-
-    function setButtonLoading(btn, text) { btn.disabled = true; btn.textContent = text || t('processing'); }
-    function resetButton(btn, text) { btn.disabled = false; btn.textContent = text; }
-
-    // ====== 钱包 ======
     async function connectWallet() {
-      if (!window.ethereum) { alert('请安装MetaMask或TP钱包'); return; }
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        web3 = new Web3(window.ethereum);
-        userAddress = accounts[0];
-        updateWalletDisplay();
-        document.getElementById('checkAddrInput').value = userAddress;
-        updateLangUI();
-        fetchPrice(); // 连接后获取价格
-      } catch (e) { alert('连接失败: ' + (e.message || '')); }
+      if (!window.ethereum) { alert('请安装MetaMask'); return; }
+      const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      web3 = new Web3(window.ethereum);
+      userAddress = accs[0];
+      $('walletDisplay').textContent = a6(userAddress);
+      $('walletDisplay').style.color = '#4ef0a8';
+      $('checkAddrInput').value = userAddress;
+      fetchPrice();
     }
 
-    function updateWalletDisplay() {
-      if (userAddress) {
-        walletDisplay.textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
-        walletDisplay.style.color = '#4ef0a8';
-      } else {
-        walletDisplay.textContent = t('notConnected');
-        walletDisplay.style.color = '#b0b8d0';
-      }
-    }
-
-    async function initWallet() {
-      if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-          if (accounts.length > 0) { userAddress = accounts[0]; updateWalletDisplay(); fetchPrice(); }
-        } catch (e) {}
-        window.ethereum.on('accountsChanged', (accounts) => {
-          userAddress = accounts.length > 0 ? accounts[0] : null;
-          updateWalletDisplay(); updateLangUI(); fetchPrice();
-        });
-      }
-    }
-
-    // ====== 价格获取 ======
     async function fetchPrice() {
       try {
-        if (!web3) return;
-        const priceAbi = [{"inputs":[],"name":"getCurrentPrice","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"}];
-        const rp = new web3.eth.Contract(priceAbi, REWARD_POOL_ADDR);
-        const p = await rp.methods.getCurrentPrice().call();
-        currentPrice = p;
-        const priceNum = parseFloat(web3.utils.fromWei(p, 'ether'));
-        document.getElementById('currentPrice').textContent = priceNum.toFixed(6);
-        // 计算建议 MYK 数量（2 USDT 等值 + 10% 缓冲）
-        const suggested = (2 / priceNum * 1.1).toFixed(4);
-        document.getElementById('suggestedMYK').textContent = suggested;
-        document.getElementById('mykAmount').value = suggested;
-      } catch (e) {
-        document.getElementById('currentPrice').textContent = '1.000000';
-        document.getElementById('suggestedMYK').textContent = '2.2';
-        document.getElementById('mykAmount').value = '2.2';
-      }
+        const sig = web3.eth.abi.encodeFunctionSignature('getCurrentPrice()').slice(2);
+        const data = await web3.eth.call({to:RP, data:'0x'+sig});
+        currentPrice = web3.eth.abi.decodeParameter('uint256', data);
+        const pn = n(currentPrice);
+        $('currentPrice').textContent = pn.toFixed(6);
+        const sug = (2 / pn * 1.1).toFixed(4);
+        $('suggestedMYK').textContent = sug;
+        $('mykAmount').value = sug;
+      } catch(e) { $('currentPrice').textContent = '1.0'; $('suggestedMYK').textContent = '2.2'; }
     }
 
-    // ====== 激活 ======
-    async function activateWithMYK() {
-      if (!userAddress) { alert('请先连接钱包'); return; }
-      const btn = document.getElementById('activateMYKBtn');
-      const amount = document.getElementById('mykAmount').value;
-      if (!amount || parseFloat(amount) <= 0) return;
-      setButtonLoading(btn, t('processing'));
+    // ====== 修复后的查询（使用 eth.call 原始方式） ======
+    async function checkStatus() {
+      const target = $('checkAddrInput').value.trim() || userAddress;
+      if (!target || !web3) { alert('请连接钱包或输入地址'); return; }
+      const el = $('statusResult'); el.style.display = 'block'; el.innerHTML = '⏳';
       try {
-        const mykWei = web3.utils.toWei(amount, 'ether');
-        const erc20Abi = [{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"type":"function"}];
-        const contract = new web3.eth.Contract(erc20Abi, MYK_ADDR);
-        await contract.methods.transfer(REWARD_POOL_ADDR, mykWei).send({ from: userAddress });
-        showResult('activateMYKResult', t('activateMYKSuccess'), true);
-      } catch (e) {
-        showResult('activateMYKResult', '❌ ' + (e.message?.slice(0, 150) || '失败'), false);
-      } finally { resetButton(btn, '💸 支付MYK激活'); }
+        const sig = web3.eth.abi.encodeFunctionSignature('users(address)').slice(2);
+        const encodedAddr = web3.eth.abi.encodeParameter('address', target).slice(2);
+        const data = '0x' + sig + encodedAddr;
+        const result = await web3.eth.call({to:RP, data:data});
+        const u = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], result);
+        const roles = ['无','PRIMARY','MIDDLE','COMMUNITY'];
+        const date = u[4] > 0 ? new Date(Number(u[4])*1000).toLocaleDateString() : '未激活';
+        el.innerHTML = `身份: ${roles[u[7]]} | 激活: ${u[8]?'✅':'❌'} | 推荐人: ${a6(u[0])} | 邀请: ${u[1]}人 | 激活日: ${date}`;
+      } catch(e) { el.innerHTML = '❌ 查询失败: '+(e.message||'').slice(0,100); }
     }
 
-    async function activateWithUSDT() {
-      if (!userAddress) { alert('请先连接钱包'); return; }
-      const btn = document.getElementById('activateUSDTBtn');
-      const resultEl = document.getElementById('activateUSDTResult');
-      resultEl.style.display = 'block';
-      resultEl.innerHTML = t('authUSDT');
-      setButtonLoading(btn, t('processing'));
+    async function checkBalance(token) {
+      if (!userAddress) return;
+      const el = $('statusResult'); el.style.display = 'block';
+      try {
+        const sig = web3.eth.abi.encodeFunctionSignature('balanceOf(address)').slice(2);
+        const encodedAddr = web3.eth.abi.encodeParameter('address', userAddress).slice(2);
+        const data = '0x' + sig + encodedAddr;
+        const addr = token === 'MYK' ? MYK : USDT;
+        const result = await web3.eth.call({to:addr, data:data});
+        const bal = web3.eth.abi.decodeParameter('uint256', result);
+        el.innerHTML += `\n${token}: ${n(bal).toFixed(4)}`;
+      } catch(e) {}
+    }
+
+    // ====== 激活 MYK ======
+    async function activateMYK() {
+      if (!userAddress) return;
+      const btn = $('activateMYKBtn');
+      const amount = $('mykAmount').value;
+      btn.disabled = true; btn.textContent = '处理中...';
+      try {
+        const mykWei = Web3.utils.toWei(amount, 'ether');
+        const sig = web3.eth.abi.encodeFunctionSignature('transfer(address,uint256)').slice(2);
+        const data = '0x' + sig + web3.eth.abi.encodeParameters(['address','uint256'], [RP, mykWei]).slice(2);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:MYK, data:data}]});
+        $('activateMYKResult').style.display = 'block';
+        $('activateMYKResult').innerHTML = '✅ 激活成功！';
+      } catch(e) { $('activateMYKResult').style.display = 'block'; $('activateMYKResult').innerHTML = '❌ '+(e.message||'').slice(0,100); }
+      finally { btn.disabled = false; btn.textContent = '💸 支付MYK激活'; }
+    }
+
+    // ====== 激活 USDT ======
+    async function activateUSDT() {
+      if (!userAddress) return;
+      const btn = $('activateUSDTBtn');
+      const el = $('activateUSDTResult');
+      el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...';
+      btn.disabled = true;
       try {
         const fee = web3.utils.toWei('2', 'ether');
-        const erc20Abi = [{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}];
-        const usdt = new web3.eth.Contract(erc20Abi, USDT_ADDR);
-        await usdt.methods.approve(REWARD_POOL_ADDR, fee).send({ from: userAddress });
-
-        resultEl.innerHTML = t('activating');
-        const refInput = document.getElementById('usdtRefInput').value.trim();
-        const refAddr = refInput || '0x0000000000000000000000000000000000000000';
-        const activateAbi = [{"inputs":[{"type":"address","name":"ref"}],"name":"activateWithUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"}];
-        const pool = new web3.eth.Contract(activateAbi, REWARD_POOL_ADDR);
-        await pool.methods.activateWithUSDT(refAddr).send({ from: userAddress });
-        showResult('activateUSDTResult', t('activateUSDTSuccess'), true);
-      } catch (e) {
-        const errMsg = e.message || '';
-        if (errMsg.includes('referrer required') || errMsg.includes('referrer not active')) {
-          showResult('activateUSDTResult', t('noReferrer'), false);
-        } else {
-          showResult('activateUSDTResult', '❌ ' + (errMsg.slice(0, 150) || '失败'), false);
-        }
-      } finally { resetButton(btn, '💵 支付2 USDT激活'); }
+        // approve
+        const appSig = web3.eth.abi.encodeFunctionSignature('approve(address,uint256)').slice(2);
+        const appData = '0x' + appSig + web3.eth.abi.encodeParameters(['address','uint256'], [RP, fee]).slice(2);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:USDT, data:appData}]});
+        el.innerHTML = '⏳ 激活中...';
+        // activate
+        const ref = $('usdtRefInput').value.trim() || '0x0000000000000000000000000000000000000000';
+        const actSig = web3.eth.abi.encodeFunctionSignature('activateWithUSDT(address)').slice(2);
+        const actData = '0x' + actSig + web3.eth.abi.encodeParameter('address', ref).slice(2);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:actData}]});
+        el.innerHTML = '✅ 激活成功！';
+      } catch(e) { el.innerHTML = '❌ '+(e.message||'').slice(0,150); }
+      finally { btn.disabled = false; }
     }
 
     // ====== 认购 ======
-    async function subscribe(usdtAmount, btnId, resultId) {
-      if (!userAddress) { alert('请先连接钱包'); return; }
-      const inputEl = document.getElementById(`sub${usdtAmount}Amount`);
-      let amount = usdtAmount;
-      if (inputEl && inputEl.value) { amount = parseFloat(inputEl.value) || usdtAmount; }
-      const btn = document.getElementById(btnId);
-      setButtonLoading(btn, '授权USDT...');
+    async function subscribe(amount, btnId, resultId) {
+      if (!userAddress) return;
+      const btn = $(btnId);
+      const el = $(resultId);
+      btn.disabled = true;
+      const wei = web3.utils.toWei(String(amount), 'ether');
       try {
-        const wei = web3.utils.toWei(String(amount), 'ether');
-        // 步骤1: 授权 USDT 给 CommunityGovernance
-        const erc20Abi = [{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}];
-        const usdt = new web3.eth.Contract(erc20Abi, USDT_ADDR);
-        await usdt.methods.approve(GOV_ADDR, wei).send({ from: userAddress });
+        // approve USDT to GOV
+        btn.textContent = '授权...';
+        el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...';
+        const appSig = web3.eth.abi.encodeFunctionSignature('approve(address,uint256)').slice(2);
+        const appData = '0x' + appSig + web3.eth.abi.encodeParameters(['address','uint256'], [GOV, wei]).slice(2);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:USDT, data:appData}]});
 
-        // 步骤2: depositUSDT
-        btn.textContent = '存入USDT...';
-        const depositAbi = [{"inputs":[{"type":"uint256","name":"amount"}],"name":"depositUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"}];
-        const gov = new web3.eth.Contract(depositAbi, GOV_ADDR);
-        await gov.methods.depositUSDT(wei).send({ from: userAddress });
+        // depositUSDT
+        btn.textContent = '存入...';
+        el.innerHTML = '⏳ 存入USDT...';
+        const depSig = web3.eth.abi.encodeFunctionSignature('depositUSDT(uint256)').slice(2);
+        const depData = '0x' + depSig + web3.eth.abi.encodeParameter('uint256', wei).slice(2);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:depData}]});
 
-        // 步骤3: subscribeMYK
-        btn.textContent = '认购MYK...';
-        const subAbi = [{"inputs":[{"type":"uint256","name":"usdtAmount"}],"name":"subscribeMYK","outputs":[],"stateMutability":"nonpayable","type":"function"}];
-        const gov2 = new web3.eth.Contract(subAbi, GOV_ADDR);
-        await gov2.methods.subscribeMYK(wei).send({ from: userAddress });
-
-        showResult(resultId, t('subscribeSuccess'), true);
-      } catch (e) {
-        showResult(resultId, '❌ ' + (e.message?.slice(0, 150) || '失败'), false);
-      } finally {
-        const labels = {200:'💰 认购200U升级', 500:'🌟 认购500U升级', 1000:'🔥 认购1000U升级'};
-        resetButton(btn, labels[usdtAmount] || '认购');
-      }
+        // subscribeMYK
+        btn.textContent = '认购...';
+        el.innerHTML = '⏳ 认购MYK...';
+        const subSig = web3.eth.abi.encodeFunctionSignature('subscribeMYK(uint256)').slice(2);
+        const subData = '0x' + subSig + web3.eth.abi.encodeParameter('uint256', wei).slice(2);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:subData}]});
+        el.innerHTML = '✅ 认购成功！';
+      } catch(e) { el.innerHTML = '❌ '+(e.message||'').slice(0,150); }
+      finally { btn.disabled = false; btn.textContent = amount >= 1000 ? '🔥 认购1000U' : amount >= 500 ? '🌟 认购500U' : '💰 认购200U'; }
     }
 
-    // ====== 查询 ======
-    async function checkStatus() {
-      const addrInput = document.getElementById('checkAddrInput').value.trim();
-      const target = addrInput || userAddress;
-      if (!target || !web3) { alert('请连接钱包或输入地址'); return; }
-      const el = document.getElementById('statusResult');
-      el.style.display = 'block'; el.innerHTML = '⏳ 查询中...';
-      try {
-        const abi = [{"inputs":[{"type":"address"}],"name":"users","outputs":[{"type":"address"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint8"},{"type":"bool"}],"stateMutability":"view","type":"function"}];
-        const contract = new web3.eth.Contract(abi, REWARD_POOL_ADDR);
-        const u = await contract.methods.users(target).call();
-        const roleMap = {0:'无', 1:'PRIMARY', 2:'MIDDLE', 3:'COMMUNITY'};
-        const date = u[4] > 0 ? new Date(Number(u[4]) * 1000).toLocaleDateString() : '未激活';
-        el.innerHTML = `🎭 身份：${roleMap[u[7]]||'?'} | 激活：${u[8]?'✅':'❌'} | 推荐人：${u[0].slice(0,6)}... | 邀请：${u[1]} | 激活日：${date}`;
-      } catch (e) { el.innerHTML = '❌ 查询失败'; }
-    }
-
-    async function checkMYKBalance() {
-      if (!userAddress) { alert('请先连接钱包'); return; }
-      const el = document.getElementById('balanceResult');
-      el.style.display = 'block'; el.innerHTML = '⏳ 查询中...';
-      try {
-        const abi = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
-        const contract = new web3.eth.Contract(abi, MYK_ADDR);
-        const balance = await contract.methods.balanceOf(userAddress).call();
-        el.innerHTML = `💰 MYK余额：${parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(4)} MYK`;
-      } catch (e) { el.innerHTML = '❌ 查询失败'; }
-    }
-
-    // ====== 标签切换 ======
-    function setupTabs() {
-      const tabs = document.querySelectorAll('#activateTabSwitch .tab');
-      tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-          tabs.forEach(t => t.classList.remove('active'));
-          this.classList.add('active');
-          const tabType = this.dataset.tab;
-          document.getElementById('panelMYK').style.display = tabType === 'myk' ? 'block' : 'none';
-          document.getElementById('panelUSDT').style.display = tabType === 'usdt' ? 'block' : 'none';
-        });
+    // ====== Tab ======
+    document.querySelectorAll('#activateTabSwitch .tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('#activateTabSwitch .tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const t = this.dataset.tab;
+        $('panelMYK').style.display = t === 'myk' ? 'block' : 'none';
+        $('panelUSDT').style.display = t === 'usdt' ? 'block' : 'none';
       });
-    }
+    });
 
-    // ====== 初始化 ======
-    window.addEventListener('load', () => {
-      initWallet();
-      setupTabs();
-      updateLangUI();
-      fetchPrice();
-
-      connectBtn.addEventListener('click', connectWallet);
-      langToggle.addEventListener('click', () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; updateLangUI(); });
-      document.getElementById('activateMYKBtn').addEventListener('click', activateWithMYK);
-      document.getElementById('activateUSDTBtn').addEventListener('click', activateWithUSDT);
-      document.getElementById('subscribe200Btn').addEventListener('click', () => subscribe(200, 'subscribe200Btn', 'subscribe200Result'));
-      document.getElementById('subscribe500Btn').addEventListener('click', () => subscribe(500, 'subscribe500Btn', 'subscribe500Result'));
-      document.getElementById('subscribe1000Btn').addEventListener('click', () => subscribe(1000, 'subscribe1000Btn', 'subscribe1000Result'));
-      document.getElementById('checkStatusBtn').addEventListener('click', checkStatus);
-      document.getElementById('checkBalanceBtn').addEventListener('click', checkMYKBalance);
+    window.addEventListener('load', async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        try { const a = await window.ethereum.request({method:'eth_accounts'}); if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';$('checkAddrInput').value=userAddress;fetchPrice();} } catch(e) {}
+      }
+      $('connectWalletBtn').addEventListener('click', connectWallet);
+      $('activateMYKBtn').addEventListener('click', activateMYK);
+      $('activateUSDTBtn').addEventListener('click', activateUSDT);
+      $('subscribe200Btn').addEventListener('click', ()=>subscribe(200,'subscribe200Btn','subscribe200Result'));
+      $('subscribe500Btn').addEventListener('click', ()=>subscribe(500,'subscribe500Btn','subscribe500Result'));
+      $('subscribe1000Btn').addEventListener('click', ()=>subscribe(1000,'subscribe1000Btn','subscribe1000Result'));
+      $('checkStatusBtn').addEventListener('click', checkStatus);
+      $('checkBalanceBtn').addEventListener('click', ()=>checkBalance('MYK'));
+      $('checkUSDTBtn').addEventListener('click', ()=>checkBalance('USDT'));
     });
   })();
 </script>
