@@ -1,226 +1,62 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
   <title>MYK 生态 · 节点面板</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js">
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: radial-gradient(circle at 30% 10%, #1e2a4a, #0b0f1a);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      margin: 0;
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 16px; margin: 0;
     }
-    .container {
-      max-width: 500px;
-      width: 100%;
-      margin: 0 auto;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .lang-bar {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: -8px;
-    }
+    .container { max-width: 500px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+    .lang-bar { display: flex; justify-content: flex-end; margin-bottom: -8px; }
     .lang-toggle {
-      background: rgba(20, 25, 45, 0.8);
-      backdrop-filter: blur(12px);
-      padding: 8px 16px;
-      border-radius: 40px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.2s;
-      font-weight: 600;
-      font-size: 14px;
-      color: #f0b90b;
+      background: rgba(20, 25, 45, 0.8); backdrop-filter: blur(12px);
+      padding: 8px 16px; border-radius: 40px; display: flex; align-items: center; gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2); cursor: pointer; user-select: none;
+      transition: all 0.2s; font-weight: 600; font-size: 14px; color: #f0b90b;
     }
-    .lang-toggle:hover {
-      background: rgba(233, 69, 96, 0.25);
-      border-color: #e94560;
-    }
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      text-align: center;
-      color: #f7c744;
-      text-shadow: 0 4px 12px rgba(0,0,0,0.6);
-      letter-spacing: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
+    .lang-toggle:hover { background: rgba(233, 69, 96, 0.25); border-color: #e94560; }
+    h1 { font-size: 2rem; font-weight: 700; text-align: center; color: #f7c744; text-shadow: 0 4px 12px rgba(0,0,0,0.6); letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .glass-card {
-      background: rgba(18, 22, 40, 0.7);
-      backdrop-filter: blur(16px);
-      border-radius: 28px;
-      padding: 20px 18px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
-      transition: border 0.2s;
+      background: rgba(18, 22, 40, 0.7); backdrop-filter: blur(16px); border-radius: 28px;
+      padding: 20px 18px; border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5); transition: border 0.2s;
     }
-    .glass-card:hover {
-      border-color: rgba(233, 69, 96, 0.5);
-    }
-    .wallet-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #0f1221;
-      border-radius: 20px;
-      padding: 12px 16px;
-      margin-bottom: 5px;
-    }
-    .wallet-addr {
-      font-family: 'Fira Code', monospace;
-      color: #4ef0a8;
-      font-weight: 600;
-      font-size: 15px;
-    }
+    .glass-card:hover { border-color: rgba(233, 69, 96, 0.5); }
+    .wallet-row { display: flex; align-items: center; justify-content: space-between; background: #0f1221; border-radius: 20px; padding: 12px 16px; margin-bottom: 5px; }
+    .wallet-addr { font-family: 'Fira Code', monospace; color: #4ef0a8; font-weight: 600; font-size: 15px; }
     .btn {
-      background: linear-gradient(135deg, #e94560, #b92b4a);
-      border: none;
-      color: white;
-      font-weight: 700;
-      padding: 14px 18px;
-      border-radius: 18px;
-      cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 0 8px 18px rgba(233, 69, 96, 0.3);
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      width: 100%;
-      font-size: 15px;
+      background: linear-gradient(135deg, #e94560, #b92b4a); border: none; color: white;
+      font-weight: 700; padding: 14px 18px; border-radius: 18px; cursor: pointer;
+      transition: 0.2s; box-shadow: 0 8px 18px rgba(233, 69, 96, 0.3);
+      text-transform: uppercase; letter-spacing: 0.4px; width: 100%; font-size: 15px;
     }
-    .btn:active {
-      transform: scale(0.97);
-    }
-    .btn:disabled {
-      opacity: 0.6;
-      box-shadow: none;
-      transform: none;
-    }
-    .btn-outline {
-      background: #2d325a;
-      box-shadow: none;
-      padding: 10px 16px;
-    }
-    .tab-container {
-      display: flex;
-      background: #0c0f1c;
-      border-radius: 16px;
-      padding: 4px;
-      margin: 12px 0;
-      border: 1px solid #2d3355;
-    }
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 10px;
-      border-radius: 14px;
-      font-weight: 600;
-      color: #9aa0c0;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .tab.active {
-      background: #e94560;
-      color: white;
-    }
-    .input-field {
-      background: #0d1020;
-      border: 1px solid #394056;
-      border-radius: 16px;
-      padding: 14px 16px;
-      color: white;
-      width: 100%;
-      margin: 10px 0 12px;
-      font-size: 15px;
-      outline: none;
-      transition: 0.2s;
-    }
-    .input-field:focus {
-      border-color: #e94560;
-    }
-    .badge {
-      background: #cd7f32;
-      color: #000;
-      padding: 2px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      margin-left: 6px;
-    }
-    .badge-gold {
-      background: #f7c744;
-    }
-    .badge-silver {
-      background: #b0b8c0;
-    }
-    .info-box {
-      background: #0a0d16;
-      border-radius: 14px;
-      padding: 12px;
-      margin-top: 12px;
-      font-size: 14px;
-      border-left: 4px solid #e94560;
-      word-break: break-word;
-      color: #ccd6f0;
-    }
-    .result-text {
-      font-weight: 500;
-    }
-    .row-buttons {
-      display: flex;
-      gap: 10px;
-    }
-    h2 {
-      font-size: 1.2rem;
-      color: #f0b90b;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 6px;
-    }
-    .desc {
-      color: #a3adc9;
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-    .highlight {
-      color: #4ef0a8;
-      font-weight: 700;
-    }
-    .footer-note {
-      text-align: center;
-      font-size: 12px;
-      color: #7b85a6;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    .hint-text {
-      color: #f0b90b;
-      font-size: 12px;
-      margin: 4px 0 8px;
-    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.6; box-shadow: none; transform: none; }
+    .btn-outline { background: #2d325a; box-shadow: none; padding: 10px 16px; }
+    .tab-container { display: flex; background: #0c0f1c; border-radius: 16px; padding: 4px; margin: 12px 0; border: 1px solid #2d3355; }
+    .tab { flex: 1; text-align: center; padding: 10px; border-radius: 14px; font-weight: 600; color: #9aa0c0; cursor: pointer; transition: 0.2s; }
+    .tab.active { background: #e94560; color: white; }
+    .input-field { background: #0d1020; border: 1px solid #394056; border-radius: 16px; padding: 14px 16px; color: white; width: 100%; margin: 10px 0 12px; font-size: 15px; outline: none; transition: 0.2s; }
+    .input-field:focus { border-color: #e94560; }
+    .badge { background: #cd7f32; color: #000; padding: 2px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-left: 6px; }
+    .badge-gold { background: #f7c744; }
+    .badge-silver { background: #b0b8c0; }
+    .info-box { background: #0a0d16; border-radius: 14px; padding: 12px; margin-top: 12px; font-size: 14px; border-left: 4px solid #e94560; word-break: break-word; color: #ccd6f0; }
+    .row-buttons { display: flex; gap: 10px; }
+    h2 { font-size: 1.2rem; color: #f0b90b; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .desc { color: #a3adc9; font-size: 14px; margin-bottom: 8px; }
+    .highlight { color: #4ef0a8; font-weight: 700; }
+    .footer-note { text-align: center; font-size: 12px; color: #7b85a6; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .hint-text { color: #f0b90b; font-size: 12px; margin: 4px 0 8px; }
+    .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; color: #a3adc9; }
+    .price-value { color: #4ef0a8; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -250,6 +86,10 @@
     </div>
     <div id="panelMYK">
       <div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币</div>
+      <div class="price-row">
+        <span>当前价格: <span class="price-value" id="currentPrice">加载中...</span> USDT/MYK</span>
+        <span>建议量: <span class="price-value" id="suggestedMYK">--</span> MYK</span>
+      </div>
       <input class="input-field" id="mykAmount" type="number" placeholder="MYK数量 (≥2 USDT等值)" value="10" step="0.1">
       <button class="btn" id="activateMYKBtn">💸 支付MYK激活</button>
       <div class="info-box" id="activateMYKResult" style="display:none;"></div>
@@ -257,12 +97,13 @@
     <div id="panelUSDT" style="display:none;">
       <div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.2%</span>日奖币</div>
       <div class="hint-text">⚠️ 推荐人由链上绑定关系自动识别</div>
+      <input class="input-field" id="usdtRefInput" type="text" placeholder="推荐人地址（可选留空）">
       <button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button>
       <div class="info-box" id="activateUSDTResult" style="display:none;"></div>
     </div>
   </div>
 
-  <!-- 认购卡片 200/500/1000 -->
+  <!-- 认购卡片 -->
   <div class="glass-card">
     <h2>🥈 认购200U <span class="badge badge-silver">社区节点</span></h2>
     <div class="desc">获得 <span class="highlight">MIDDLE</span> 身份 · 2%日奖币</div>
@@ -305,67 +146,49 @@
 
 <script>
   (function() {
-    // ------ 合约地址 ------
-    const MYK_ADDR = '0x4f08eb649A9BbC047cfAe4C9dcE050BBdfE857d1';
-    const REWARD_POOL_ADDR = '0xF09558B770e8863C069462BB57EDa05fE6900Ca8';
-    const LOCKER_ADDR = '0xa69c5F9952C2a917C744dCBbde47b394f6E7D765';
+    // ====== 最新合约地址 ======
+    const MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
+    const REWARD_POOL_ADDR = '0xdDc7ccc9620075a9107d2F2dE48f3374F67AB5Ce';
+    const GOV_ADDR = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
+    const FUND_ADDR = '0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027';
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
 
-    // ------ 全局状态 ------
     let web3 = null;
     let userAddress = null;
     let currentLang = 'zh';
+    let currentPrice = 1e18; // 默认 1 USDT/MYK
 
-    // ------ 多语言文本 ------
     const i18n = {
       zh: {
-        connectWallet: '🔓 连接钱包',
-        notConnected: '未连接',
-        processing: '处理中...',
-        authUSDT: '⏳ 授权USDT中...',
-        activating: '⏳ 支付2 USDT激活...',
+        connectWallet: '🔓 连接钱包', notConnected: '未连接', processing: '处理中...',
+        authUSDT: '⏳ 授权USDT中...', activating: '⏳ 支付2 USDT激活...',
         activateMYKSuccess: '激活成功！已获得 PRIMARY 身份，1.2%日奖币',
         activateUSDTSuccess: 'USDT激活成功！PRIMARY身份已开启',
-        subscribeSuccess200: '认购200U成功！MIDDLE节点·2%日奖',
-        subscribeSuccess500: '认购500U成功！第四社区·2.5%日奖',
-        subscribeSuccess1000: '认购1000U成功！第五社区·2.5%日奖',
-        noReferrer: '❌ 未绑定推荐人，请先通过MYK转账或绑定功能连接推荐人',
+        subscribeSuccess: '认购成功！',
+        noReferrer: '❌ 未绑定推荐人，请先通过MYK转账绑定关系',
       },
       en: {
-        connectWallet: '🔓 Connect Wallet',
-        notConnected: 'Not Connected',
-        processing: 'Processing...',
-        authUSDT: '⏳ Approving USDT...',
-        activating: '⏳ Paying 2 USDT...',
+        connectWallet: '🔓 Connect Wallet', notConnected: 'Not Connected', processing: 'Processing...',
+        authUSDT: '⏳ Approving USDT...', activating: '⏳ Paying 2 USDT...',
         activateMYKSuccess: 'Activated! PRIMARY role, 1.2% daily',
         activateUSDTSuccess: 'USDT Activated! PRIMARY role',
-        subscribeSuccess200: 'Subscribed 200U! MIDDLE node',
-        subscribeSuccess500: 'Subscribed 500U! 4th Community',
-        subscribeSuccess1000: 'Subscribed 1000U! 5th Community',
-        noReferrer: '❌ No referrer bound. Please bind via MYK transfer or bind function first.',
+        subscribeSuccess: 'Subscribed!',
+        noReferrer: '❌ No referrer bound. Bind via MYK transfer first.',
       }
     };
 
-    // DOM元素
+    function t(key) { return i18n[currentLang]?.[key] || key; }
+
+    // DOM
     const walletDisplay = document.getElementById('walletDisplay');
     const connectBtn = document.getElementById('connectWalletBtn');
     const langToggle = document.getElementById('langToggle');
     const langTextSpan = document.getElementById('langText');
 
-    // 工具函数
-    function t(key) {
-      return i18n[currentLang]?.[key] || key;
-    }
-
     function updateLangUI() {
       langTextSpan.textContent = currentLang === 'zh' ? 'EN' : '中';
       connectBtn.textContent = userAddress ? t('connectWallet') : t('connectWallet');
       if (!userAddress) walletDisplay.textContent = t('notConnected');
-    }
-
-    function switchLanguage() {
-      currentLang = currentLang === 'zh' ? 'en' : 'zh';
-      updateLangUI();
     }
 
     function showResult(elementId, message, isSuccess = true) {
@@ -375,24 +198,12 @@
       el.innerHTML = isSuccess ? `✅ ${message}` : `${message}`;
     }
 
-    function setButtonLoading(btn, loadingText = null) {
-      if (!btn) return;
-      btn.disabled = true;
-      btn.textContent = loadingText || t('processing');
-    }
+    function setButtonLoading(btn, text) { btn.disabled = true; btn.textContent = text || t('processing'); }
+    function resetButton(btn, text) { btn.disabled = false; btn.textContent = text; }
 
-    function resetButton(btn, originalText) {
-      if (!btn) return;
-      btn.disabled = false;
-      btn.textContent = originalText;
-    }
-
-    // 钱包连接
+    // ====== 钱包 ======
     async function connectWallet() {
-      if (!window.ethereum) {
-        alert('请安装MetaMask或TP钱包');
-        return;
-      }
+      if (!window.ethereum) { alert('请安装MetaMask或TP钱包'); return; }
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         web3 = new Web3(window.ethereum);
@@ -400,9 +211,8 @@
         updateWalletDisplay();
         document.getElementById('checkAddrInput').value = userAddress;
         updateLangUI();
-      } catch (e) {
-        alert('连接失败: ' + (e.message || ''));
-      }
+        fetchPrice(); // 连接后获取价格
+      } catch (e) { alert('连接失败: ' + (e.message || '')); }
     }
 
     function updateWalletDisplay() {
@@ -415,26 +225,42 @@
       }
     }
 
-    // 初始化检查已连接账户
     async function initWallet() {
       if (window.ethereum) {
         web3 = new Web3(window.ethereum);
         try {
           const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-          if (accounts.length > 0) {
-            userAddress = accounts[0];
-            updateWalletDisplay();
-          }
+          if (accounts.length > 0) { userAddress = accounts[0]; updateWalletDisplay(); fetchPrice(); }
         } catch (e) {}
         window.ethereum.on('accountsChanged', (accounts) => {
           userAddress = accounts.length > 0 ? accounts[0] : null;
-          updateWalletDisplay();
-          updateLangUI();
+          updateWalletDisplay(); updateLangUI(); fetchPrice();
         });
       }
     }
 
-    // ---------- 激活逻辑 ----------
+    // ====== 价格获取 ======
+    async function fetchPrice() {
+      try {
+        if (!web3) return;
+        const priceAbi = [{"inputs":[],"name":"getCurrentPrice","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"}];
+        const rp = new web3.eth.Contract(priceAbi, REWARD_POOL_ADDR);
+        const p = await rp.methods.getCurrentPrice().call();
+        currentPrice = p;
+        const priceNum = parseFloat(web3.utils.fromWei(p, 'ether'));
+        document.getElementById('currentPrice').textContent = priceNum.toFixed(6);
+        // 计算建议 MYK 数量（2 USDT 等值 + 10% 缓冲）
+        const suggested = (2 / priceNum * 1.1).toFixed(4);
+        document.getElementById('suggestedMYK').textContent = suggested;
+        document.getElementById('mykAmount').value = suggested;
+      } catch (e) {
+        document.getElementById('currentPrice').textContent = '1.000000';
+        document.getElementById('suggestedMYK').textContent = '2.2';
+        document.getElementById('mykAmount').value = '2.2';
+      }
+    }
+
+    // ====== 激活 ======
     async function activateWithMYK() {
       if (!userAddress) { alert('请先连接钱包'); return; }
       const btn = document.getElementById('activateMYKBtn');
@@ -443,65 +269,34 @@
       setButtonLoading(btn, t('processing'));
       try {
         const mykWei = web3.utils.toWei(amount, 'ether');
-        const erc20Abi = [{
-          "constant": false,
-          "inputs": [
-            { "name": "_to", "type": "address" },
-            { "name": "_value", "type": "uint256" }
-          ],
-          "name": "transfer",
-          "outputs": [{ "name": "", "type": "bool" }],
-          "type": "function"
-        }];
+        const erc20Abi = [{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"type":"function"}];
         const contract = new web3.eth.Contract(erc20Abi, MYK_ADDR);
         await contract.methods.transfer(REWARD_POOL_ADDR, mykWei).send({ from: userAddress });
         showResult('activateMYKResult', t('activateMYKSuccess'), true);
       } catch (e) {
         showResult('activateMYKResult', '❌ ' + (e.message?.slice(0, 150) || '失败'), false);
-      } finally {
-        resetButton(btn, '💸 支付MYK激活');
-      }
+      } finally { resetButton(btn, '💸 支付MYK激活'); }
     }
 
     async function activateWithUSDT() {
       if (!userAddress) { alert('请先连接钱包'); return; }
-
       const btn = document.getElementById('activateUSDTBtn');
       const resultEl = document.getElementById('activateUSDTResult');
       resultEl.style.display = 'block';
       resultEl.innerHTML = t('authUSDT');
       setButtonLoading(btn, t('processing'));
-
       try {
         const fee = web3.utils.toWei('2', 'ether');
-
-        // 步骤1：授权USDT
-        const erc20Abi = [{
-          "constant": false,
-          "inputs": [
-            { "name": "_spender", "type": "address" },
-            { "name": "_value", "type": "uint256" }
-          ],
-          "name": "approve",
-          "outputs": [{ "name": "", "type": "bool" }],
-          "type": "function"
-        }];
+        const erc20Abi = [{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}];
         const usdt = new web3.eth.Contract(erc20Abi, USDT_ADDR);
         await usdt.methods.approve(REWARD_POOL_ADDR, fee).send({ from: userAddress });
 
-        // 步骤2：调用激活（传入零地址，合约自动使用链上绑定的推荐人）
         resultEl.innerHTML = t('activating');
-        const activateAbi = [{
-          "inputs": [{ "internalType": "address", "name": "ref", "type": "address" }],
-          "name": "activateWithUSDT",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        }];
+        const refInput = document.getElementById('usdtRefInput').value.trim();
+        const refAddr = refInput || '0x0000000000000000000000000000000000000000';
+        const activateAbi = [{"inputs":[{"type":"address","name":"ref"}],"name":"activateWithUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"}];
         const pool = new web3.eth.Contract(activateAbi, REWARD_POOL_ADDR);
-        await pool.methods.activateWithUSDT('0x0000000000000000000000000000000000000000')
-          .send({ from: userAddress });
-
+        await pool.methods.activateWithUSDT(refAddr).send({ from: userAddress });
         showResult('activateUSDTResult', t('activateUSDTSuccess'), true);
       } catch (e) {
         const errMsg = e.message || '';
@@ -510,130 +305,75 @@
         } else {
           showResult('activateUSDTResult', '❌ ' + (errMsg.slice(0, 150) || '失败'), false);
         }
-      } finally {
-        resetButton(btn, '💵 支付2 USDT激活');
-      }
+      } finally { resetButton(btn, '💵 支付2 USDT激活'); }
     }
 
-    // ---------- 认购逻辑 ----------
-    async function subscribe(usdtAmount, btnId, resultId, successKey) {
+    // ====== 认购 ======
+    async function subscribe(usdtAmount, btnId, resultId) {
       if (!userAddress) { alert('请先连接钱包'); return; }
       const inputEl = document.getElementById(`sub${usdtAmount}Amount`);
       let amount = usdtAmount;
-      if (inputEl && inputEl.value) {
-        amount = parseFloat(inputEl.value) || usdtAmount;
-      }
+      if (inputEl && inputEl.value) { amount = parseFloat(inputEl.value) || usdtAmount; }
       const btn = document.getElementById(btnId);
-      setButtonLoading(btn, '授权中...');
+      setButtonLoading(btn, '授权USDT...');
       try {
         const wei = web3.utils.toWei(String(amount), 'ether');
-        const erc20Abi = [{
-          "constant": false,
-          "inputs": [
-            { "name": "_spender", "type": "address" },
-            { "name": "_value", "type": "uint256" }
-          ],
-          "name": "approve",
-          "outputs": [{ "name": "", "type": "bool" }],
-          "type": "function"
-        }];
+        // 步骤1: 授权 USDT 给 CommunityGovernance
+        const erc20Abi = [{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}];
         const usdt = new web3.eth.Contract(erc20Abi, USDT_ADDR);
-        await usdt.methods.approve(LOCKER_ADDR, wei).send({ from: userAddress });
+        await usdt.methods.approve(GOV_ADDR, wei).send({ from: userAddress });
 
-        btn.textContent = '认购中...';
-        const depositAbi = [{
-          "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }],
-          "name": "depositUSDT",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        }];
-        const locker = new web3.eth.Contract(depositAbi, LOCKER_ADDR);
-        await locker.methods.depositUSDT(wei).send({ from: userAddress });
+        // 步骤2: depositUSDT
+        btn.textContent = '存入USDT...';
+        const depositAbi = [{"inputs":[{"type":"uint256","name":"amount"}],"name":"depositUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+        const gov = new web3.eth.Contract(depositAbi, GOV_ADDR);
+        await gov.methods.depositUSDT(wei).send({ from: userAddress });
 
-        const subscribeAbi = [{
-          "inputs": [{ "internalType": "uint256", "name": "usdtAmount", "type": "uint256" }],
-          "name": "subscribeMYK",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        }];
-        const locker2 = new web3.eth.Contract(subscribeAbi, LOCKER_ADDR);
-        await locker2.methods.subscribeMYK(wei).send({ from: userAddress });
+        // 步骤3: subscribeMYK
+        btn.textContent = '认购MYK...';
+        const subAbi = [{"inputs":[{"type":"uint256","name":"usdtAmount"}],"name":"subscribeMYK","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+        const gov2 = new web3.eth.Contract(subAbi, GOV_ADDR);
+        await gov2.methods.subscribeMYK(wei).send({ from: userAddress });
 
-        showResult(resultId, t(successKey), true);
+        showResult(resultId, t('subscribeSuccess'), true);
       } catch (e) {
         showResult(resultId, '❌ ' + (e.message?.slice(0, 150) || '失败'), false);
       } finally {
-        const originalText = {
-          200: '💰 认购200U升级',
-          500: '🌟 认购500U升级',
-          1000: '🔥 认购1000U升级'
-        }[usdtAmount] || '认购';
-        resetButton(btn, originalText);
+        const labels = {200:'💰 认购200U升级', 500:'🌟 认购500U升级', 1000:'🔥 认购1000U升级'};
+        resetButton(btn, labels[usdtAmount] || '认购');
       }
     }
 
-    // 查询状态
+    // ====== 查询 ======
     async function checkStatus() {
       const addrInput = document.getElementById('checkAddrInput').value.trim();
       const target = addrInput || userAddress;
       if (!target || !web3) { alert('请连接钱包或输入地址'); return; }
       const el = document.getElementById('statusResult');
-      el.style.display = 'block';
-      el.innerHTML = '⏳ 查询中...';
+      el.style.display = 'block'; el.innerHTML = '⏳ 查询中...';
       try {
-        const abi = [{
-          "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
-          "name": "users",
-          "outputs": [
-            { "internalType": "address", "name": "referrer", "type": "address" },
-            { "internalType": "uint96", "name": "invited", "type": "uint96" },
-            { "internalType": "uint96", "name": "todayBuy", "type": "uint96" },
-            { "internalType": "uint96", "name": "todayReward", "type": "uint96" },
-            { "internalType": "uint40", "name": "activatedAt", "type": "uint40" },
-            { "internalType": "uint40", "name": "lastRewardDay", "type": "uint40" },
-            { "internalType": "uint40", "name": "lastClaim", "type": "uint40" },
-            { "internalType": "uint8", "name": "role", "type": "uint8" },
-            { "internalType": "bool", "name": "isActive", "type": "bool" }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        }];
+        const abi = [{"inputs":[{"type":"address"}],"name":"users","outputs":[{"type":"address"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint8"},{"type":"bool"}],"stateMutability":"view","type":"function"}];
         const contract = new web3.eth.Contract(abi, REWARD_POOL_ADDR);
         const u = await contract.methods.users(target).call();
-        const roleMap = currentLang === 'zh' ?
-          { 0: '无', 1: 'PRIMARY', 2: 'MIDDLE', 3: 'COMMUNITY' } :
-          { 0: 'None', 1: 'PRIMARY', 2: 'MIDDLE', 3: 'COMMUNITY' };
-        const date = u.activatedAt > 0 ? new Date(Number(u.activatedAt) * 1000).toLocaleDateString() : '未激活';
-        el.innerHTML = `🎭 身份：${roleMap[u.role]||'?'} | 激活：${u.isActive?'✅':'❌'} | 推荐人：${u.referrer.slice(0,6)}... | 邀请：${u.invited} | 激活日：${date}`;
-      } catch (e) {
-        el.innerHTML = '❌ 查询失败';
-      }
+        const roleMap = {0:'无', 1:'PRIMARY', 2:'MIDDLE', 3:'COMMUNITY'};
+        const date = u[4] > 0 ? new Date(Number(u[4]) * 1000).toLocaleDateString() : '未激活';
+        el.innerHTML = `🎭 身份：${roleMap[u[7]]||'?'} | 激活：${u[8]?'✅':'❌'} | 推荐人：${u[0].slice(0,6)}... | 邀请：${u[1]} | 激活日：${date}`;
+      } catch (e) { el.innerHTML = '❌ 查询失败'; }
     }
 
     async function checkMYKBalance() {
       if (!userAddress) { alert('请先连接钱包'); return; }
       const el = document.getElementById('balanceResult');
-      el.style.display = 'block';
-      el.innerHTML = '⏳ 查询中...';
+      el.style.display = 'block'; el.innerHTML = '⏳ 查询中...';
       try {
-        const abi = [{
-          "constant": true,
-          "inputs": [{ "name": "_owner", "type": "address" }],
-          "name": "balanceOf",
-          "outputs": [{ "name": "balance", "type": "uint256" }],
-          "type": "function"
-        }];
+        const abi = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
         const contract = new web3.eth.Contract(abi, MYK_ADDR);
         const balance = await contract.methods.balanceOf(userAddress).call();
         el.innerHTML = `💰 MYK余额：${parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(4)} MYK`;
-      } catch (e) {
-        el.innerHTML = '❌ 查询失败';
-      }
+      } catch (e) { el.innerHTML = '❌ 查询失败'; }
     }
 
-    // 标签切换
+    // ====== 标签切换 ======
     function setupTabs() {
       const tabs = document.querySelectorAll('#activateTabSwitch .tab');
       tabs.forEach(tab => {
@@ -647,22 +387,20 @@
       });
     }
 
-    // 事件绑定
+    // ====== 初始化 ======
     window.addEventListener('load', () => {
       initWallet();
       setupTabs();
       updateLangUI();
+      fetchPrice();
 
       connectBtn.addEventListener('click', connectWallet);
-      langToggle.addEventListener('click', switchLanguage);
+      langToggle.addEventListener('click', () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; updateLangUI(); });
       document.getElementById('activateMYKBtn').addEventListener('click', activateWithMYK);
       document.getElementById('activateUSDTBtn').addEventListener('click', activateWithUSDT);
-      document.getElementById('subscribe200Btn').addEventListener('click', () => subscribe(200, 'subscribe200Btn',
-        'subscribe200Result', 'subscribeSuccess200'));
-      document.getElementById('subscribe500Btn').addEventListener('click', () => subscribe(500, 'subscribe500Btn',
-        'subscribe500Result', 'subscribeSuccess500'));
-      document.getElementById('subscribe1000Btn').addEventListener('click', () => subscribe(1000, 'subscribe1000Btn',
-        'subscribe1000Result', 'subscribeSuccess1000'));
+      document.getElementById('subscribe200Btn').addEventListener('click', () => subscribe(200, 'subscribe200Btn', 'subscribe200Result'));
+      document.getElementById('subscribe500Btn').addEventListener('click', () => subscribe(500, 'subscribe500Btn', 'subscribe500Result'));
+      document.getElementById('subscribe1000Btn').addEventListener('click', () => subscribe(1000, 'subscribe1000Btn', 'subscribe1000Result'));
       document.getElementById('checkStatusBtn').addEventListener('click', checkStatus);
       document.getElementById('checkBalanceBtn').addEventListener('click', checkMYKBalance);
     });
