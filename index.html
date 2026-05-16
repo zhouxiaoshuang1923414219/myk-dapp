@@ -40,6 +40,8 @@
     .btn:active { transform: scale(0.97); }
     .btn:disabled { opacity: 0.6; box-shadow: none; transform: none; }
     .btn-outline { background: #2d325a; box-shadow: none; padding: 10px 16px; }
+    .btn-sm { padding: 10px 14px; font-size: 13px; width: auto; }
+    .btn-green { background: linear-gradient(135deg, #4ecca3, #2e8b6a); box-shadow: 0 8px 18px rgba(78, 204, 163, 0.3); }
     .tab-container { display: flex; background: #0c0f1c; border-radius: 16px; padding: 4px; margin: 12px 0; border: 1px solid #2d3355; }
     .tab { flex: 1; text-align: center; padding: 10px; border-radius: 14px; font-weight: 600; color: #9aa0c0; cursor: pointer; transition: 0.2s; }
     .tab.active { background: #e94560; color: white; }
@@ -57,6 +59,7 @@
     .hint-text { color: #f0b90b; font-size: 12px; margin: 4px 0 8px; }
     .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; color: #a3adc9; }
     .price-value { color: #4ef0a8; font-weight: 700; }
+    .price-fresh { font-size: 11px; }
   </style>
 </head>
 <body>
@@ -66,6 +69,7 @@
   </div>
   <h1>🌐 MYK 生态面板</h1>
 
+  <!-- 钱包区域 -->
   <div class="glass-card" style="padding: 14px;">
     <div class="wallet-row">
       <span style="color:#b0b8d0;">🔗 钱包</span>
@@ -74,6 +78,21 @@
     <button class="btn btn-outline" id="connectWalletBtn" style="margin-top: 8px;">🔓 连接钱包</button>
   </div>
 
+  <!-- 价格卡片 -->
+  <div class="glass-card">
+    <h2>💰 价格</h2>
+    <div class="price-row">
+      <span>当前: <span class="price-value" id="currentPrice">--</span> USDT/MYK</span>
+      <span class="price-fresh" id="priceFresh">--</span>
+    </div>
+    <div class="row-buttons">
+      <button class="btn btn-green btn-sm" id="updatePriceBtn" style="flex:1;">🔄 更新价格</button>
+      <button class="btn btn-sm" id="refreshPriceBtn" style="flex:1;">🔍 刷新</button>
+    </div>
+    <div class="info-box" id="priceResult" style="display:none;"></div>
+  </div>
+
+  <!-- 激活卡片 -->
   <div class="glass-card">
     <h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2>
     <div class="tab-container" id="activateTabSwitch">
@@ -83,7 +102,6 @@
     <div id="panelMYK">
       <div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK</div>
       <div class="price-row">
-        <span>价格: <span class="price-value" id="currentPrice">--</span> USDT/MYK</span>
         <span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK</span>
       </div>
       <input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="2.2" step="0.1">
@@ -99,6 +117,7 @@
     </div>
   </div>
 
+  <!-- 认购卡片 -->
   <div class="glass-card">
     <h2>🥈 200U <span class="badge badge-silver">MIDDLE</span></h2>
     <input class="input-field" id="sub200Amount" type="number" placeholder="USDT" value="200" step="1">
@@ -120,6 +139,7 @@
     <div class="info-box" id="subscribe1000Result" style="display:none;"></div>
   </div>
 
+  <!-- 查询工具 -->
   <div class="glass-card">
     <h2>🔍 查询</h2>
     <input class="input-field" id="checkAddrInput" type="text" placeholder="地址 (留空=自己)">
@@ -142,10 +162,10 @@
 
     let web3, userAddress, currentPrice = '1000000000000000000';
 
-    function t(k) { return k; }
     function $(id) { return document.getElementById(id); }
     function a6(a) { return a.slice(0,6)+'...'+a.slice(-4); }
     function n(w) { return parseFloat(Web3.utils.fromWei(w+'','ether')); }
+    function sig(name) { return web3.eth.abi.encodeFunctionSignature(name).slice(2); }
 
     async function connectWallet() {
       if (!window.ethereum) { alert('请安装MetaMask'); return; }
@@ -158,28 +178,63 @@
       fetchPrice();
     }
 
+    // ====== 价格功能 ======
     async function fetchPrice() {
       try {
-        const sig = web3.eth.abi.encodeFunctionSignature('getCurrentPrice()').slice(2);
-        const data = await web3.eth.call({to:RP, data:'0x'+sig});
+        if (!web3) return;
+        const data = await web3.eth.call({to:RP, data:'0x'+sig('getCurrentPrice()')});
         currentPrice = web3.eth.abi.decodeParameter('uint256', data);
         const pn = n(currentPrice);
         $('currentPrice').textContent = pn.toFixed(6);
-        const sug = (2 / pn * 1.1).toFixed(4);
-        $('suggestedMYK').textContent = sug;
-        $('mykAmount').value = sug;
-      } catch(e) { $('currentPrice').textContent = '1.0'; $('suggestedMYK').textContent = '2.2'; }
+        $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
+        $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
+
+        // 检查价格是否有效
+        try {
+          const freshData = await web3.eth.call({to:RP, data:'0x'+sig('isPriceFresh()')});
+          const fresh = web3.eth.abi.decodeParameter('bool', freshData);
+          $('priceFresh').textContent = fresh ? '✅ 有效' : '⚠️ 过期';
+          $('priceFresh').style.color = fresh ? '#4ecca3' : '#f0a500';
+        } catch(e) { $('priceFresh').textContent = ''; }
+      } catch(e) {
+        $('currentPrice').textContent = '1.000000';
+        $('suggestedMYK').textContent = '2.2';
+        $('mykAmount').value = '2.2';
+      }
     }
 
-    // ====== 修复后的查询（使用 eth.call 原始方式） ======
+    async function updatePrice() {
+      if (!userAddress) { alert('请先连接钱包'); return; }
+      const btn = $('updatePriceBtn');
+      const el = $('priceResult');
+      el.style.display = 'block'; el.innerHTML = '⏳ 更新价格中...';
+      btn.disabled = true;
+      try {
+        const data = '0x' + sig('updatePrice()');
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:data}]});
+        el.innerHTML = '✅ 价格更新成功！';
+        setTimeout(fetchPrice, 3000); // 等3秒后刷新价格
+      } catch(e) {
+        const msg = e.message || '';
+        if (msg.includes('too frequent')) {
+          el.innerHTML = '⚠️ 更新太频繁，请等5分钟后再试';
+        } else if (msg.includes('time too short')) {
+          el.innerHTML = '⚠️ TWAP时间窗口不足，请等5分钟后重试';
+        } else {
+          el.innerHTML = '❌ ' + msg.slice(0, 150);
+        }
+      }
+      finally { btn.disabled = false; }
+    }
+
+    // ====== 查询 ======
     async function checkStatus() {
       const target = $('checkAddrInput').value.trim() || userAddress;
       if (!target || !web3) { alert('请连接钱包或输入地址'); return; }
       const el = $('statusResult'); el.style.display = 'block'; el.innerHTML = '⏳';
       try {
-        const sig = web3.eth.abi.encodeFunctionSignature('users(address)').slice(2);
         const encodedAddr = web3.eth.abi.encodeParameter('address', target).slice(2);
-        const data = '0x' + sig + encodedAddr;
+        const data = '0x' + sig('users(address)') + encodedAddr;
         const result = await web3.eth.call({to:RP, data:data});
         const u = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], result);
         const roles = ['无','PRIMARY','MIDDLE','COMMUNITY'];
@@ -192,9 +247,8 @@
       if (!userAddress) return;
       const el = $('statusResult'); el.style.display = 'block';
       try {
-        const sig = web3.eth.abi.encodeFunctionSignature('balanceOf(address)').slice(2);
         const encodedAddr = web3.eth.abi.encodeParameter('address', userAddress).slice(2);
-        const data = '0x' + sig + encodedAddr;
+        const data = '0x' + sig('balanceOf(address)') + encodedAddr;
         const addr = token === 'MYK' ? MYK : USDT;
         const result = await web3.eth.call({to:addr, data:data});
         const bal = web3.eth.abi.decodeParameter('uint256', result);
@@ -210,8 +264,7 @@
       btn.disabled = true; btn.textContent = '处理中...';
       try {
         const mykWei = Web3.utils.toWei(amount, 'ether');
-        const sig = web3.eth.abi.encodeFunctionSignature('transfer(address,uint256)').slice(2);
-        const data = '0x' + sig + web3.eth.abi.encodeParameters(['address','uint256'], [RP, mykWei]).slice(2);
+        const data = '0x' + sig('transfer(address,uint256)') + web3.eth.abi.encodeParameters(['address','uint256'], [RP, mykWei]).slice(2);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:MYK, data:data}]});
         $('activateMYKResult').style.display = 'block';
         $('activateMYKResult').innerHTML = '✅ 激活成功！';
@@ -228,15 +281,11 @@
       btn.disabled = true;
       try {
         const fee = web3.utils.toWei('2', 'ether');
-        // approve
-        const appSig = web3.eth.abi.encodeFunctionSignature('approve(address,uint256)').slice(2);
-        const appData = '0x' + appSig + web3.eth.abi.encodeParameters(['address','uint256'], [RP, fee]).slice(2);
+        const appData = '0x' + sig('approve(address,uint256)') + web3.eth.abi.encodeParameters(['address','uint256'], [RP, fee]).slice(2);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:USDT, data:appData}]});
         el.innerHTML = '⏳ 激活中...';
-        // activate
         const ref = $('usdtRefInput').value.trim() || '0x0000000000000000000000000000000000000000';
-        const actSig = web3.eth.abi.encodeFunctionSignature('activateWithUSDT(address)').slice(2);
-        const actData = '0x' + actSig + web3.eth.abi.encodeParameter('address', ref).slice(2);
+        const actData = '0x' + sig('activateWithUSDT(address)') + web3.eth.abi.encodeParameter('address', ref).slice(2);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:actData}]});
         el.innerHTML = '✅ 激活成功！';
       } catch(e) { el.innerHTML = '❌ '+(e.message||'').slice(0,150); }
@@ -251,32 +300,26 @@
       btn.disabled = true;
       const wei = web3.utils.toWei(String(amount), 'ether');
       try {
-        // approve USDT to GOV
         btn.textContent = '授权...';
         el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...';
-        const appSig = web3.eth.abi.encodeFunctionSignature('approve(address,uint256)').slice(2);
-        const appData = '0x' + appSig + web3.eth.abi.encodeParameters(['address','uint256'], [GOV, wei]).slice(2);
+        const appData = '0x' + sig('approve(address,uint256)') + web3.eth.abi.encodeParameters(['address','uint256'], [GOV, wei]).slice(2);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:USDT, data:appData}]});
 
-        // depositUSDT
         btn.textContent = '存入...';
         el.innerHTML = '⏳ 存入USDT...';
-        const depSig = web3.eth.abi.encodeFunctionSignature('depositUSDT(uint256)').slice(2);
-        const depData = '0x' + depSig + web3.eth.abi.encodeParameter('uint256', wei).slice(2);
+        const depData = '0x' + sig('depositUSDT(uint256)') + web3.eth.abi.encodeParameter('uint256', wei).slice(2);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:depData}]});
 
-        // subscribeMYK
         btn.textContent = '认购...';
         el.innerHTML = '⏳ 认购MYK...';
-        const subSig = web3.eth.abi.encodeFunctionSignature('subscribeMYK(uint256)').slice(2);
-        const subData = '0x' + subSig + web3.eth.abi.encodeParameter('uint256', wei).slice(2);
+        const subData = '0x' + sig('subscribeMYK(uint256)') + web3.eth.abi.encodeParameter('uint256', wei).slice(2);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:subData}]});
         el.innerHTML = '✅ 认购成功！';
       } catch(e) { el.innerHTML = '❌ '+(e.message||'').slice(0,150); }
       finally { btn.disabled = false; btn.textContent = amount >= 1000 ? '🔥 认购1000U' : amount >= 500 ? '🌟 认购500U' : '💰 认购200U'; }
     }
 
-    // ====== Tab ======
+    // ====== Tab 切换 ======
     document.querySelectorAll('#activateTabSwitch .tab').forEach(tab => {
       tab.addEventListener('click', function() {
         document.querySelectorAll('#activateTabSwitch .tab').forEach(t => t.classList.remove('active'));
@@ -287,12 +330,18 @@
       });
     });
 
+    // ====== 初始化 ======
     window.addEventListener('load', async () => {
       if (window.ethereum) {
         web3 = new Web3(window.ethereum);
-        try { const a = await window.ethereum.request({method:'eth_accounts'}); if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';$('checkAddrInput').value=userAddress;fetchPrice();} } catch(e) {}
+        try {
+          const a = await window.ethereum.request({method:'eth_accounts'});
+          if(a.length){ userAddress=a[0]; $('walletDisplay').textContent=a6(userAddress); $('walletDisplay').style.color='#4ef0a8'; $('checkAddrInput').value=userAddress; fetchPrice(); }
+        } catch(e) {}
       }
       $('connectWalletBtn').addEventListener('click', connectWallet);
+      $('updatePriceBtn').addEventListener('click', updatePrice);
+      $('refreshPriceBtn').addEventListener('click', fetchPrice);
       $('activateMYKBtn').addEventListener('click', activateMYK);
       $('activateUSDTBtn').addEventListener('click', activateUSDT);
       $('subscribe200Btn').addEventListener('click', ()=>subscribe(200,'subscribe200Btn','subscribe200Result'));
