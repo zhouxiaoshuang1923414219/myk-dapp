@@ -117,26 +117,15 @@
     </div>
   </div>
 
-  <!-- 认购卡片 -->
+  <!-- 管理员工具 -->
   <div class="glass-card">
-    <h2>🥈 200U <span class="badge badge-silver">MIDDLE</span></h2>
-    <input class="input-field" id="sub200Amount" type="number" placeholder="USDT" value="200" step="1">
-    <button class="btn" id="subscribe200Btn">💰 认购200U</button>
-    <div class="info-box" id="subscribe200Result" style="display:none;"></div>
-  </div>
-
-  <div class="glass-card">
-    <h2>🥇 500U <span class="badge badge-gold">第四社区</span></h2>
-    <input class="input-field" id="sub500Amount" type="number" placeholder="USDT" value="500" step="1">
-    <button class="btn" id="subscribe500Btn">🌟 认购500U</button>
-    <div class="info-box" id="subscribe500Result" style="display:none;"></div>
-  </div>
-
-  <div class="glass-card">
-    <h2>👑 1000U <span class="badge badge-gold">第五社区</span></h2>
-    <input class="input-field" id="sub1000Amount" type="number" placeholder="USDT" value="1000" step="1">
-    <button class="btn" id="subscribe1000Btn">🔥 认购1000U</button>
-    <div class="info-box" id="subscribe1000Result" style="display:none;"></div>
+    <h2>🛠️ 管理员工具</h2>
+    <p style="font-size:11px;color:#888;margin-bottom:6px;">设置 Governance 价格缓存（需 trustedUpdater 权限）</p>
+    <input class="input-field" id="adminPriceInput" type="number" placeholder="价格 (如 0.01 = 1e16)" value="0.01" step="0.001">
+    <button class="btn" id="adminUpdatePriceBtn">🔧 adminUpdatePrice</button>
+    <p style="font-size:11px;color:#888;margin:6px 0;">完成挂起的锁仓</p>
+    <button class="btn" id="completePendingLockBtn">📦 completePendingLock</button>
+    <div class="info-box" id="adminResult" style="display:none;"></div>
   </div>
 
   <!-- 查询工具 -->
@@ -150,14 +139,16 @@
     </div>
     <div class="info-box" id="statusResult" style="display:none;"></div>
   </div>
-  <div class="footer-note">✨ MYK 生态操作面板</div>
+  <div class="footer-note">✨ MYK 生态操作面板 · 去中心化交互工具</div>
 </div>
 
 <script>
   (function() {
+    // ====== 最新合约地址 ======
     const MYK = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    const RP = '0xdDc7ccc9620075a9107d2F2dE48f3374F67AB5Ce';
+    const RP = '0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0';
     const GOV = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
+    const FM = '0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027';
     const USDT = '0x55d398326f99059fF775485246999027B3197955';
 
     let web3, userAddress, currentPrice = '1000000000000000000';
@@ -188,8 +179,6 @@
         $('currentPrice').textContent = pn.toFixed(6);
         $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
         $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
-
-        // 检查价格是否有效
         try {
           const freshData = await web3.eth.call({to:RP, data:'0x'+sig('isPriceFresh()')});
           const fresh = web3.eth.abi.decodeParameter('bool', freshData);
@@ -213,18 +202,37 @@
         const data = '0x' + sig('updatePrice()');
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:data}]});
         el.innerHTML = '✅ 价格更新成功！';
-        setTimeout(fetchPrice, 3000); // 等3秒后刷新价格
+        setTimeout(fetchPrice, 3000);
       } catch(e) {
         const msg = e.message || '';
-        if (msg.includes('too frequent')) {
-          el.innerHTML = '⚠️ 更新太频繁，请等5分钟后再试';
-        } else if (msg.includes('time too short')) {
-          el.innerHTML = '⚠️ TWAP时间窗口不足，请等5分钟后重试';
-        } else {
-          el.innerHTML = '❌ ' + msg.slice(0, 150);
-        }
-      }
-      finally { btn.disabled = false; }
+        if (msg.includes('too frequent')) { el.innerHTML = '⚠️ 更新太频繁，请等5分钟后再试'; }
+        else if (msg.includes('time too short')) { el.innerHTML = '⚠️ TWAP时间窗口不足，请等5分钟后重试'; }
+        else { el.innerHTML = '❌ ' + msg.slice(0, 150); }
+      } finally { btn.disabled = false; }
+    }
+
+    // ====== 管理员功能 ======
+    async function adminSetPrice() {
+      if (!userAddress) { alert('请先连接钱包'); return; }
+      const priceInput = $('adminPriceInput').value;
+      if (!priceInput || parseFloat(priceInput) <= 0) { alert('请输入有效价格'); return; }
+      const el = $('adminResult'); el.style.display='block'; el.innerHTML='⏳ 设置价格中...';
+      try {
+        const priceWei = Web3.utils.toWei(priceInput, 'ether');
+        const data = '0x' + sig('adminUpdatePrice(uint256)') + web3.eth.abi.encodeParameter('uint256', priceWei).slice(2);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:data}]});
+        el.innerHTML = '✅ 价格设置成功！当前缓存价格: ' + priceInput + ' USDT/MYK';
+      } catch(e) { el.innerHTML='<span style="color:#e94560">❌ '+(e.message||'').slice(0,150)+'</span>'; }
+    }
+
+    async function completeLock() {
+      if (!userAddress) { alert('请先连接钱包'); return; }
+      const el = $('adminResult'); el.style.display='block'; el.innerHTML='⏳ 完成锁仓中...';
+      try {
+        const data = '0x' + sig('completePendingLock()');
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:data}]});
+        el.innerHTML = '✅ 锁仓完成！请查锁仓详情确认。';
+      } catch(e) { el.innerHTML='<span style="color:#e94560">❌ '+(e.message||'').slice(0,150)+'</span>'; }
     }
 
     // ====== 查询 ======
@@ -292,33 +300,6 @@
       finally { btn.disabled = false; }
     }
 
-    // ====== 认购 ======
-    async function subscribe(amount, btnId, resultId) {
-      if (!userAddress) return;
-      const btn = $(btnId);
-      const el = $(resultId);
-      btn.disabled = true;
-      const wei = web3.utils.toWei(String(amount), 'ether');
-      try {
-        btn.textContent = '授权...';
-        el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...';
-        const appData = '0x' + sig('approve(address,uint256)') + web3.eth.abi.encodeParameters(['address','uint256'], [GOV, wei]).slice(2);
-        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:USDT, data:appData}]});
-
-        btn.textContent = '存入...';
-        el.innerHTML = '⏳ 存入USDT...';
-        const depData = '0x' + sig('depositUSDT(uint256)') + web3.eth.abi.encodeParameter('uint256', wei).slice(2);
-        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:depData}]});
-
-        btn.textContent = '认购...';
-        el.innerHTML = '⏳ 认购MYK...';
-        const subData = '0x' + sig('subscribeMYK(uint256)') + web3.eth.abi.encodeParameter('uint256', wei).slice(2);
-        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:subData}]});
-        el.innerHTML = '✅ 认购成功！';
-      } catch(e) { el.innerHTML = '❌ '+(e.message||'').slice(0,150); }
-      finally { btn.disabled = false; btn.textContent = amount >= 1000 ? '🔥 认购1000U' : amount >= 500 ? '🌟 认购500U' : '💰 认购200U'; }
-    }
-
     // ====== Tab 切换 ======
     document.querySelectorAll('#activateTabSwitch .tab').forEach(tab => {
       tab.addEventListener('click', function() {
@@ -342,11 +323,10 @@
       $('connectWalletBtn').addEventListener('click', connectWallet);
       $('updatePriceBtn').addEventListener('click', updatePrice);
       $('refreshPriceBtn').addEventListener('click', fetchPrice);
+      $('adminUpdatePriceBtn').addEventListener('click', adminSetPrice);
+      $('completePendingLockBtn').addEventListener('click', completeLock);
       $('activateMYKBtn').addEventListener('click', activateMYK);
       $('activateUSDTBtn').addEventListener('click', activateUSDT);
-      $('subscribe200Btn').addEventListener('click', ()=>subscribe(200,'subscribe200Btn','subscribe200Result'));
-      $('subscribe500Btn').addEventListener('click', ()=>subscribe(500,'subscribe500Btn','subscribe500Result'));
-      $('subscribe1000Btn').addEventListener('click', ()=>subscribe(1000,'subscribe1000Btn','subscribe1000Result'));
       $('checkStatusBtn').addEventListener('click', checkStatus);
       $('checkBalanceBtn').addEventListener('click', ()=>checkBalance('MYK'));
       $('checkUSDTBtn').addEventListener('click', ()=>checkBalance('USDT'));
