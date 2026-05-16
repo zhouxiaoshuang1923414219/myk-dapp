@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -60,8 +61,6 @@
     .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; color: #a3adc9; }
     .price-value { color: #4ef0a8; font-weight: 700; }
     .price-fresh { font-size: 11px; }
-    .error-box { background: rgba(233,69,96,0.1); border-left-color: #e94560; }
-    .success-box { background: rgba(78,204,163,0.1); border-left-color: #4ecca3; }
   </style>
 </head>
 <body>
@@ -141,17 +140,6 @@
     <div class="info-box" id="subscribe1000Result" style="display:none;"></div>
   </div>
 
-  <!-- 管理员工具 -->
-  <div class="glass-card">
-    <h2>🛠️ 管理员工具</h2>
-    <p style="font-size:11px;color:#888;margin-bottom:6px;">设置 Governance 价格缓存（需 trustedUpdater 权限）</p>
-    <input class="input-field" id="adminPriceInput" type="number" placeholder="价格 (如 0.01 = 1e16)" value="0.01" step="0.001" min="0">
-    <button class="btn" id="adminUpdatePriceBtn">🔧 adminUpdatePrice</button>
-    <p style="font-size:11px;color:#888;margin:6px 0;">完成挂起的锁仓</p>
-    <button class="btn" id="completePendingLockBtn">📦 completePendingLock</button>
-    <div class="info-box" id="adminResult" style="display:none;"></div>
-  </div>
-
   <!-- 查询工具 -->
   <div class="glass-card">
     <h2>🔍 查询</h2>
@@ -171,7 +159,7 @@
   (function() {
     // ====== 合约地址 ======
     const MYK = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    const RP = '0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0';
+    const RP = '0x20eC4Ff3bB5e44B828C4f7E13456Fbe2D5434d37';
     const GOV = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
     const FM = '0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027';
     const USDT = '0x55d398326f99059fF775485246999027B3197955';
@@ -262,42 +250,6 @@
         if (msg.includes('too frequent')) { el.innerHTML = '⚠️ 更新太频繁，请等5分钟后再试'; }
         else if (msg.includes('time too short')) { el.innerHTML = '⚠️ TWAP时间窗口不足，请等5分钟后重试'; }
         else { el.innerHTML = '❌ ' + msg; }
-      } finally { btn.disabled = false; unlock(); }
-    }
-
-    // ====== 管理员功能 ======
-    async function adminSetPrice() {
-      if (!userAddress) { alert('请先连接钱包'); return; }
-      if (!lock()) return;
-      const priceInput = $('adminPriceInput').value;
-      if (!priceInput || parseFloat(priceInput) <= 0) { alert('请输入有效价格'); return; }
-      const btn = $('adminUpdatePriceBtn');
-      const el = $('adminResult'); el.style.display='block'; el.innerHTML='⏳ 设置价格中...';
-      btn.disabled = true;
-      try {
-        const priceWei = Web3.utils.toWei(priceInput, 'ether');
-        const data = encodeCall('adminUpdatePrice(uint256)', ['uint256'], [priceWei]);
-        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:data}]});
-        el.innerHTML = '✅ 价格设置成功！当前缓存价格: ' + priceInput + ' USDT/MYK';
-      } catch(e) {
-        const msg = parseError(e);
-        el.innerHTML = msg.includes('trusted') ? '⚠️ 权限不足：仅 trustedUpdater 可执行' : '❌ ' + msg;
-      } finally { btn.disabled = false; unlock(); }
-    }
-
-    async function completeLock() {
-      if (!userAddress) { alert('请先连接钱包'); return; }
-      if (!lock()) return;
-      const btn = $('completePendingLockBtn');
-      const el = $('adminResult'); el.style.display='block'; el.innerHTML='⏳ 完成锁仓中...';
-      btn.disabled = true;
-      try {
-        const data = encodeCall('completePendingLock()');
-        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:GOV, data:data}]});
-        el.innerHTML = '✅ 锁仓完成！';
-      } catch(e) {
-        const msg = parseError(e);
-        el.innerHTML = msg.includes('trusted') ? '⚠️ 权限不足：仅 trustedUpdater 可执行' : '❌ ' + msg;
       } finally { btn.disabled = false; unlock(); }
     }
 
@@ -445,8 +397,6 @@
       $('connectWalletBtn').addEventListener('click', connectWallet);
       $('updatePriceBtn').addEventListener('click', updatePrice);
       $('refreshPriceBtn').addEventListener('click', fetchPrice);
-      $('adminUpdatePriceBtn').addEventListener('click', adminSetPrice);
-      $('completePendingLockBtn').addEventListener('click', completeLock);
       $('activateMYKBtn').addEventListener('click', activateMYK);
       $('activateUSDTBtn').addEventListener('click', activateUSDT);
       $('subscribe200Btn').addEventListener('click', ()=>subscribe(200,'subscribe200Btn','subscribe200Result'));
@@ -460,3 +410,4 @@
 </script>
 </body>
 </html>
+```
