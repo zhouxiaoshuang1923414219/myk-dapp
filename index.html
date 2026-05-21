@@ -80,6 +80,14 @@
         .price-change-down { color:#e94560; background:rgba(233,69,96,0.1); }
         .price-change-flat { color:#f0b90b; background:rgba(240,185,11,0.1); }
         .price-source-tag { font-size:10px; opacity:0.7; margin-left:2px; }
+        .transfer-list { max-height:200px; overflow-y:auto; margin-top:8px; }
+        .transfer-item { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:10px; background:rgba(15,20,34,0.6); margin-bottom:4px; font-size:12px; }
+        .transfer-item .addr { color:#4ef0a8; font-family:'Fira Code',monospace; font-size:11px; }
+        .transfer-item .amount { color:#f0b90b; font-weight:600; white-space:nowrap; }
+        .transfer-item .type-new { color:#4ecca3; font-size:10px; background:rgba(78,204,163,0.15); padding:2px 6px; border-radius:8px; }
+        .transfer-item .type-transfer { color:#f0b90b; font-size:10px; background:rgba(240,185,11,0.15); padding:2px 6px; border-radius:8px; }
+        .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#4ecca3; animation:pulse 1.5s infinite; margin-right:4px; }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
     </style>
 </head>
 <body>
@@ -131,6 +139,23 @@
         </div>
     </div>
 
+    <!-- 🆕 持币地址监控 -->
+    <div class="glass-card">
+        <h2>📊 链上监控 <span class="live-dot"></span><span style="font-size:11px;color:#4ecca3;">实时</span></h2>
+        <div class="stat-row">
+            <span>持币地址数：<span class="stat-value" id="holderCount">0</span></span>
+            <span>新增持币：<span class="stat-value" id="newHolderCount">0</span></span>
+        </div>
+        <div class="stat-row" style="margin-top:2px;">
+            <span>24h转账笔数：<span class="stat-value" id="transfer24hCount">0</span></span>
+            <span>24h转账量：<span class="stat-value" id="transfer24hVolume">0</span> MYK</span>
+        </div>
+        <div class="desc" style="margin-top:8px;">最近转账记录</div>
+        <div class="transfer-list" id="transferList">
+            <div style="text-align:center;color:#888;padding:20px;">⏳ 监听中...</div>
+        </div>
+    </div>
+
     <div class="glass-card">
         <h2>🎁 新人空投进度</h2>
         <div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK</div>
@@ -161,7 +186,7 @@
     </div>
 
     <div class="glass-card unlock-card locked" id="firstCommunityCard">
-        <h2>🔓 第一社区权益 <span class="badge badge-gold">权益卡</span></h2>
+        <h2> 第一社区权益 <span class="badge badge-gold">权益卡</span></h2>
         <div class="desc" id="firstCommunityStatus">🔒 未解锁</div>
         <div class="hint-text">解锁规则：直推节点地址激活可解锁</div>
         <div class="desc">权益：伞下无限代节点消费或收益的 <span class="highlight">10%</span></div>
@@ -174,7 +199,7 @@
         <div class="desc">持币即可领奖，<span class="highlight">一键领取</span></div>
         <div class="stat-row"><span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span><span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span></div>
         <div class="stat-row" style="margin-top:8px;"><span>今日可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领取：<span class="stat-value" id="claimedToday">--</span></span></div>
-        <button class="btn btn-green" id="claimRewardBtn">🎁 一键领取今日奖励</button>
+        <button class="btn btn-green" id="claimRewardBtn"> 一键领取今日奖励</button>
         <div id="claimLoading" style="display:none; text-align:center; margin-top:12px;"><span style="color:#f0b90b;">⏳ 正在获取签名数据...</span></div>
         <div class="info-box" id="claimRewardResult" style="display:none;"></div>
     </div>
@@ -185,13 +210,21 @@
 <script>
 (function() {
     const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',GOV='0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
+    const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
+    let holderSet = new Set();
+    let newHolderSet = new Set();
+    let transferRecords = [];
+    let transfer24hCount = 0;
+    let transfer24hVolume = 0;
+    const MAX_TRANSFER_RECORDS = 50;
 
     const STORAGE_KEY = 'myk_baseline_price';
 
     function getTodayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     function getBaselinePrice() { try { const stored = localStorage.getItem(STORAGE_KEY); if (!stored) return null; const data = JSON.parse(stored); if (data.date === getTodayKey()) { return data.price; } localStorage.removeItem(STORAGE_KEY); return null; } catch(e) { return null; } }
-    function setBaselinePrice(price) { try { const data = { date: getTodayKey(), price: price }; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); console.log(`✅ 今日基准价格已记录: ${price} (${getTodayKey()})`); } catch(e) { console.warn('localStorage 写入失败:', e); } }
+    function setBaselinePrice(price) { try { const data = { date: getTodayKey(), price: price }; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {} }
     function calculateChangePercent(currentPrice, baselinePrice) { if (!baselinePrice || baselinePrice <= 0 || currentPrice <= 0) return null; return ((currentPrice - baselinePrice) / baselinePrice) * 100; }
     function updatePriceDisplay(price, changePercent) { $('tradePriceDisplay').textContent = formatPrice(price); const changeEl = $('tradeChangeDisplay'); const badge = $('tradePriceBadge'); if (changePercent === null) { changeEl.textContent = '0.00%'; badge.className = 'trade-price-badge price-change-flat'; } else if (changePercent > 0) { changeEl.textContent = '+' + changePercent.toFixed(2) + '%'; badge.className = 'trade-price-badge price-change-up'; } else if (changePercent < 0) { changeEl.textContent = changePercent.toFixed(2) + '%'; badge.className = 'trade-price-badge price-change-down'; } else { changeEl.textContent = '0.00%'; badge.className = 'trade-price-badge price-change-flat'; } }
 
@@ -208,11 +241,160 @@
 
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
 
+    // ========== 持币地址监控 ==========
+    function updateTransferUI() {
+        $('holderCount').textContent = holderSet.size;
+        $('newHolderCount').textContent = newHolderSet.size;
+        $('transfer24hCount').textContent = transfer24hCount;
+        $('transfer24hVolume').textContent = transfer24hVolume.toFixed(2);
+
+        const listEl = $('transferList');
+        if (transferRecords.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">⏳ 等待转账事件...</div>';
+            return;
+        }
+        listEl.innerHTML = transferRecords.slice(0, 20).map(r => {
+            const isNew = r.isNewHolder ? 'type-new' : 'type-transfer';
+            const typeLabel = r.isNewHolder ? 'NEW' : '转账';
+            const time = new Date(r.timestamp * 1000).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            return `<div class="transfer-item">
+                <span style="display:flex;align-items:center;gap:6px;">
+                    <span class="addr">${a6(r.to)}</span>
+                    <span class="${isNew}">${typeLabel}</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:6px;">
+                    <span class="amount">${parseFloat(r.amount).toFixed(2)} MYK</span>
+                    <span style="color:#888;font-size:10px;">${time}</span>
+                </span>
+            </div>`;
+        }).join('');
+    }
+
+    function handleTransferEvent(from, to, value, timestamp) {
+        const amount = Web3.utils.fromWei(value, 'ether');
+        const isNewHolder = !holderSet.has(to) && to !== '0x0000000000000000000000000000000000000000';
+        
+        if (isNewHolder) {
+            newHolderSet.add(to);
+        }
+        holderSet.add(to);
+        
+        // 统计24h转账
+        const now = Math.floor(Date.now() / 1000);
+        if (now - timestamp < 86400) {
+            transfer24hCount++;
+            transfer24hVolume += parseFloat(amount);
+        }
+
+        transferRecords.unshift({
+            from, to, amount, timestamp, isNewHolder
+        });
+        if (transferRecords.length > MAX_TRANSFER_RECORDS) {
+            transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
+        }
+        updateTransferUI();
+    }
+
+    async function fetchPastTransfers() {
+        if (!web3) return;
+        try {
+            const currentBlock = await web3.eth.getBlockNumber();
+            const fromBlock = Math.max(0, currentBlock - 5000); // 最近5000个区块
+            
+            const logs = await web3.eth.getPastLogs({
+                address: MYK,
+                topics: [TRANSFER_TOPIC],
+                fromBlock: fromBlock,
+                toBlock: 'latest'
+            });
+
+            // 只取最近100条
+            const recentLogs = logs.slice(-100);
+            const now = Math.floor(Date.now() / 1000);
+            
+            for (const log of recentLogs) {
+                const from = '0x' + log.topics[1].slice(26);
+                const to = '0x' + log.topics[2].slice(26);
+                const value = log.data;
+                const block = await web3.eth.getBlock(log.blockNumber);
+                const timestamp = Number(block.timestamp);
+                
+                if (to !== '0x0000000000000000000000000000000000000000') {
+                    holderSet.add(to);
+                }
+                if (from !== '0x0000000000000000000000000000000000000000') {
+                    holderSet.add(from);
+                }
+                
+                if (now - timestamp < 86400) {
+                    transfer24hCount++;
+                    transfer24hVolume += parseFloat(Web3.utils.fromWei(value, 'ether'));
+                }
+            }
+
+            // 处理最近20条显示
+            const displayLogs = recentLogs.slice(-20).reverse();
+            for (const log of displayLogs) {
+                const from = '0x' + log.topics[1].slice(26);
+                const to = '0x' + log.topics[2].slice(26);
+                const value = log.data;
+                const block = await web3.eth.getBlock(log.blockNumber);
+                const amount = Web3.utils.fromWei(value, 'ether');
+                transferRecords.push({
+                    from, to, amount, 
+                    timestamp: Number(block.timestamp),
+                    isNewHolder: false
+                });
+            }
+            if (transferRecords.length > MAX_TRANSFER_RECORDS) {
+                transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
+            }
+            updateTransferUI();
+        } catch(e) {
+            console.warn('获取历史Transfer失败:', e.message?.slice(0,50));
+        }
+    }
+
+    function subscribeTransferEvents() {
+        if (!web3) return;
+        
+        // 使用轮询方式订阅（兼容性更好）
+        let lastBlock = 0;
+        const pollInterval = setInterval(async () => {
+            try {
+                const currentBlock = await web3.eth.getBlockNumber();
+                if (lastBlock === 0) { lastBlock = currentBlock; return; }
+                if (currentBlock <= lastBlock) return;
+
+                const logs = await web3.eth.getPastLogs({
+                    address: MYK,
+                    topics: [TRANSFER_TOPIC],
+                    fromBlock: lastBlock + 1,
+                    toBlock: currentBlock
+                });
+
+                for (const log of logs) {
+                    const from = '0x' + log.topics[1].slice(26);
+                    const to = '0x' + log.topics[2].slice(26);
+                    const value = log.data;
+                    const block = await web3.eth.getBlock(log.blockNumber);
+                    handleTransferEvent(from, to, value, Number(block.timestamp));
+                }
+                lastBlock = currentBlock;
+            } catch(e) {
+                // 静默处理
+            }
+        }, 5000); // 每5秒轮询一次
+
+        return pollInterval;
+    }
+
     async function connectWallet(){
         if(!window.ethereum){alert('请安装MetaMask');return}
         const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];
         $('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';
         await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();
+        fetchPastTransfers();subscribeTransferEvents();
     }
 
     async function fetchPrice(){
@@ -233,15 +415,13 @@
             $('priceSourceTag')&&($('priceSourceTag').textContent=ss);
 
             let baselinePrice = getBaselinePrice();
-            if (!baselinePrice) { setBaselinePrice(sp); baselinePrice = sp; console.log(`📌 设定今日基准价格: ${sp.toFixed(6)}`); }
+            if (!baselinePrice) { setBaselinePrice(sp); baselinePrice = sp; }
             const changePercent = calculateChangePercent(sp, baselinePrice);
             updatePriceDisplay(sp, changePercent);
 
             updateActivateSuggestion();
             updateBuyQuote();
             updateSellQuote();
-
-            console.log(`✅ 激活价:${getActivationPrice().toFixed(6)}(${as})|现货:${sp.toFixed(6)}(${ss})|基准:${baselinePrice.toFixed(6)}|涨跌:${changePercent!==null?changePercent.toFixed(2)+'%':'0.00%'}`);
         }catch(e){
             console.error('fetchPrice完全失败:',e);
             $('tradePriceDisplay').textContent='1.00';
@@ -255,7 +435,7 @@
         fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});
         priceRefreshInterval=setInterval(()=>{
             const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) { try { const data = JSON.parse(stored); if (data.date !== getTodayKey()) { localStorage.removeItem(STORAGE_KEY); console.log('🔄 跨天，清除旧基准价格'); } } catch(e) {} }
+            if (stored) { try { const data = JSON.parse(stored); if (data.date !== getTodayKey()) { localStorage.removeItem(STORAGE_KEY); } } catch(e) {} }
             fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});
         }, 30000);
         setInterval(async()=>{try{const fd=encodeCall('isPriceFresh()'),fr=await web3.eth.call({to:RP,data:fd});if(!web3.eth.abi.decodeParameter('bool',fr)&&userAddress){const ud=encodeCall('updatePrice()');await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:ud}]})}}catch(e){}},300000);
@@ -293,7 +473,7 @@
 
     function setupTabs(){document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion()})});document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell')});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote()})})}
 
-    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard()}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()})})}$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward)});
+    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchPastTransfers();subscribeTransferEvents()}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()})})}$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward)});
 })();
 </script>
 </body>
