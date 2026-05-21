@@ -346,6 +346,11 @@
             color: #f0b90b;
             background: rgba(240, 185, 11, 0.1);
         }
+        .price-source-tag {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-left: 2px;
+        }
     </style>
 </head>
 <body>
@@ -397,6 +402,7 @@
                 <span class="trade-price-badge price-change-flat" id="tradePriceBadge">
                     $<span id="tradePriceDisplay">--</span>
                     <span id="tradeChangeDisplay" style="font-size:11px;">--</span>
+                    <span class="price-source-tag" id="priceSourceTag">现货</span>
                 </span>
             </h2>
             <div class="tab-container" id="tradeTabSwitch">
@@ -466,7 +472,9 @@
             <div id="panelMYK" style="display:none;">
                 <div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币</div>
                 <div class="price-row">
-                    <span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK</span>
+                    <span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK
+                        <span class="price-source-tag" id="activatePriceSource">(合约价)</span>
+                    </span>
                 </div>
                 <input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="2.2" step="0.1" min="0">
                 <button class="btn" id="activateMYKBtn">💸 支付MYK激活</button>
@@ -520,16 +528,17 @@
             const AIRDROP_TOTAL = 1000000;
             const MERKLE_API_URL = 'https://your-api.example.com/api/merkle-proof';
 
-            let web3, userAddress, currentPrice = '1000000000000000000';
+            let web3, userAddress;
+            let activationPrice = '1000000000000000000'; // MYK激活价格（RewardPool合约价）
+            let spotPrice = '1000000000000000000'; // MYK买卖现货价格（Pair储备）
+            let previousSpotPrice = null; // 上一次现货价格（用于涨跌幅计算）
             let isProcessing = false;
             let buySlippage = 0.005;
             let sellSlippage = 0.005;
             let priceRefreshInterval;
 
             function $(id) { return document.getElementById(id); }
-
             function a6(a) { return a.slice(0, 6) + '...' + a.slice(-4); }
-
             function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
 
             function formatPrice(price) {
@@ -539,9 +548,8 @@
                 return price.toFixed(8);
             }
 
-            function getPriceNumber() {
-                return n(currentPrice);
-            }
+            function getActivationPrice() { return n(activationPrice); }
+            function getSpotPrice() { return n(spotPrice); }
 
             function encodeCall(signature, types = [], values = []) {
                 const selector = web3.eth.abi.encodeFunctionSignature(signature);
@@ -565,7 +573,7 @@
             function unlock() { isProcessing = false; }
 
             function updateActivateSuggestion() {
-                const pn = getPriceNumber();
+                const pn = getActivationPrice();
                 if (pn > 0) {
                     $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
                     $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
@@ -584,113 +592,131 @@
                 fetchUserStats();
                 fetchHoldingInfo();
                 refreshIdentityCard();
-                updateBuyQuote();
-                updateSellQuote();
             }
 
             async function fetchPrice() {
                 try {
                     if (!web3) { console.warn('web3 未初始化'); return; }
 
-                    let priceSource = '未知';
-                    let previousPrice = currentPrice;
-
+                    // ========== 1. 获取激活价格（RewardPool 合约价） ==========
+                    let activationSource = '未知';
                     try {
                         const data = encodeCall('getCurrentPrice()');
                         const result = await web3.eth.call({ to: RP, data: data });
                         const rawPrice = web3.eth.abi.decodeParameter('uint256', result);
-                        if (BigInt(rawPrice) === BigInt(0)) { throw new Error('价格为0'); }
-                        currentPrice = rawPrice.toString();
-                        priceSource = 'RewardPool';
+                        if (BigInt(rawPrice) > BigInt(0)) {
+                            activationPrice = rawPrice.toString();
+                            activationSource = 'RewardPool';
+                        } else {
+                            throw new Error('价格为0');
+                        }
                     } catch (e1) {
-                        console.warn('RewardPool 价格失败:', e1.message?.slice(0, 50));
-                        try {
-                            const pairAbi = [
-                                { "constant": true, "inputs": [], "name": "getReserves", "outputs": [
-                                        { "internalType": "uint112", "name": "_reserve0", "type": "uint112" },
-                                        { "internalType": "uint112", "name": "_reserve1", "type": "uint112" },
-                                        { "internalType": "uint32", "name": "_blockTimestampLast", "type": "uint32" }
-                                    ], "type": "function" },
-                                { "constant": true, "inputs": [], "name": "token0", "outputs": [
-                                        { "internalType": "address", "name": "", "type": "address" }],
-                                    "type": "function" }
-                            ];
-                            const pairContract = new web3.eth.Contract(pairAbi, PAIR);
-                            const token0 = await pairContract.methods.token0().call();
-                            const reserves = await pairContract.methods.getReserves().call();
-                            const r0 = BigInt(reserves[0]);
-                            const r1 = BigInt(reserves[1]);
-                            if (r0 === BigInt(0) || r1 === BigInt(0)) { throw new Error('Pair 流动性为0'); }
-                            let reserveUSDT, reserveMYK;
-                            if (token0.toLowerCase() === USDT.toLowerCase()) { reserveUSDT = r0;
-                                reserveMYK = r1; } else { reserveUSDT = r1;
-                                reserveMYK = r0; }
-                            const pairPrice = (reserveUSDT * BigInt(10 ** 18)) / reserveMYK;
-                            currentPrice = pairPrice.toString();
-                            priceSource = 'Pair链上';
-                        } catch (e2) {
-                            console.warn('Pair 价格失败:', e2.message?.slice(0, 50));
-                            currentPrice = '1000000000000000000';
-                            priceSource = '默认值';
+                        console.warn('RewardPool 激活价格获取失败:', e1.message?.slice(0, 50));
+                        // 降级：使用现货价格
+                        if (BigInt(spotPrice) > BigInt(0)) {
+                            activationPrice = spotPrice;
+                            activationSource = '现货降级';
                         }
                     }
+                    $('activatePriceSource').textContent = `(${activationSource})`;
 
-                    if (!currentPrice || currentPrice === '0' || currentPrice === '0x') {
-                        currentPrice = '1000000000000000000';
-                        priceSource = '兜底默认值';
+                    // ========== 2. 获取现货价格（Pair 储备） ==========
+                    let spotSource = '未知';
+                    let previousPrice = spotPrice;
+                    try {
+                        const pairAbi = [
+                            { "constant": true, "inputs": [], "name": "getReserves", "outputs": [
+                                    { "internalType": "uint112", "name": "_reserve0", "type": "uint112" },
+                                    { "internalType": "uint112", "name": "_reserve1", "type": "uint112" },
+                                    { "internalType": "uint32", "name": "_blockTimestampLast", "type": "uint32" }
+                                ], "type": "function" },
+                            { "constant": true, "inputs": [], "name": "token0", "outputs": [
+                                    { "internalType": "address", "name": "", "type": "address" }], "type": "function" }
+                        ];
+                        const pairContract = new web3.eth.Contract(pairAbi, PAIR);
+                        const token0 = await pairContract.methods.token0().call();
+                        const reserves = await pairContract.methods.getReserves().call();
+                        const r0 = BigInt(reserves[0]);
+                        const r1 = BigInt(reserves[1]);
+                        if (r0 === BigInt(0) || r1 === BigInt(0)) throw new Error('Pair 流动性为0');
+                        let reserveUSDT, reserveMYK;
+                        if (token0.toLowerCase() === USDT.toLowerCase()) {
+                            reserveUSDT = r0;
+                            reserveMYK = r1;
+                        } else {
+                            reserveUSDT = r1;
+                            reserveMYK = r0;
+                        }
+                        const pairPrice = (reserveUSDT * BigInt(10 ** 18)) / reserveMYK;
+                        spotPrice = pairPrice.toString();
+                        spotSource = 'Pair现货';
+                    } catch (e2) {
+                        console.warn('Pair 现货价格获取失败:', e2.message?.slice(0, 50));
+                        spotSource = '默认值';
                     }
+                    $('priceSourceTag').textContent = spotSource;
 
-                    const pn = getPriceNumber();
+                    // ========== 3. 更新UI ==========
+                    const sp = getSpotPrice();
+                    const ap = getActivationPrice();
 
-                    if (pn > 0 && pn < 1e12) {
-                        $('currentPrice').textContent = pn.toFixed(6);
-                        $('tradePriceDisplay').textContent = formatPrice(pn);
+                    // 价格卡片显示现货价格
+                    $('currentPrice').textContent = sp.toFixed(6);
 
-                        if (previousPrice && BigInt(previousPrice) > BigInt(0)) {
-                            const prevPn = n(previousPrice);
-                            if (prevPn > 0) {
-                                const change = ((pn - prevPn) / prevPn) * 100;
-                                const changeEl = $('tradeChangeDisplay');
-                                const badge = $('tradePriceBadge');
-                                if (change > 0) {
-                                    changeEl.textContent = '+' + change.toFixed(2) + '%';
-                                    badge.className = 'trade-price-badge price-change-up';
-                                } else if (change < 0) {
-                                    changeEl.textContent = change.toFixed(2) + '%';
-                                    badge.className = 'trade-price-badge price-change-down';
-                                } else {
-                                    changeEl.textContent = '0.00%';
-                                    badge.className = 'trade-price-badge price-change-flat';
-                                }
+                    // 买卖卡片右上角显示现货价格
+                    $('tradePriceDisplay').textContent = formatPrice(sp);
+
+                    // 涨跌幅计算（基于现货价格）
+                    if (previousSpotPrice !== null && BigInt(previousPrice) > BigInt(0)) {
+                        const prevSp = n(previousPrice);
+                        if (prevSp > 0) {
+                            const change = ((sp - prevSp) / prevSp) * 100;
+                            const changeEl = $('tradeChangeDisplay');
+                            const badge = $('tradePriceBadge');
+                            if (change > 0) {
+                                changeEl.textContent = '+' + change.toFixed(2) + '%';
+                                badge.className = 'trade-price-badge price-change-up';
+                            } else if (change < 0) {
+                                changeEl.textContent = change.toFixed(2) + '%';
+                                badge.className = 'trade-price-badge price-change-down';
+                            } else {
+                                changeEl.textContent = '0.00%';
+                                badge.className = 'trade-price-badge price-change-flat';
                             }
                         }
                     }
+                    previousSpotPrice = spotPrice;
 
-                    updateActivateSuggestion();
-                    updateBuyQuote();
-                    updateSellQuote();
-
+                    // 价格新鲜度
                     try {
                         const freshData = encodeCall('isPriceFresh()');
                         const freshResult = await web3.eth.call({ to: RP, data: freshData });
                         const fresh = web3.eth.abi.decodeParameter('bool', freshResult);
-                        $('priceFresh').textContent = fresh ? '✅ 有效' : '⚠️ 过期';
+                        $('priceFresh').textContent = `${fresh ? '✅ 合约价有效' : '⚠️ 合约价过期'} | 现货: ${spotSource}`;
                         $('priceFresh').style.color = fresh ? '#4ecca3' : '#f0a500';
                     } catch (e) {
-                        $('priceFresh').textContent = '⚠️';
+                        $('priceFresh').textContent = `⚠️ 现货: ${spotSource} | 激活: ${activationSource}`;
                         $('priceFresh').style.color = '#f0a500';
                     }
 
-                    console.log(`✅ 价格: ${pn.toFixed(6)} USDT/MYK | 来源: ${priceSource}`);
+                    // 更新激活建议（使用合约价）
+                    updateActivateSuggestion();
+
+                    // 更新买卖报价（使用现货价格）
+                    updateBuyQuote();
+                    updateSellQuote();
+
+                    console.log(`✅ 激活价: ${ap.toFixed(6)} (${activationSource}) | 现货价: ${sp.toFixed(6)} (${spotSource})`);
 
                 } catch (e) {
                     console.error('fetchPrice 完全失败:', e);
-                    currentPrice = '1000000000000000000';
                     $('currentPrice').textContent = '1.000000';
                     $('tradePriceDisplay').textContent = '1.00';
                     $('tradePriceBadge').className = 'trade-price-badge price-change-flat';
                     $('priceFresh').textContent = '❌ 获取失败';
                     $('priceFresh').style.color = '#e94560';
+                    $('priceSourceTag').textContent = '错误';
+                    $('activatePriceSource').textContent = '(错误)';
                     updateActivateSuggestion();
                 }
             }
@@ -721,29 +747,6 @@
                     priceRefreshInterval = null; }
             }
 
-            async function updatePrice() {
-                if (!userAddress) { alert('请先连接钱包'); return; }
-                if (!lock()) return;
-                const btn = $('updatePriceBtn');
-                const el = $('priceResult');
-                el.style.display = 'block';
-                el.innerHTML = '⏳ 更新价格中...';
-                btn.disabled = true;
-                try {
-                    const data = encodeCall('updatePrice()');
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: RP, data: data }] });
-                    el.innerHTML = '✅ 价格更新成功！';
-                    setTimeout(fetchPrice, 3000);
-                } catch (e) {
-                    const msg = parseError(e);
-                    if (msg.includes('too frequent')) { el.innerHTML = '⚠️ 更新太频繁，请等5分钟后再试'; } else if (
-                        msg.includes('time too short')) { el.innerHTML =
-                        '⚠️ TWAP时间窗口不足，请等5分钟后重试'; } else { el.innerHTML = '❌ ' + msg; }
-                } finally { btn.disabled = false;
-                    unlock(); }
-            }
-
             async function getSwapQuote(amountIn, path) {
                 try {
                     const routerAbi = [{ "constant": true, "inputs": [{ "internalType": "uint256",
@@ -755,7 +758,8 @@
                     const amounts = await routerContract.methods.getAmountsOut(amountIn, path).call();
                     return amounts[1];
                 } catch (e) {
-                    const price = getPriceNumber();
+                    // 降级：使用现货价格手动计算
+                    const price = getSpotPrice();
                     if (isNaN(price) || price <= 0) return '0';
                     const amountInNum = parseFloat(Web3.utils.fromWei(amountIn, 'ether'));
                     if (path[0].toLowerCase() === USDT.toLowerCase()) {
@@ -883,18 +887,16 @@
                     const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint256',
                         'uint256', 'uint256', 'uint256', 'uint8', 'bool'
                     ], userResult);
-                    const invited = Number(u[1]);
-                    $('invitedCount').textContent = invited;
-                    const invitePercent = Math.min(100, (invited / 25) * 100);
-                    $('inviteProgress').style.width = invitePercent.toFixed(1) + '%';
-                    const role = u[7];
-                    if (role >= 3) { $('firstCommunityCard').classList.remove('locked');
+                    $('invitedCount').textContent = Number(u[1]);
+                    $('inviteProgress').style.width = Math.min(100, (Number(u[1]) / 25) * 100).toFixed(1) + '%';
+                    if (u[7] >= 3) { $('firstCommunityCard').classList.remove('locked');
                         $('firstCommunityStatus').textContent = '🔓 已解锁';
                         $('firstCommunityStatus').style.color = '#4ecca3'; }
                     try {
                         const streakData = encodeCall('getStreakLength(address)', ['address'], [userAddress]);
-                        const streakResult = await web3.eth.call({ to: RP, data: streakData });
-                        $('streakDays').textContent = web3.eth.abi.decodeParameter('uint256', streakResult);
+                        $('streakDays').textContent = web3.eth.abi.decodeParameter('uint256', await web3.eth.call({
+                            to: RP,
+                            data: streakData }));
                     } catch (e) { $('streakDays').textContent = '0'; }
                 } catch (e) { $('invitedCount').textContent = '--';
                     $('streakDays').textContent = '--'; }
@@ -922,21 +924,21 @@
                         'zh-CN') : '未激活';
                     $('cardInvited').textContent = u[1];
                     try {
-                        const streakData = encodeCall('getStreakLength(address)', ['address'], [userAddress]);
-                        const streakResult = await web3.eth.call({ to: RP, data: streakData });
-                        $('cardStreak').textContent = web3.eth.abi.decodeParameter('uint256', streakResult);
+                        $('cardStreak').textContent = web3.eth.abi.decodeParameter('uint256', await web3.eth.call({
+                            to: RP,
+                            data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) }));
                     } catch (e) { $('cardStreak').textContent = '0'; }
                     try {
                         $('cardMYK').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({
                             to: MYK,
-                            data: encodeCall('balanceOf(address)', ['address'], [userAddress])
-                        }))).toFixed(4);
+                            data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(
+                        4);
                     } catch (e) { $('cardMYK').textContent = '--'; }
                     try {
                         $('cardUSDT').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({
                             to: USDT,
-                            data: encodeCall('balanceOf(address)', ['address'], [userAddress])
-                        }))).toFixed(4);
+                            data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(
+                        4);
                     } catch (e) { $('cardUSDT').textContent = '--'; }
                 } catch (e) {}
             }
@@ -998,15 +1000,15 @@
             async function fetchHoldingInfo() {
                 if (!userAddress || !web3) return;
                 try {
-                    const balanceData = encodeCall('balanceOf(address)', ['address'], [userAddress]);
-                    const balanceResult = await web3.eth.call({ to: MYK, data: balanceData });
-                    $('holdingBalance').textContent = n(web3.eth.abi.decodeParameter('uint256', balanceResult)).toFixed(
-                        4);
+                    const balanceResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)',
+                            ['address'], [userAddress]) });
+                    $('holdingBalance').textContent = n(web3.eth.abi.decodeParameter('uint256', balanceResult))
+                        .toFixed(4);
                     const todayDay = Math.floor(Date.now() / 86400000);
                     try {
-                        const claimedData = encodeCall('dailySettled(address,uint256)', ['address', 'uint256'],
-                            [userAddress, String(todayDay)]);
-                        const claimedResult = await web3.eth.call({ to: RP, data: claimedData });
+                        const claimedResult = await web3.eth.call({ to: RP, data: encodeCall(
+                                'dailySettled(address,uint256)', ['address', 'uint256'], [userAddress, String(
+                                    todayDay)]) });
                         const claimed = web3.eth.abi.decodeParameter('bool', claimedResult);
                         $('claimedToday').textContent = claimed ? '✅ 已领取' : '❌ 未领取';
                         $('claimRewardBtn').disabled = claimed;
