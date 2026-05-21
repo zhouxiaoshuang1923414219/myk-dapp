@@ -355,7 +355,6 @@
         </div>
         <h1>🌐 MYK 生态面板</h1>
 
-        <!-- 钱包区域 -->
         <div class="glass-card" style="padding: 14px;">
             <div class="wallet-row">
                 <span style="color:#b0b8d0;">🔗 钱包</span>
@@ -364,7 +363,6 @@
             <button class="btn btn-outline" id="connectWalletBtn" style="margin-top: 8px;">🔓 连接钱包</button>
         </div>
 
-        <!-- 👤 个人身份+资产卡 -->
         <div class="glass-card">
             <h2>👤 个人身份</h2>
             <div class="stat-row">
@@ -393,7 +391,6 @@
             </div>
         </div>
 
-        <!-- 📈 买卖 MYK -->
         <div class="glass-card">
             <h2 style="justify-content: space-between;">
                 <span>📈 买卖 MYK</span>
@@ -438,7 +435,6 @@
             </div>
         </div>
 
-        <!-- 🎁 空投进度条 -->
         <div class="glass-card">
             <h2>🎁 新人空投进度</h2>
             <div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK</div>
@@ -455,7 +451,6 @@
             </div>
         </div>
 
-        <!-- 激活卡片 -->
         <div class="glass-card">
             <h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2>
             <div class="tab-container" id="activateTabSwitch">
@@ -479,7 +474,6 @@
             </div>
         </div>
 
-        <!-- 🔓 第一社区权益卡 -->
         <div class="glass-card unlock-card locked" id="firstCommunityCard">
             <h2>🔓 第一社区权益 <span class="badge badge-gold">权益卡</span></h2>
             <div class="desc" id="firstCommunityStatus">🔒 未解锁</div>
@@ -494,7 +488,6 @@
             </div>
         </div>
 
-        <!-- 🎁 每日持币奖励（一键领取） -->
         <div class="glass-card">
             <h2>🎁 每日持币奖励</h2>
             <div class="desc">持币即可领奖，<span class="highlight">一键领取</span></div>
@@ -546,6 +539,10 @@
                 return price.toFixed(8);
             }
 
+            function getPriceNumber() {
+                return n(currentPrice);
+            }
+
             function encodeCall(signature, types = [], values = []) {
                 const selector = web3.eth.abi.encodeFunctionSignature(signature);
                 if (types.length === 0) return selector;
@@ -566,6 +563,14 @@
                 isProcessing = true; return true; }
 
             function unlock() { isProcessing = false; }
+
+            function updateActivateSuggestion() {
+                const pn = getPriceNumber();
+                if (pn > 0) {
+                    $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
+                    $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
+                }
+            }
 
             async function connectWallet() {
                 if (!window.ethereum) { alert('请安装MetaMask'); return; }
@@ -590,54 +595,36 @@
                     let priceSource = '未知';
                     let previousPrice = currentPrice;
 
-                    // 方法1：从 RewardPool 获取（TWAP + 现货混合）
                     try {
                         const data = encodeCall('getCurrentPrice()');
                         const result = await web3.eth.call({ to: RP, data: data });
                         const rawPrice = web3.eth.abi.decodeParameter('uint256', result);
-
-                        if (BigInt(rawPrice) === BigInt(0)) {
-                            throw new Error('价格为0');
-                        }
-
+                        if (BigInt(rawPrice) === BigInt(0)) { throw new Error('价格为0'); }
                         currentPrice = rawPrice.toString();
                         priceSource = 'RewardPool';
                     } catch (e1) {
                         console.warn('RewardPool 价格失败:', e1.message?.slice(0, 50));
-
-                        // 方法2：从 Pair 合约获取链上储备
                         try {
                             const pairAbi = [
-                                { "constant": true, "inputs": [], "name": "getReserves",
-                                    "outputs": [
+                                { "constant": true, "inputs": [], "name": "getReserves", "outputs": [
                                         { "internalType": "uint112", "name": "_reserve0", "type": "uint112" },
                                         { "internalType": "uint112", "name": "_reserve1", "type": "uint112" },
                                         { "internalType": "uint32", "name": "_blockTimestampLast", "type": "uint32" }
                                     ], "type": "function" },
-                                { "constant": true, "inputs": [], "name": "token0",
-                                    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                                { "constant": true, "inputs": [], "name": "token0", "outputs": [
+                                        { "internalType": "address", "name": "", "type": "address" }],
                                     "type": "function" }
                             ];
                             const pairContract = new web3.eth.Contract(pairAbi, PAIR);
                             const token0 = await pairContract.methods.token0().call();
                             const reserves = await pairContract.methods.getReserves().call();
-
                             const r0 = BigInt(reserves[0]);
                             const r1 = BigInt(reserves[1]);
-
-                            if (r0 === BigInt(0) || r1 === BigInt(0)) {
-                                throw new Error('Pair 流动性为0');
-                            }
-
+                            if (r0 === BigInt(0) || r1 === BigInt(0)) { throw new Error('Pair 流动性为0'); }
                             let reserveUSDT, reserveMYK;
-                            if (token0.toLowerCase() === USDT.toLowerCase()) {
-                                reserveUSDT = r0;
-                                reserveMYK = r1;
-                            } else {
-                                reserveUSDT = r1;
-                                reserveMYK = r0;
-                            }
-
+                            if (token0.toLowerCase() === USDT.toLowerCase()) { reserveUSDT = r0;
+                                reserveMYK = r1; } else { reserveUSDT = r1;
+                                reserveMYK = r0; }
                             const pairPrice = (reserveUSDT * BigInt(10 ** 18)) / reserveMYK;
                             currentPrice = pairPrice.toString();
                             priceSource = 'Pair链上';
@@ -653,7 +640,7 @@
                         priceSource = '兜底默认值';
                     }
 
-                    const pn = n(currentPrice);
+                    const pn = getPriceNumber();
 
                     if (pn > 0 && pn < 1e12) {
                         $('currentPrice').textContent = pn.toFixed(6);
@@ -679,8 +666,9 @@
                         }
                     }
 
-                    $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
-                    $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
+                    updateActivateSuggestion();
+                    updateBuyQuote();
+                    updateSellQuote();
 
                     try {
                         const freshData = encodeCall('isPriceFresh()');
@@ -693,9 +681,6 @@
                         $('priceFresh').style.color = '#f0a500';
                     }
 
-                    updateBuyQuote();
-                    updateSellQuote();
-
                     console.log(`✅ 价格: ${pn.toFixed(6)} USDT/MYK | 来源: ${priceSource}`);
 
                 } catch (e) {
@@ -706,6 +691,7 @@
                     $('tradePriceBadge').className = 'trade-price-badge price-change-flat';
                     $('priceFresh').textContent = '❌ 获取失败';
                     $('priceFresh').style.color = '#e94560';
+                    updateActivateSuggestion();
                 }
             }
 
@@ -731,33 +717,8 @@
             }
 
             function stopPriceAutoRefresh() {
-                if (priceRefreshInterval) {
-                    clearInterval(priceRefreshInterval);
-                    priceRefreshInterval = null;
-                }
-            }
-
-            async function updatePrice() {
-                if (!userAddress) { alert('请先连接钱包'); return; }
-                if (!lock()) return;
-                const btn = $('updatePriceBtn');
-                const el = $('priceResult');
-                el.style.display = 'block';
-                el.innerHTML = '⏳ 更新价格中...';
-                btn.disabled = true;
-                try {
-                    const data = encodeCall('updatePrice()');
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: RP, data: data }] });
-                    el.innerHTML = '✅ 价格更新成功！';
-                    setTimeout(fetchPrice, 3000);
-                } catch (e) {
-                    const msg = parseError(e);
-                    if (msg.includes('too frequent')) { el.innerHTML = '⚠️ 更新太频繁，请等5分钟后再试'; } else if (
-                        msg.includes('time too short')) { el.innerHTML =
-                        '⚠️ TWAP时间窗口不足，请等5分钟后重试'; } else { el.innerHTML = '❌ ' + msg; }
-                } finally { btn.disabled = false;
-                    unlock(); }
+                if (priceRefreshInterval) { clearInterval(priceRefreshInterval);
+                    priceRefreshInterval = null; }
             }
 
             async function getSwapQuote(amountIn, path) {
@@ -771,7 +732,7 @@
                     const amounts = await routerContract.methods.getAmountsOut(amountIn, path).call();
                     return amounts[1];
                 } catch (e) {
-                    const price = parseFloat($('currentPrice').textContent);
+                    const price = getPriceNumber();
                     if (isNaN(price) || price <= 0) return '0';
                     const amountInNum = parseFloat(Web3.utils.fromWei(amountIn, 'ether'));
                     if (path[0].toLowerCase() === USDT.toLowerCase()) {
@@ -833,8 +794,7 @@
                     el.innerHTML = '✅ 买入成功！';
                     setTimeout(() => { fetchPrice();
                         fetchHoldingInfo();
-                        refreshIdentityCard();
-                        updateBuyQuote(); }, 3000);
+                        refreshIdentityCard(); }, 3000);
                 } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { btn.disabled = false;
                     unlock(); }
             }
@@ -868,8 +828,7 @@
                     el.innerHTML = '✅ 卖出成功！';
                     setTimeout(() => { fetchPrice();
                         fetchHoldingInfo();
-                        refreshIdentityCard();
-                        updateSellQuote(); }, 3000);
+                        refreshIdentityCard(); }, 3000);
                 } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { btn.disabled = false;
                     unlock(); }
             }
@@ -906,20 +865,16 @@
                     const invitePercent = Math.min(100, (invited / 25) * 100);
                     $('inviteProgress').style.width = invitePercent.toFixed(1) + '%';
                     const role = u[7];
-                    if (role >= 3) {
-                        $('firstCommunityCard').classList.remove('locked');
+                    if (role >= 3) { $('firstCommunityCard').classList.remove('locked');
                         $('firstCommunityStatus').textContent = '🔓 已解锁';
-                        $('firstCommunityStatus').style.color = '#4ecca3';
-                    }
+                        $('firstCommunityStatus').style.color = '#4ecca3'; }
                     try {
                         const streakData = encodeCall('getStreakLength(address)', ['address'], [userAddress]);
                         const streakResult = await web3.eth.call({ to: RP, data: streakData });
                         $('streakDays').textContent = web3.eth.abi.decodeParameter('uint256', streakResult);
                     } catch (e) { $('streakDays').textContent = '0'; }
-                } catch (e) {
-                    $('invitedCount').textContent = '--';
-                    $('streakDays').textContent = '--';
-                }
+                } catch (e) { $('invitedCount').textContent = '--';
+                    $('streakDays').textContent = '--'; }
             }
 
             async function refreshIdentityCard() {
@@ -933,20 +888,13 @@
                     const roleNames = ['无', '🥉 PRIMARY', '🥈 MIDDLE', '🥇 第一社区', '🥇 第二社区', '🥇 第三社区',
                     '👑 COMMUNITY'];
                     $('cardRole').textContent = roleNames[u[7]] || '未知';
-                    if (u[8]) {
-                        $('cardActiveBadge').innerHTML =
-                            '<span style="color:#4ecca3; background:rgba(78,204,163,0.15); padding:2px 10px; border-radius:12px;">✅ 已激活</span>';
-                    } else {
-                        $('cardActiveBadge').innerHTML =
-                            '<span style="color:#e94560; background:rgba(233,69,96,0.15); padding:2px 10px; border-radius:12px;">❌ 未激活</span>';
-                    }
-                    if (u[0] === '0x0000000000000000000000000000000000000000') {
-                        $('cardReferrer').textContent = '无';
-                        $('cardReferrer').style.color = '#888';
-                    } else {
-                        $('cardReferrer').textContent = a6(u[0]);
-                        $('cardReferrer').style.color = '#4ef0a8';
-                    }
+                    $('cardActiveBadge').innerHTML = u[8] ?
+                        '<span style="color:#4ecca3; background:rgba(78,204,163,0.15); padding:2px 10px; border-radius:12px;">✅ 已激活</span>' :
+                        '<span style="color:#e94560; background:rgba(233,69,96,0.15); padding:2px 10px; border-radius:12px;">❌ 未激活</span>';
+                    $('cardReferrer').textContent = u[0] === '0x0000000000000000000000000000000000000000' ? '无' : a6(
+                        u[0]);
+                    $('cardReferrer').style.color = u[0] === '0x0000000000000000000000000000000000000000' ? '#888' :
+                        '#4ef0a8';
                     $('cardActivated').textContent = u[4] > 0 ? new Date(Number(u[4]) * 1000).toLocaleDateString(
                         'zh-CN') : '未激活';
                     $('cardInvited').textContent = u[1];
@@ -956,16 +904,16 @@
                         $('cardStreak').textContent = web3.eth.abi.decodeParameter('uint256', streakResult);
                     } catch (e) { $('cardStreak').textContent = '0'; }
                     try {
-                        const mykData = encodeCall('balanceOf(address)', ['address'], [userAddress]);
-                        const mykResult = await web3.eth.call({ to: MYK, data: mykData });
-                        $('cardMYK').textContent = n(web3.eth.abi.decodeParameter('uint256', mykResult)).toFixed(
-                        4);
+                        $('cardMYK').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({
+                            to: MYK,
+                            data: encodeCall('balanceOf(address)', ['address'], [userAddress])
+                        }))).toFixed(4);
                     } catch (e) { $('cardMYK').textContent = '--'; }
                     try {
-                        const usdtData = encodeCall('balanceOf(address)', ['address'], [userAddress]);
-                        const usdtResult = await web3.eth.call({ to: USDT, data: usdtData });
-                        $('cardUSDT').textContent = n(web3.eth.abi.decodeParameter('uint256', usdtResult)).toFixed(
-                        4);
+                        $('cardUSDT').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({
+                            to: USDT,
+                            data: encodeCall('balanceOf(address)', ['address'], [userAddress])
+                        }))).toFixed(4);
                     } catch (e) { $('cardUSDT').textContent = '--'; }
                 } catch (e) {}
             }
@@ -989,10 +937,8 @@
                         fetchAirdrop();
                         fetchHoldingInfo();
                         refreshIdentityCard(); }, 3000);
-                } catch (e) {
-                    $('activateMYKResult').style.display = 'block';
-                    $('activateMYKResult').innerHTML = '❌ ' + parseError(e);
-                } finally { btn.disabled = false;
+                } catch (e) { $('activateMYKResult').style.display = 'block';
+                    $('activateMYKResult').innerHTML = '❌ ' + parseError(e); } finally { btn.disabled = false;
                     btn.textContent = '💸 支付MYK激活';
                     unlock(); }
             }
@@ -1012,8 +958,7 @@
                             to: USDT, data: appData }] });
                     el.innerHTML = '⏳ 激活中...';
                     const actData = encodeCall('activateWithUSDT(address)', ['address'], [
-                        '0x0000000000000000000000000000000000000000'
-                    ]);
+                        '0x0000000000000000000000000000000000000000']);
                     await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
                             to: RP, data: actData }] });
                     el.innerHTML = '✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';
@@ -1021,11 +966,9 @@
                         fetchAirdrop();
                         fetchHoldingInfo();
                         refreshIdentityCard(); }, 3000);
-                } catch (e) {
-                    const msg = parseError(e);
-                    if (msg.includes('referrer')) { el.innerHTML =
-                        '⚠️ 推荐人无效或未绑定，请检查链上绑定关系'; } else { el.innerHTML = '❌ ' + msg; }
-                } finally { btn.disabled = false;
+                } catch (e) { const msg = parseError(e);
+                    el.innerHTML = msg.includes('referrer') ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + msg; } finally {
+                    btn.disabled = false;
                     unlock(); }
             }
 
@@ -1034,23 +977,18 @@
                 try {
                     const balanceData = encodeCall('balanceOf(address)', ['address'], [userAddress]);
                     const balanceResult = await web3.eth.call({ to: MYK, data: balanceData });
-                    const balance = n(web3.eth.abi.decodeParameter('uint256', balanceResult));
-                    $('holdingBalance').textContent = balance.toFixed(4);
+                    $('holdingBalance').textContent = n(web3.eth.abi.decodeParameter('uint256', balanceResult)).toFixed(
+                        4);
                     const todayDay = Math.floor(Date.now() / 86400000);
                     try {
-                        const claimedData = encodeCall('dailySettled(address,uint256)', ['address',
-                        'uint256'], [userAddress, String(todayDay)]);
+                        const claimedData = encodeCall('dailySettled(address,uint256)', ['address', 'uint256'],
+                            [userAddress, String(todayDay)]);
                         const claimedResult = await web3.eth.call({ to: RP, data: claimedData });
                         const claimed = web3.eth.abi.decodeParameter('bool', claimedResult);
                         $('claimedToday').textContent = claimed ? '✅ 已领取' : '❌ 未领取';
                         $('claimRewardBtn').disabled = claimed;
-                        if (claimed) {
-                            $('claimRewardBtn').textContent = '✅ 今日已领取';
-                            $('claimRewardBtn').style.opacity = '0.6';
-                        } else {
-                            $('claimRewardBtn').textContent = '🎁 一键领取今日奖励';
-                            $('claimRewardBtn').style.opacity = '1';
-                        }
+                        $('claimRewardBtn').textContent = claimed ? '✅ 今日已领取' : '🎁 一键领取今日奖励';
+                        $('claimRewardBtn').style.opacity = claimed ? '0.6' : '1';
                     } catch (e) { $('claimedToday').textContent = '--'; }
                 } catch (e) { $('holdingBalance').textContent = '--'; }
             }
@@ -1058,17 +996,14 @@
             async function fetchMerkleProof() {
                 try {
                     const response = await fetch(`${MERKLE_API_URL}/${userAddress}`);
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        throw new Error(errorData.message || '获取签名数据失败');
-                    }
+                    if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(
+                            errorData.message || '获取签名数据失败'); }
                     const data = await response.json();
                     return {
                         amountWei: web3.utils.toWei(String(data.amount), 'ether'),
                         batchId: String(data.batchId),
                         proof: data.proof || [],
-                        root: data.root ||
-                            '0x0000000000000000000000000000000000000000000000000000000000000000'
+                        root: data.root || '0x0000000000000000000000000000000000000000000000000000000000000000'
                     };
                 } catch (e) { throw new Error('签名服务暂不可用，请稍后重试'); }
             }
@@ -1090,8 +1025,8 @@
                     btn.textContent = '领取中...';
                     loading.innerHTML = '<span style="color:#4ecca3;">⏳ 交易确认中...</span>';
                     const data = encodeCall('claimDailyReward(uint256,uint256,bytes32[],bytes32)', ['uint256',
-                        'uint256', 'bytes32[]', 'bytes32'
-                    ], [proofData.amountWei, proofData.batchId, proofData.proof, proofData.root]);
+                        'uint256', 'bytes32[]', 'bytes32'], [proofData.amountWei, proofData.batchId,
+                        proofData.proof, proofData.root]);
                     await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
                             to: RP, data: data }] });
                     el.style.display = 'block';
@@ -1104,21 +1039,17 @@
                 } catch (e) {
                     el.style.display = 'block';
                     const msg = parseError(e);
-                    if (msg.includes('already claimed') || msg.includes('already settled')) {
-                        el.innerHTML = '⚠️ 今日已领取，请明天再来';
+                    if (msg.includes('already claimed') || msg.includes('already settled')) { el.innerHTML =
+                            '⚠️ 今日已领取，请明天再来';
                         btn.disabled = true;
                         btn.textContent = '✅ 今日已领取';
-                        $('claimedToday').textContent = '✅ 已领取';
-                    } else if (msg.includes('invalid proof') || msg.includes('merkle')) {
-                        el.innerHTML = '⚠️ 签名验证失败，请联系管理员更新 Merkle Root';
-                    } else if (msg.includes('签名服务')) { el.innerHTML = '⚠️ ' + msg; } else { el.innerHTML =
-                        '❌ ' + msg; }
-                } finally {
-                    loading.style.display = 'none';
-                    btn.disabled = false;
-                    if (btn.textContent !== '✅ 今日已领取') { btn.textContent = '🎁 一键领取今日奖励'; }
-                    unlock();
-                }
+                        $('claimedToday').textContent = '✅ 已领取'; } else if (msg.includes('invalid proof') || msg
+                        .includes('merkle')) { el.innerHTML =
+                        '⚠️ 签名验证失败，请联系管理员更新 Merkle Root'; } else if (msg.includes('签名服务')) { el
+                        .innerHTML = '⚠️ ' + msg; } else { el.innerHTML = '❌ ' + msg; }
+                } finally { loading.style.display = 'none';
+                    btn.disabled = false; if (btn.textContent !== '✅ 今日已领取') { btn.textContent = '🎁 一键领取今日奖励'; }
+                    unlock(); }
             }
 
             function setupSlippageButtons(containerId, type) {
@@ -1126,8 +1057,8 @@
                 if (!container) return;
                 container.querySelectorAll('.slippage-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
-                        container.querySelectorAll('.slippage-btn').forEach(b => b.classList
-                            .remove('active'));
+                        container.querySelectorAll('.slippage-btn').forEach(b => b.classList.remove(
+                            'active'));
                         this.classList.add('active');
                         const slip = parseFloat(this.dataset.slip) / 100;
                         if (type === 'buy') { buySlippage = slip;
@@ -1140,18 +1071,19 @@
             function setupTabs() {
                 document.querySelectorAll('#activateTabSwitch .tab').forEach(tab => {
                     tab.addEventListener('click', function() {
-                        document.querySelectorAll('#activateTabSwitch .tab').forEach(t => t
-                            .classList.remove('active'));
+                        document.querySelectorAll('#activateTabSwitch .tab').forEach(t => t.classList
+                            .remove('active'));
                         this.classList.add('active');
                         const t = this.dataset.tab;
                         $('panelUSDT').style.display = t === 'usdt' ? 'block' : 'none';
                         $('panelMYK').style.display = t === 'myk' ? 'block' : 'none';
+                        if (t === 'myk') updateActivateSuggestion();
                     });
                 });
                 document.querySelectorAll('#tradeTabSwitch .tab').forEach(tab => {
                     tab.addEventListener('click', function() {
-                        document.querySelectorAll('#tradeTabSwitch .tab').forEach(t => {
-                            t.classList.remove('active', 'tab-buy', 'tab-sell'); });
+                        document.querySelectorAll('#tradeTabSwitch .tab').forEach(t => { t.classList
+                                .remove('active', 'tab-buy', 'tab-sell'); });
                         this.classList.add('active');
                         const t = this.dataset.tab;
                         if (t === 'buy') this.classList.add('tab-buy');
@@ -1181,22 +1113,15 @@
                             fetchUserStats();
                             fetchHoldingInfo();
                             refreshIdentityCard();
-                            updateBuyQuote();
-                            updateSellQuote();
                         }
                     } catch (e) {}
-                    window.ethereum.on('accountsChanged', () => {
-                        fetchPrice();
-                    });
+                    window.ethereum.on('accountsChanged', () => { fetchPrice(); });
                 }
                 $('connectWalletBtn').addEventListener('click', connectWallet);
-                $('updatePriceBtn').addEventListener('click', updatePrice);
                 $('refreshPriceBtn').addEventListener('click', () => { fetchPrice();
                     fetchAirdrop();
                     fetchHoldingInfo();
-                    refreshIdentityCard();
-                    updateBuyQuote();
-                    updateSellQuote(); });
+                    refreshIdentityCard(); });
                 $('buyUSDTAmount').addEventListener('input', updateBuyQuote);
                 $('sellMYKAmount').addEventListener('input', updateSellQuote);
                 $('buyMYKBtn').addEventListener('click', buyMYK);
