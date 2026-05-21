@@ -539,6 +539,13 @@
 
             function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
 
+            function formatPrice(price) {
+                if (price >= 1) return price.toFixed(2);
+                if (price >= 0.01) return price.toFixed(4);
+                if (price >= 0.0001) return price.toFixed(6);
+                return price.toFixed(8);
+            }
+
             function encodeCall(signature, types = [], values = []) {
                 const selector = web3.eth.abi.encodeFunctionSignature(signature);
                 if (types.length === 0) return selector;
@@ -605,8 +612,8 @@
                     }
                     const pn = n(currentPrice);
                     $('currentPrice').textContent = pn.toFixed(6);
-                    $('tradePriceDisplay').textContent = pn.toFixed(5);
-                    if (previousPrice !== null) {
+                    $('tradePriceDisplay').textContent = formatPrice(pn);
+                    if (previousPrice !== null && previousPrice > 0) {
                         const changePercent = ((pn - previousPrice) / previousPrice) * 100;
                         const badge = $('tradePriceBadge');
                         const changeEl = $('tradeChangeDisplay');
@@ -635,7 +642,7 @@
                     updateSellQuote();
                 } catch (e) {
                     $('currentPrice').textContent = '1.000000';
-                    $('tradePriceDisplay').textContent = '1.00000';
+                    $('tradePriceDisplay').textContent = '1.00';
                     $('tradeChangeDisplay').textContent = '--';
                     $('tradePriceBadge').className = 'trade-price-badge price-change-flat';
                     previousPrice = null;
