@@ -327,11 +327,24 @@
         .trade-price-badge {
             font-size: 13px;
             font-weight: 400;
-            color: #4ef0a8;
-            background: rgba(78, 204, 163, 0.1);
             padding: 4px 12px;
             border-radius: 20px;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .price-change-up {
+            color: #4ecca3;
+            background: rgba(78, 204, 163, 0.1);
+        }
+        .price-change-down {
+            color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
+        }
+        .price-change-flat {
+            color: #f0b90b;
+            background: rgba(240, 185, 11, 0.1);
         }
     </style>
 </head>
@@ -384,7 +397,10 @@
         <div class="glass-card">
             <h2 style="justify-content: space-between;">
                 <span>📈 买卖 MYK</span>
-                <span class="trade-price-badge">1 MYK = <span id="tradePriceDisplay">--</span> USDT</span>
+                <span class="trade-price-badge price-change-flat" id="tradePriceBadge">
+                    $<span id="tradePriceDisplay">--</span>
+                    <span id="tradeChangeDisplay" style="font-size:11px;">--</span>
+                </span>
             </h2>
             <div class="tab-container" id="tradeTabSwitch">
                 <div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div>
@@ -515,6 +531,7 @@
             let isProcessing = false;
             let buySlippage = 0.005;
             let sellSlippage = 0.005;
+            let previousPrice = null;
 
             function $(id) { return document.getElementById(id); }
 
@@ -588,7 +605,23 @@
                     }
                     const pn = n(currentPrice);
                     $('currentPrice').textContent = pn.toFixed(6);
-                    $('tradePriceDisplay').textContent = pn.toFixed(6);
+                    $('tradePriceDisplay').textContent = pn.toFixed(5);
+                    if (previousPrice !== null) {
+                        const changePercent = ((pn - previousPrice) / previousPrice) * 100;
+                        const badge = $('tradePriceBadge');
+                        const changeEl = $('tradeChangeDisplay');
+                        if (changePercent > 0) {
+                            changeEl.textContent = '+' + changePercent.toFixed(2) + '%';
+                            badge.className = 'trade-price-badge price-change-up';
+                        } else if (changePercent < 0) {
+                            changeEl.textContent = changePercent.toFixed(2) + '%';
+                            badge.className = 'trade-price-badge price-change-down';
+                        } else {
+                            changeEl.textContent = '0.00%';
+                            badge.className = 'trade-price-badge price-change-flat';
+                        }
+                    }
+                    previousPrice = pn;
                     $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
                     $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
                     try {
@@ -602,7 +635,10 @@
                     updateSellQuote();
                 } catch (e) {
                     $('currentPrice').textContent = '1.000000';
-                    $('tradePriceDisplay').textContent = '1.000000';
+                    $('tradePriceDisplay').textContent = '1.00000';
+                    $('tradeChangeDisplay').textContent = '--';
+                    $('tradePriceBadge').className = 'trade-price-badge price-change-flat';
+                    previousPrice = null;
                     $('suggestedMYK').textContent = '2.2';
                     $('mykAmount').value = '2.2';
                 }
