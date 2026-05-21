@@ -324,6 +324,15 @@
         .asset-value {
             font-size: 18px;
         }
+        .trade-price-badge {
+            font-size: 13px;
+            font-weight: 400;
+            color: #4ef0a8;
+            background: rgba(78, 204, 163, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -373,7 +382,10 @@
 
         <!-- 📈 买卖 MYK -->
         <div class="glass-card">
-            <h2>📈 买卖 MYK</h2>
+            <h2 style="justify-content: space-between;">
+                <span>📈 买卖 MYK</span>
+                <span class="trade-price-badge">1 MYK = <span id="tradePriceDisplay">--</span> USDT</span>
+            </h2>
             <div class="tab-container" id="tradeTabSwitch">
                 <div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div>
                 <div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div>
@@ -576,6 +588,7 @@
                     }
                     const pn = n(currentPrice);
                     $('currentPrice').textContent = pn.toFixed(6);
+                    $('tradePriceDisplay').textContent = pn.toFixed(6);
                     $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
                     $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
                     try {
@@ -589,6 +602,7 @@
                     updateSellQuote();
                 } catch (e) {
                     $('currentPrice').textContent = '1.000000';
+                    $('tradePriceDisplay').textContent = '1.000000';
                     $('suggestedMYK').textContent = '2.2';
                     $('mykAmount').value = '2.2';
                 }
