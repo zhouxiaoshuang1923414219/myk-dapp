@@ -42,6 +42,7 @@
     .btn-outline { background: #2d325a; box-shadow: none; padding: 10px 16px; }
     .btn-sm { padding: 10px 14px; font-size: 13px; width: auto; }
     .btn-green { background: linear-gradient(135deg, #4ecca3, #2e8b6a); box-shadow: 0 8px 18px rgba(78, 204, 163, 0.3); }
+    .btn-gold { background: linear-gradient(135deg, #f0a500, #e94560); box-shadow: 0 8px 18px rgba(240, 165, 0, 0.4); }
     .tab-container { display: flex; background: #0c0f1c; border-radius: 16px; padding: 4px; margin: 12px 0; border: 1px solid #2d3355; }
     .tab { flex: 1; text-align: center; padding: 10px; border-radius: 14px; font-weight: 600; color: #9aa0c0; cursor: pointer; transition: 0.2s; }
     .tab.active { background: #e94560; color: white; }
@@ -66,6 +67,9 @@
     .stat-value { color: #4ef0a8; font-weight: 700; }
     .unlock-card { border: 2px solid #f0b90b; }
     .unlock-card.locked { border: 2px solid #555; opacity: 0.7; }
+    .collapse-header { cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .collapse-content { display: none; margin-top: 8px; }
+    .collapse-content.open { display: block; }
   </style>
 </head>
 <body>
@@ -115,7 +119,7 @@
     </div>
   </div>
 
-  <!-- 激活卡片（USDT在上，MYK在下） -->
+  <!-- 激活卡片 -->
   <div class="glass-card">
     <h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2>
     <div class="tab-container" id="activateTabSwitch">
@@ -154,18 +158,26 @@
     </div>
   </div>
 
-  <!-- 🎁 每日持币奖励 -->
+  <!-- 🎁 每日持币奖励（一键版） -->
   <div class="glass-card">
     <h2>🎁 每日持币奖励</h2>
-    <div class="desc">领取今日持币奖励（需脚本签名数据）</div>
-    <input class="input-field" id="rewardAmount" type="number" placeholder="奖励金额 (USDT等值)" step="0.000001" min="0">
-    <input class="input-field" id="rewardBatchId" type="number" placeholder="批次ID (日期，如 20260521)" step="1" min="0">
-    <input class="input-field" id="rewardProof" type="text" placeholder="Merkle Proof (逗号分隔的bytes32)">
-    <input class="input-field" id="rewardRoot" type="text" placeholder="Merkle Root (首个用户填写)">
-    <button class="btn btn-green" id="claimRewardBtn">🎁 领取今日奖励</button>
+    <div class="desc" id="rewardDesc">自动获取今日持币奖励</div>
+    <button class="btn" id="claimRewardBtn" style="background:#555;" disabled>🎁 数据加载中...</button>
     <div class="info-box" id="claimRewardResult" style="display:none;"></div>
     <div class="stat-row" style="margin-top: 8px;">
       <span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span>
+      <span id="rewardAmountDisplay" style="color:#888;font-size:12px;"></span>
+    </div>
+    <!-- 高级用户：手动填写（折叠） -->
+    <div class="collapse-header" id="manualCollapseHeader" style="margin-top:10px;font-size:12px;color:#888;">
+      <span>🔧 高级：手动填写 Merkle 数据</span><span>▼</span>
+    </div>
+    <div class="collapse-content" id="manualCollapseContent">
+      <input class="input-field" id="rewardAmount" type="number" placeholder="奖励金额 (USDT等值)" step="0.000001" min="0">
+      <input class="input-field" id="rewardBatchId" type="number" placeholder="批次ID" step="1" min="0">
+      <input class="input-field" id="rewardProof" type="text" placeholder="Merkle Proof (逗号分隔)">
+      <input class="input-field" id="rewardRoot" type="text" placeholder="Merkle Root">
+      <button class="btn btn-sm" id="manualClaimBtn">手动领取</button>
     </div>
   </div>
 
@@ -186,13 +198,16 @@
 <script>
   (function() {
     const MYK = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    const RP = '0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0';
+    const RP = '0x20eC4Ff3bB5e44B828C4f7E13456Fbe2D5434d37';
     const GOV = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
     const USDT = '0x55d398326f99059fF775485246999027B3197955';
-    const AIRDROP_TOTAL = 1000000; // 100万 MYK 空投总量
+    const AIRDROP_TOTAL = 1000000;
+    // 🔧 替换为实际的奖励数据 JSON 地址模板，{date} 会被替换为 YYYYMMDD
+    const REWARD_DATA_URL_TEMPLATE = 'https://zhouxiaoshuang1923414219.github.io/myk1-dapp/rewards/{date}.json';
 
     let web3, userAddress, currentPrice = '1000000000000000000';
     let isProcessing = false;
+    let userRewardData = null;
 
     function $(id) { return document.getElementById(id); }
     function a6(a) { return a.slice(0,6)+'...'+a.slice(-4); }
@@ -225,6 +240,7 @@
       fetchPrice();
       fetchAirdrop();
       fetchUserStats();
+      fetchUserRewardData();
     }
 
     // ====== 价格 ======
@@ -294,7 +310,6 @@
     async function fetchUserStats() {
       if (!userAddress || !web3) return;
       try {
-        // 查询直推人数
         const userData = encodeCall('users(address)', ['address'], [userAddress]);
         const userResult = await web3.eth.call({to:RP, data:userData});
         const u = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], userResult);
@@ -303,15 +318,12 @@
         const invitePercent = Math.min(100, (invited / 25) * 100);
         $('inviteProgress').style.width = invitePercent.toFixed(1) + '%';
 
-        // 检查第一社区身份
-        const role = u[7];
-        if (role >= 3) { // FIRST_COMMUNITY = 3
+        if (u[7] >= 3) {
           $('firstCommunityCard').classList.remove('locked');
           $('firstCommunityStatus').textContent = '🔓 已解锁';
           $('firstCommunityStatus').style.color = '#4ecca3';
         }
 
-        // 连续天数
         try {
           const streakData = encodeCall('getStreakLength(address)', ['address'], [userAddress]);
           const streakResult = await web3.eth.call({to:RP, data:streakData});
@@ -321,6 +333,111 @@
         $('invitedCount').textContent = '--';
         $('streakDays').textContent = '--';
       }
+    }
+
+    // ====== 🔧 一键领取奖励 ======
+    async function fetchUserRewardData() {
+      if (!userAddress || !web3) return;
+      const btn = $('claimRewardBtn');
+      btn.disabled = true;
+      btn.style.background = '#555';
+      btn.textContent = '🎁 数据加载中...';
+      $('rewardAmountDisplay').textContent = '';
+
+      try {
+        const today = new Date();
+        const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+        const url = REWARD_DATA_URL_TEMPLATE.replace('{date}', dateStr);
+        const response = await fetch(url);
+        if (!response.ok) {
+          btn.textContent = '🎁 今日数据未发布';
+          return;
+        }
+        const data = await response.json();
+        const userData = data.users[userAddress.toLowerCase()];
+        if (userData) {
+          userRewardData = {
+            amount: Web3.utils.fromWei(userData.amount, 'ether'),
+            batchId: data.batchId,
+            proof: userData.proof,
+            root: data.root
+          };
+          const displayAmount = parseFloat(userRewardData.amount).toFixed(6);
+          btn.textContent = '🎁 一键领取 ' + displayAmount + ' USDT 等值奖励';
+          btn.style.background = 'linear-gradient(135deg, #f0a500, #e94560)';
+          btn.classList.add('btn-gold');
+          btn.disabled = false;
+          $('rewardAmountDisplay').textContent = '可领: ' + displayAmount + ' USDT';
+          $('rewardDesc').textContent = '✅ 今日奖励已就绪';
+          $('rewardDesc').style.color = '#4ecca3';
+        } else {
+          btn.textContent = '🎁 今日无奖励';
+          $('rewardDesc').textContent = '今日暂无持币奖励';
+          $('rewardDesc').style.color = '#888';
+        }
+      } catch(e) {
+        console.log('获取奖励数据失败:', e.message);
+        btn.textContent = '🎁 数据加载失败，请手动填写';
+        btn.disabled = false;
+        btn.style.background = '#555';
+      }
+    }
+
+    async function claimDailyReward() {
+      if (!userAddress) { alert('请先连接钱包'); return; }
+      if (!userRewardData) { alert('今日无奖励或数据未加载'); return; }
+      if (!lock()) return;
+
+      const btn = $('claimRewardBtn');
+      const el = $('claimRewardResult');
+      el.style.display = 'block';
+      el.innerHTML = '⏳ 领取中...';
+      btn.disabled = true;
+
+      try {
+        const amountWei = Web3.utils.toWei(userRewardData.amount, 'ether');
+        const data = encodeCall(
+          'claimDailyReward(uint256,uint256,bytes32[],bytes32)',
+          ['uint256','uint256','bytes32[]','bytes32'],
+          [amountWei, userRewardData.batchId, userRewardData.proof, userRewardData.root]
+        );
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:data}]});
+        el.innerHTML = '✅ 领取成功！';
+        setTimeout(fetchUserStats, 3000);
+      } catch(e) {
+        el.innerHTML = '❌ ' + parseError(e);
+      } finally {
+        btn.disabled = false;
+        unlock();
+      }
+    }
+
+    // 手动领取（兼容模式）
+    async function manualClaim() {
+      if (!userAddress) { alert('请先连接钱包'); return; }
+      if (!lock()) return;
+      const el = $('claimRewardResult');
+      el.style.display = 'block';
+      el.innerHTML = '⏳ 领取中...';
+
+      try {
+        const amountWei = web3.utils.toWei($('rewardAmount').value || '0', 'ether');
+        const batchId = $('rewardBatchId').value || '0';
+        const proofStr = $('rewardProof').value.trim();
+        const proof = proofStr ? proofStr.split(',').map(s => s.trim()) : [];
+        const proposedRoot = $('rewardRoot').value.trim() || '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+        const data = encodeCall(
+          'claimDailyReward(uint256,uint256,bytes32[],bytes32)',
+          ['uint256','uint256','bytes32[]','bytes32'],
+          [amountWei, batchId, proof, proposedRoot]
+        );
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:data}]});
+        el.innerHTML = '✅ 领取成功！';
+        setTimeout(fetchUserStats, 3000);
+      } catch(e) {
+        el.innerHTML = '❌ ' + parseError(e);
+      } finally { unlock(); }
     }
 
     // ====== 查询 ======
@@ -364,8 +481,7 @@
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:MYK, data:data}]});
         $('activateMYKResult').style.display = 'block';
         $('activateMYKResult').innerHTML = '✅ 激活成功！';
-        setTimeout(fetchUserStats, 3000);
-        setTimeout(fetchAirdrop, 3000);
+        setTimeout(() => { fetchUserStats(); fetchAirdrop(); }, 3000);
       } catch(e) {
         $('activateMYKResult').style.display = 'block';
         $('activateMYKResult').innerHTML = '❌ ' + parseError(e);
@@ -383,42 +499,14 @@
         const appData = encodeCall('approve(address,uint256)', ['address','uint256'], [RP, fee]);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:USDT, data:appData}]});
         el.innerHTML = '⏳ 激活中...';
-        // 传入零地址，合约自动使用链上绑定的推荐人
         const actData = encodeCall('activateWithUSDT(address)', ['address'], ['0x0000000000000000000000000000000000000000']);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:actData}]});
         el.innerHTML = '✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';
-        setTimeout(fetchUserStats, 3000);
-        setTimeout(fetchAirdrop, 3000);
+        setTimeout(() => { fetchUserStats(); fetchAirdrop(); }, 3000);
       } catch(e) {
         const msg = parseError(e);
-        if (msg.includes('referrer')) { el.innerHTML = '⚠️ 推荐人无效或未绑定，请检查链上绑定关系'; }
+        if (msg.includes('referrer')) { el.innerHTML = '⚠️ 推荐人无效或未绑定'; }
         else { el.innerHTML = '❌ ' + msg; }
-      } finally { btn.disabled = false; unlock(); }
-    }
-
-    // ====== 每日持币奖励 ======
-    async function claimDailyReward() {
-      if (!userAddress) { alert('请先连接钱包'); return; }
-      if (!lock()) return;
-      const btn = $('claimRewardBtn'); const el = $('claimRewardResult');
-      el.style.display = 'block'; el.innerHTML = '⏳ 领取中...';
-      btn.disabled = true;
-      try {
-        const amountWei = web3.utils.toWei($('rewardAmount').value || '0', 'ether');
-        const batchId = $('rewardBatchId').value || '0';
-        const proofStr = $('rewardProof').value.trim();
-        const proof = proofStr ? proofStr.split(',').map(s => s.trim()) : [];
-        const proposedRoot = $('rewardRoot').value.trim() || '0x0000000000000000000000000000000000000000000000000000000000000000';
-
-        const data = encodeCall('claimDailyReward(uint256,uint256,bytes32[],bytes32)',
-          ['uint256','uint256','bytes32[]','bytes32'],
-          [amountWei, batchId, proof, proposedRoot]
-        );
-        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:data}]});
-        el.innerHTML = '✅ 领取成功！';
-        setTimeout(fetchUserStats, 3000);
-      } catch(e) {
-        el.innerHTML = '❌ ' + parseError(e);
       } finally { btn.disabled = false; unlock(); }
     }
 
@@ -433,34 +521,12 @@
       });
     });
 
-    // ====== 初始化 ======
-    window.addEventListener('load', async () => {
-      if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        try {
-          const a = await window.ethereum.request({method:'eth_accounts'});
-          if (a.length) {
-            userAddress = a[0];
-            $('walletDisplay').textContent = a6(userAddress);
-            $('walletDisplay').style.color = '#4ef0a8';
-            $('checkAddrInput').value = userAddress;
-            fetchPrice();
-            fetchAirdrop();
-            fetchUserStats();
-          }
-        } catch(e) {}
-      }
-      $('connectWalletBtn').addEventListener('click', connectWallet);
-      $('updatePriceBtn').addEventListener('click', updatePrice);
-      $('refreshPriceBtn').addEventListener('click', ()=>{fetchPrice();fetchAirdrop();});
-      $('activateMYKBtn').addEventListener('click', activateMYK);
-      $('activateUSDTBtn').addEventListener('click', activateUSDT);
-      $('claimRewardBtn').addEventListener('click', claimDailyReward);
-      $('checkStatusBtn').addEventListener('click', checkStatus);
-      $('checkBalanceBtn').addEventListener('click', ()=>checkBalance('MYK'));
-      $('checkUSDTBtn').addEventListener('click', ()=>checkBalance('USDT'));
+    // ====== 高级折叠 ======
+    $('manualCollapseHeader').addEventListener('click', function() {
+      const content = $('manualCollapseContent');
+      content.classList.toggle('open');
+      this.querySelector('span:last-child').textContent = content.classList.contains('open') ? '▲' : '▼';
     });
-  })();
-</script>
-</body>
-</html>
+
+    // ====== 初始化 ======
+    window.addEventListener('load',
