@@ -222,16 +222,23 @@
 
     async function connectWallet() {
       if (!window.ethereum) { alert('请安装MetaMask'); return; }
-      const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      web3 = new Web3(window.ethereum);
-      userAddress = accs[0];
-      $('walletDisplay').textContent = a6(userAddress);
-      $('walletDisplay').style.color = '#4ef0a8';
-      $('checkAddrInput').value = userAddress;
-      fetchPrice();
-      fetchAirdrop();
-      fetchUserStats();
-      fetchUserRewardData();
+      try {
+        const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        web3 = new Web3(window.ethereum);
+        userAddress = accs[0];
+        $('walletDisplay').textContent = a6(userAddress);
+        $('walletDisplay').style.color = '#4ef0a8';
+        $('checkAddrInput').value = userAddress;
+        // 连接后立即获取所有数据
+        await Promise.all([
+          fetchPrice(),
+          fetchAirdrop(),
+          fetchUserStats(),
+          fetchUserRewardData()
+        ]);
+      } catch (e) {
+        alert('连接失败: ' + (e.message || ''));
+      }
     }
 
     async function fetchPrice() {
@@ -242,8 +249,9 @@
         currentPrice = web3.eth.abi.decodeParameter('uint256', result);
         const pn = n(currentPrice);
         $('currentPrice').textContent = pn.toFixed(6);
-        $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
-        $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
+        const suggested = (2 / pn * 1.1).toFixed(4);
+        $('suggestedMYK').textContent = suggested;
+        $('mykAmount').value = suggested;
         try {
           const freshData = encodeCall('isPriceFresh()');
           const freshResult = await web3.eth.call({to:RP, data:freshData});
@@ -252,6 +260,7 @@
           $('priceFresh').style.color = fresh ? '#4ecca3' : '#f0a500';
         } catch(e) { $('priceFresh').textContent = ''; }
       } catch(e) {
+        console.error('获取价格失败:', e);
         $('currentPrice').textContent = '1.000000';
         $('suggestedMYK').textContent = '2.2';
         $('mykAmount').value = '2.2';
@@ -290,6 +299,7 @@
         $('airdropProgress').style.width = percent.toFixed(1) + '%';
         $('airdropPercent').textContent = percent.toFixed(1) + '%';
       } catch(e) {
+        console.error('获取空投数据失败:', e);
         $('airdropPaid').textContent = '--';
         $('airdropRemaining').textContent = '--';
       }
@@ -318,6 +328,7 @@
           $('streakDays').textContent = web3.eth.abi.decodeParameter('uint256', streakResult);
         } catch(e) { $('streakDays').textContent = '0'; }
       } catch(e) {
+        console.error('获取用户数据失败:', e);
         $('invitedCount').textContent = '--';
         $('streakDays').textContent = '--';
       }
@@ -494,33 +505,23 @@
       } finally { btn.disabled = false; unlock(); }
     }
 
-    document.querySelectorAll('#activateTabSwitch .tab').forEach(tab => {
-      tab.addEventListener('click', function() {
-        document.querySelectorAll('#activateTabSwitch .tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        const t = this.dataset.tab;
-        $('panelUSDT').style.display = t === 'usdt' ? 'block' : 'none';
-        $('panelMYK').style.display = t === 'myk' ? 'block' : 'none';
-      });
-    });
-
-    $('manualCollapseHeader').addEventListener('click', function() {
-      const content = $('manualCollapseContent');
-      content.classList.toggle('open');
-      this.querySelector('span:last-child').textContent = content.classList.contains('open') ? '▲' : '▼';
-    });
-
-    window.addEventListener('load', async () => {
-      if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        try {
-          const a = await window.ethereum.request({method:'eth_accounts'});
-          if(a.length){ userAddress=a[0]; $('walletDisplay').textContent=a6(userAddress); $('walletDisplay').style.color='#4ef0a8'; $('checkAddrInput').value=userAddress; fetchPrice(); fetchAirdrop(); fetchUserStats(); fetchUserRewardData(); }
-        } catch(e) {}
-      }
+    // 事件绑定 - 修复：确保所有按钮事件正确绑定
+    function bindEvents() {
       $('connectWalletBtn').addEventListener('click', connectWallet);
       $('updatePriceBtn').addEventListener('click', updatePrice);
       $('refreshPriceBtn').addEventListener('click', fetchPrice);
       $('activateMYKBtn').addEventListener('click', activateMYK);
       $('activateUSDTBtn').addEventListener('click', activateUSDT);
-      $('claimRew
+      $('claimRewardBtn').addEventListener('click', claimDailyReward);
+      $('manualClaimBtn').addEventListener('click', manualClaim);
+      $('checkStatusBtn').addEventListener('click', checkStatus);
+      $('checkBalanceBtn').addEventListener('click', () => checkBalance('MYK'));
+      $('checkUSDTBtn').addEventListener('click', () => checkBalance('USDT'));
+
+      // Tab切换
+      document.querySelectorAll('#activateTabSwitch .tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          document.querySelectorAll('#activateTabSwitch .tab').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          const t = this.dataset.tab;
+          $('panelUSDT').style.display = t === 'usdt' ? '
