@@ -531,7 +531,7 @@
             let isProcessing = false;
             let buySlippage = 0.005;
             let sellSlippage = 0.005;
-            let previousPrice = null;
+            let priceRefreshInterval;
 
             function $(id) { return document.getElementById(id); }
 
@@ -585,69 +585,155 @@
 
             async function fetchPrice() {
                 try {
-                    if (!web3) return;
+                    if (!web3) { console.warn('web3 未初始化'); return; }
+
+                    let priceSource = '未知';
+                    let previousPrice = currentPrice;
+
+                    // 方法1：从 RewardPool 获取（TWAP + 现货混合）
                     try {
                         const data = encodeCall('getCurrentPrice()');
                         const result = await web3.eth.call({ to: RP, data: data });
-                        currentPrice = web3.eth.abi.decodeParameter('uint256', result);
-                    } catch (e) {
-                        const pairAbi = [{ "constant": true, "inputs": [], "name": "getReserves",
-                            "outputs": [{ "internalType": "uint112", "name": "_reserve0",
-                                    "type": "uint112" }, { "internalType": "uint112",
-                                    "name": "_reserve1", "type": "uint112" }, {
-                                    "internalType": "uint32",
-                                    "name": "_blockTimestampLast", "type": "uint32" }],
-                            "type": "function" }, { "constant": true, "inputs": [],
-                            "name": "token0", "outputs": [{ "internalType": "address",
-                                "name": "", "type": "address" }], "type": "function" }];
-                        const pairContract = new web3.eth.Contract(pairAbi, PAIR);
-                        const token0 = await pairContract.methods.token0().call();
-                        const reserves = await pairContract.methods.getReserves().call();
-                        const reserveUSDT = token0.toLowerCase() === USDT.toLowerCase() ? reserves[
-                            0] : reserves[1];
-                        const reserveMYK = token0.toLowerCase() === USDT.toLowerCase() ? reserves[1] :
-                            reserves[0];
-                        currentPrice = String(Math.floor((Number(reserveUSDT) / Number(reserveMYK)) *
-                            1e18));
-                    }
-                    const pn = n(currentPrice);
-                    $('currentPrice').textContent = pn.toFixed(6);
-                    $('tradePriceDisplay').textContent = formatPrice(pn);
-                    if (previousPrice !== null && previousPrice > 0) {
-                        const changePercent = ((pn - previousPrice) / previousPrice) * 100;
-                        const badge = $('tradePriceBadge');
-                        const changeEl = $('tradeChangeDisplay');
-                        if (changePercent > 0) {
-                            changeEl.textContent = '+' + changePercent.toFixed(2) + '%';
-                            badge.className = 'trade-price-badge price-change-up';
-                        } else if (changePercent < 0) {
-                            changeEl.textContent = changePercent.toFixed(2) + '%';
-                            badge.className = 'trade-price-badge price-change-down';
-                        } else {
-                            changeEl.textContent = '0.00%';
-                            badge.className = 'trade-price-badge price-change-flat';
+                        const rawPrice = web3.eth.abi.decodeParameter('uint256', result);
+
+                        if (BigInt(rawPrice) === BigInt(0)) {
+                            throw new Error('价格为0');
+                        }
+
+                        currentPrice = rawPrice.toString();
+                        priceSource = 'RewardPool';
+                    } catch (e1) {
+                        console.warn('RewardPool 价格失败:', e1.message?.slice(0, 50));
+
+                        // 方法2：从 Pair 合约获取链上储备
+                        try {
+                            const pairAbi = [
+                                { "constant": true, "inputs": [], "name": "getReserves",
+                                    "outputs": [
+                                        { "internalType": "uint112", "name": "_reserve0", "type": "uint112" },
+                                        { "internalType": "uint112", "name": "_reserve1", "type": "uint112" },
+                                        { "internalType": "uint32", "name": "_blockTimestampLast", "type": "uint32" }
+                                    ], "type": "function" },
+                                { "constant": true, "inputs": [], "name": "token0",
+                                    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                                    "type": "function" }
+                            ];
+                            const pairContract = new web3.eth.Contract(pairAbi, PAIR);
+                            const token0 = await pairContract.methods.token0().call();
+                            const reserves = await pairContract.methods.getReserves().call();
+
+                            const r0 = BigInt(reserves[0]);
+                            const r1 = BigInt(reserves[1]);
+
+                            if (r0 === BigInt(0) || r1 === BigInt(0)) {
+                                throw new Error('Pair 流动性为0');
+                            }
+
+                            let reserveUSDT, reserveMYK;
+                            if (token0.toLowerCase() === USDT.toLowerCase()) {
+                                reserveUSDT = r0;
+                                reserveMYK = r1;
+                            } else {
+                                reserveUSDT = r1;
+                                reserveMYK = r0;
+                            }
+
+                            const pairPrice = (reserveUSDT * BigInt(10 ** 18)) / reserveMYK;
+                            currentPrice = pairPrice.toString();
+                            priceSource = 'Pair链上';
+                        } catch (e2) {
+                            console.warn('Pair 价格失败:', e2.message?.slice(0, 50));
+                            currentPrice = '1000000000000000000';
+                            priceSource = '默认值';
                         }
                     }
-                    previousPrice = pn;
+
+                    if (!currentPrice || currentPrice === '0' || currentPrice === '0x') {
+                        currentPrice = '1000000000000000000';
+                        priceSource = '兜底默认值';
+                    }
+
+                    const pn = n(currentPrice);
+
+                    if (pn > 0 && pn < 1e12) {
+                        $('currentPrice').textContent = pn.toFixed(6);
+                        $('tradePriceDisplay').textContent = formatPrice(pn);
+
+                        if (previousPrice && BigInt(previousPrice) > BigInt(0)) {
+                            const prevPn = n(previousPrice);
+                            if (prevPn > 0) {
+                                const change = ((pn - prevPn) / prevPn) * 100;
+                                const changeEl = $('tradeChangeDisplay');
+                                const badge = $('tradePriceBadge');
+                                if (change > 0) {
+                                    changeEl.textContent = '+' + change.toFixed(2) + '%';
+                                    badge.className = 'trade-price-badge price-change-up';
+                                } else if (change < 0) {
+                                    changeEl.textContent = change.toFixed(2) + '%';
+                                    badge.className = 'trade-price-badge price-change-down';
+                                } else {
+                                    changeEl.textContent = '0.00%';
+                                    badge.className = 'trade-price-badge price-change-flat';
+                                }
+                            }
+                        }
+                    }
+
                     $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
                     $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
+
                     try {
                         const freshData = encodeCall('isPriceFresh()');
                         const freshResult = await web3.eth.call({ to: RP, data: freshData });
                         const fresh = web3.eth.abi.decodeParameter('bool', freshResult);
-                        $('priceFresh').textContent = fresh ? '✅ 有效' : '⚠️ 过期';
+                        $('priceFresh').textContent = `${fresh ? '✅ 有效' : '⚠️ 过期'} (${priceSource})`;
                         $('priceFresh').style.color = fresh ? '#4ecca3' : '#f0a500';
-                    } catch (e) { $('priceFresh').textContent = ''; }
+                    } catch (e) {
+                        $('priceFresh').textContent = `⚠️ ${priceSource}`;
+                        $('priceFresh').style.color = '#f0a500';
+                    }
+
                     updateBuyQuote();
                     updateSellQuote();
+
+                    console.log(`✅ 价格: ${pn.toFixed(6)} USDT/MYK | 来源: ${priceSource}`);
+
                 } catch (e) {
+                    console.error('fetchPrice 完全失败:', e);
+                    currentPrice = '1000000000000000000';
                     $('currentPrice').textContent = '1.000000';
                     $('tradePriceDisplay').textContent = '1.00';
-                    $('tradeChangeDisplay').textContent = '--';
                     $('tradePriceBadge').className = 'trade-price-badge price-change-flat';
-                    previousPrice = null;
-                    $('suggestedMYK').textContent = '2.2';
-                    $('mykAmount').value = '2.2';
+                    $('priceFresh').textContent = '❌ 获取失败';
+                    $('priceFresh').style.color = '#e94560';
+                }
+            }
+
+            function startPriceAutoRefresh() {
+                fetchPrice();
+                priceRefreshInterval = setInterval(fetchPrice, 30000);
+                setInterval(async () => {
+                    try {
+                        const freshData = encodeCall('isPriceFresh()');
+                        const freshResult = await web3.eth.call({ to: RP, data: freshData });
+                        const fresh = web3.eth.abi.decodeParameter('bool', freshResult);
+                        if (!fresh && userAddress) {
+                            console.log('🔄 价格过期，尝试更新...');
+                            const updateData = encodeCall('updatePrice()');
+                            await window.ethereum.request({
+                                method: 'eth_sendTransaction',
+                                params: [{ from: userAddress, to: RP, data: updateData }]
+                            });
+                            console.log('✅ updatePrice 发送成功');
+                        }
+                    } catch (e) {}
+                }, 300000);
+            }
+
+            function stopPriceAutoRefresh() {
+                if (priceRefreshInterval) {
+                    clearInterval(priceRefreshInterval);
+                    priceRefreshInterval = null;
                 }
             }
 
@@ -1090,7 +1176,7 @@
                             userAddress = a[0];
                             $('walletDisplay').textContent = a6(userAddress);
                             $('walletDisplay').style.color = '#4ef0a8';
-                            fetchPrice();
+                            startPriceAutoRefresh();
                             fetchAirdrop();
                             fetchUserStats();
                             fetchHoldingInfo();
@@ -1099,6 +1185,9 @@
                             updateSellQuote();
                         }
                     } catch (e) {}
+                    window.ethereum.on('accountsChanged', () => {
+                        fetchPrice();
+                    });
                 }
                 $('connectWalletBtn').addEventListener('click', connectWallet);
                 $('updatePriceBtn').addEventListener('click', updatePrice);
