@@ -1,1028 +1,476 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>MYK 生态节点</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js">
-    </script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: radial-gradient(circle at 30% 10%, #1e2a4a, #0b0f1a);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            margin: 0;
-        }
-        .container {
-            max-width: 500px;
-            width: 100%;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-        .lang-bar {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: -8px;
-        }
-        .lang-toggle {
-            background: rgba(20, 25, 45, 0.8);
-            backdrop-filter: blur(12px);
-            padding: 8px 16px;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.2s;
-            font-weight: 600;
-            font-size: 14px;
-            color: #f0b90b;
-        }
-        .lang-toggle:hover {
-            background: rgba(233, 69, 96, 0.25);
-            border-color: #e94560;
-        }
-        h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            text-align: center;
-            color: #f7c744;
-            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .glass-card {
-            background: rgba(18, 22, 40, 0.7);
-            backdrop-filter: blur(16px);
-            border-radius: 28px;
-            padding: 20px 18px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
-            transition: border 0.2s;
-        }
-        .glass-card:hover {
-            border-color: rgba(233, 69, 96, 0.5);
-        }
-        .wallet-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #0f1221;
-            border-radius: 20px;
-            padding: 12px 16px;
-            margin-bottom: 5px;
-        }
-        .wallet-addr {
-            font-family: 'Fira Code', monospace;
-            color: #4ef0a8;
-            font-weight: 600;
-            font-size: 15px;
-        }
-        .btn {
-            background: linear-gradient(135deg, #e94560, #b92b4a);
-            border: none;
-            color: white;
-            font-weight: 700;
-            padding: 14px 18px;
-            border-radius: 18px;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 8px 18px rgba(233, 69, 96, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            width: 100%;
-            font-size: 15px;
-        }
-        .btn:active {
-            transform: scale(0.97);
-        }
-        .btn:disabled {
-            opacity: 0.6;
-            box-shadow: none;
-            transform: none;
-        }
-        .btn-outline {
-            background: #2d325a;
-            box-shadow: none;
-            padding: 10px 16px;
-        }
-        .btn-sm {
-            padding: 10px 14px;
-            font-size: 13px;
-            width: auto;
-        }
-        .btn-green {
-            background: linear-gradient(135deg, #4ecca3, #2e8b6a);
-            box-shadow: 0 8px 18px rgba(78, 204, 163, 0.3);
-        }
-        .btn-red {
-            background: linear-gradient(135deg, #e94560, #ff6b6b);
-            box-shadow: 0 8px 18px rgba(233, 69, 96, 0.3);
-        }
-        .tab-container {
-            display: flex;
-            background: #0c0f1c;
-            border-radius: 16px;
-            padding: 4px;
-            margin: 12px 0;
-            border: 1px solid #2d3355;
-        }
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            border-radius: 14px;
-            font-weight: 600;
-            color: #9aa0c0;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .tab.active {
-            background: #e94560;
-            color: white;
-        }
-        .tab-buy.active {
-            background: #4ecca3;
-            color: white;
-        }
-        .tab-sell.active {
-            background: #e94560;
-            color: white;
-        }
-        .input-field {
-            background: #0d1020;
-            border: 1px solid #394056;
-            border-radius: 16px;
-            padding: 14px 16px;
-            color: white;
-            width: 100%;
-            margin: 10px 0 12px;
-            font-size: 15px;
-            outline: none;
-            transition: 0.2s;
-        }
-        .input-field:focus {
-            border-color: #e94560;
-        }
-        .badge {
-            background: #cd7f32;
-            color: #000;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            margin-left: 6px;
-        }
-        .badge-gold {
-            background: #f7c744;
-        }
-        .badge-silver {
-            background: #b0b8c0;
-        }
-        .info-box {
-            background: #0a0d16;
-            border-radius: 14px;
-            padding: 12px;
-            margin-top: 12px;
-            font-size: 14px;
-            border-left: 4px solid #e94560;
-            word-break: break-word;
-            color: #ccd6f0;
-        }
-        .row-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        h2 {
-            font-size: 1.2rem;
-            color: #f0b90b;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 6px;
-        }
-        .desc {
-            color: #a3adc9;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        .highlight {
-            color: #4ef0a8;
-            font-weight: 700;
-        }
-        .footer-note {
-            text-align: center;
-            font-size: 12px;
-            color: #7b85a6;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .hint-text {
-            color: #f0b90b;
-            font-size: 12px;
-            margin: 4px 0 8px;
-        }
-        .price-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 13px;
-            color: #a3adc9;
-        }
-        .price-value {
-            color: #4ef0a8;
-            font-weight: 700;
-        }
-        .price-fresh {
-            font-size: 11px;
-        }
-        .progress-bar-container {
-            width: 100%;
-            height: 20px;
-            background: #1a1f35;
-            border-radius: 10px;
-            margin: 8px 0;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4ecca3, #f0b90b);
-            border-radius: 10px;
-            transition: width 0.3s;
-        }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            color: #ccd6f0;
-            margin: 4px 0;
-        }
-        .stat-value {
-            color: #4ef0a8;
-            font-weight: 700;
-        }
-        .unlock-card {
-            border: 2px solid #f0b90b;
-        }
-        .unlock-card.locked {
-            border: 2px solid #555;
-            opacity: 0.7;
-        }
-        .slippage-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 8px 0;
-        }
-        .slippage-btn {
-            padding: 6px 12px;
-            border-radius: 12px;
-            background: #2d325a;
-            border: 1px solid #394056;
-            color: #aaa;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-        .slippage-btn.active {
-            background: #e94560;
-            color: white;
-            border-color: #e94560;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="lang-bar">
-            <div class="lang-toggle" id="langToggle"><span>🌐</span> <span id="langText">EN</span></div>
-        </div>
-        <h1>🌐 MYK 生态面板</h1>
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
 
-        <!-- 钱包区域 -->
-        <div class="glass-card" style="padding: 14px;">
-            <div class="wallet-row">
-                <span style="color:#b0b8d0;">🔗 钱包</span>
-                <span class="wallet-addr" id="walletDisplay">未连接</span>
-            </div>
-            <button class="btn btn-outline" id="connectWalletBtn" style="margin-top: 8px;">🔓 连接钱包</button>
-        </div>
+import "@openzeppelin/contracts@5.6.1/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts@5.6.1/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts@5.6.1/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts@5.6.1/utils/cryptography/ECDSA.sol";
 
-        <!-- 价格卡片 -->
-        <div class="glass-card">
-            <h2>💰 价格</h2>
-            <div class="price-row">
-                <span>当前: <span class="price-value" id="currentPrice">--</span> USDT/MYK</span>
-                <span class="price-fresh" id="priceFresh">--</span>
-            </div>
-            <div class="row-buttons">
-                <button class="btn btn-green btn-sm" id="updatePriceBtn" style="flex:1;">🔄 更新价格</button>
-                <button class="btn btn-sm" id="refreshPriceBtn" style="flex:1;">🔍 刷新</button>
-            </div>
-            <div class="info-box" id="priceResult" style="display:none;"></div>
-        </div>
+interface ICommunityGovernance {
+    function isQualifiedCommunity(address user) external view returns (bool);
+    function getTotalCommunities() external view returns (uint256);
+    function isEarlyCommunity(address user, uint256 maxRank) external view returns (bool);
+    function getLockedAmount(address user) external view returns (uint256);
+    function getUserRank(address user) external view returns (uint256);
+    function receivePoolRewards(uint256 amount) external;
+}
 
-        <!-- 📈 买卖 MYK -->
-        <div class="glass-card">
-            <h2>📈 买卖 MYK</h2>
-            <div class="tab-container" id="tradeTabSwitch">
-                <div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div>
-                <div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div>
-            </div>
-            <div id="panelBuy">
-                <div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div>
-                <div class="slippage-row">
-                    <span style="color:#aaa;font-size:12px;">滑点:</span>
-                    <span class="slippage-btn active" data-slip="0.5">0.5%</span>
-                    <span class="slippage-btn" data-slip="1">1%</span>
-                    <span class="slippage-btn" data-slip="3">3%</span>
-                </div>
-                <input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0">
-                <div class="price-row">
-                    <span>预计获得: <span class="price-value" id="expectedMYK">--</span> MYK</span>
-                </div>
-                <button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button>
-                <div class="info-box" id="buyResult" style="display:none;"></div>
-            </div>
-            <div id="panelSell" style="display:none;">
-                <div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div>
-                <div class="slippage-row">
-                    <span style="color:#aaa;font-size:12px;">滑点:</span>
-                    <span class="slippage-btn active" data-slip="0.5">0.5%</span>
-                    <span class="slippage-btn" data-slip="1">1%</span>
-                    <span class="slippage-btn" data-slip="3">3%</span>
-                </div>
-                <input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0">
-                <div class="price-row">
-                    <span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span>
-                </div>
-                <button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button>
-                <div class="info-box" id="sellResult" style="display:none;"></div>
-            </div>
-        </div>
+interface IPancakePair {
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+    function getReserves() external view returns (uint112, uint112, uint32);
+    function price0CumulativeLast() external view returns (uint256);
+    function price1CumulativeLast() external view returns (uint256);
+}
 
-        <!-- 🎁 空投进度条 -->
-        <div class="glass-card">
-            <h2>🎁 新人空投进度</h2>
-            <div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK</div>
-            <div class="stat-row">
-                <span>已发放: <span class="stat-value" id="airdropPaid">--</span> MYK</span>
-                <span>剩余: <span class="stat-value" id="airdropRemaining">--</span> MYK</span>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar-fill" id="airdropProgress" style="width: 0%;"></div>
-            </div>
-            <div class="stat-row" style="margin-top: 4px;">
-                <span style="color: #888;">总量: 1,000,000 MYK</span>
-                <span style="color: #888;" id="airdropPercent">0%</span>
-            </div>
-        </div>
+interface IFundManager {
+    function onUSDTReceived(uint256 amount) external;
+}
 
-        <!-- 激活卡片 -->
-        <div class="glass-card">
-            <h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2>
-            <div class="tab-container" id="activateTabSwitch">
-                <div class="tab active" data-tab="usdt">💵 USDT激活</div>
-                <div class="tab" data-tab="myk">💎 MYK激活</div>
-            </div>
-            <div id="panelUSDT">
-                <div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.2%</span>日奖币</div>
-                <div class="hint-text">推荐人由链上绑定关系自动识别</div>
-                <button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button>
-                <div class="info-box" id="activateUSDTResult" style="display:none;"></div>
-            </div>
-            <div id="panelMYK" style="display:none;">
-                <div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币</div>
-                <div class="price-row">
-                    <span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK</span>
-                </div>
-                <input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="2.2" step="0.1" min="0">
-                <button class="btn" id="activateMYKBtn">💸 支付MYK激活</button>
-                <div class="info-box" id="activateMYKResult" style="display:none;"></div>
-            </div>
-        </div>
+contract RewardPool is ReentrancyGuard {
+    using SafeERC20 for IERC20;
+    using ECDSA for bytes32;
 
-        <!-- 🔓 第一社区权益卡 -->
-        <div class="glass-card unlock-card locked" id="firstCommunityCard">
-            <h2>🔓 第一社区权益 <span class="badge badge-gold">权益卡</span></h2>
-            <div class="desc" id="firstCommunityStatus">🔒 未解锁</div>
-            <div class="hint-text">解锁规则：直推节点地址激活可解锁</div>
-            <div class="desc">权益：伞下无限代节点消费或收益的 <span class="highlight">10%</span></div>
-            <div class="stat-row">
-                <span>当前直推：<span class="stat-value" id="invitedCount">--</span> 人</span>
-                <span>需达目标：<span class="stat-value">25</span> 人</span>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar-fill" id="inviteProgress" style="width: 0%; background: linear-gradient(90deg, #f0b90b, #e94560);"></div>
-            </div>
-        </div>
+    uint256 public constant ACTIVATION_FEE_USDT = 2 * 10 ** 18;
+    uint256 public constant BIND_FEE_USDT = 1 * 10 ** 16;
+    uint256 public constant MIN_UPDATE_INTERVAL = 5 minutes;
+    uint256 public constant MIN_PRICE = 1;
+    uint256 public constant MAX_PRICE = 1e24;
+    uint256 public constant PRICE_PRECISION = 1e18;
+    uint256 public constant PRICE_STALE_THRESHOLD = 1 hours;
+    uint256 public constant MAX_DAILY_REWARD_USDT = 50e18;
 
-        <!-- 🎁 每日持币奖励（一键领取） -->
-        <div class="glass-card">
-            <h2>🎁 每日持币奖励</h2>
-            <div class="desc">持币即可领奖，<span class="highlight">一键领取</span></div>
-            <div class="stat-row">
-                <span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span>
-                <span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span>
-            </div>
-            <div class="stat-row" style="margin-top: 8px;">
-                <span>今日可领：<span class="stat-value" id="todayReward">--</span> USDT</span>
-                <span>已领取：<span class="stat-value" id="claimedToday">--</span></span>
-            </div>
-            <button class="btn btn-green" id="claimRewardBtn">🎁 一键领取今日奖励</button>
-            <div id="claimLoading" style="display:none; text-align:center; margin-top:12px;">
-                <span style="color:#f0b90b;">⏳ 正在获取签名数据...</span>
-            </div>
-            <div class="info-box" id="claimRewardResult" style="display:none;"></div>
-        </div>
+    uint256 public constant RATE_BASE = 1000;
+    uint256 public constant PRIMARY_RATE = 12;
+    uint256 public constant MIDDLE_RATE = 20;
+    uint256 public constant FIRST_COMMUNITY_RATE = 25;
+    uint256 public constant SECOND_COMMUNITY_RATE = 25;
+    uint256 public constant THIRD_COMMUNITY_RATE = 25;
+    uint256 public constant COMMUNITY_RATE = 25;
 
-        <!-- 查询工具 -->
-        <div class="glass-card">
-            <h2>🔍 查询</h2>
-            <input class="input-field" id="checkAddrInput" type="text" placeholder="地址 (留空=自己)">
-            <div class="row-buttons">
-                <button class="btn" id="checkStatusBtn" style="flex:1;">📋 身份</button>
-                <button class="btn" id="checkBalanceBtn" style="flex:1;">💰 MYK</button>
-                <button class="btn" id="checkUSDTBtn" style="flex:1;">💵 USDT</button>
-            </div>
-            <div class="info-box" id="statusResult" style="display:none;"></div>
-            <div class="info-box" id="balanceResult" style="display:none; margin-top:8px;"></div>
-        </div>
-        <div class="footer-note">✨ MYK 生态操作面板 · 去中心化交互工具</div>
-    </div>
+    uint256 public constant REFERRAL_RATE = 25;
 
-    <script>
-        (function() {
-            const MYK = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-            const RP = '0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0';
-            const GOV = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
-            const USDT = '0x55d398326f99059fF775485246999027B3197955';
-            const ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
-            const PAIR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
-            const AIRDROP_TOTAL = 1000000;
-            const MERKLE_API_URL = 'https://your-api.example.com/api/merkle-proof';
+    uint256 public constant MIDDLE_INVITES = 3;
+    uint256 public constant FIRST_COMMUNITY_INVITES = 25;
+    uint256 public constant SECOND_COMMUNITY_INVITES = 50;
+    uint256 public constant THIRD_COMMUNITY_INVITES = 100;
 
-            let web3, userAddress, currentPrice = '1000000000000000000';
-            let isProcessing = false;
-            let buySlippage = 0.005;
-            let sellSlippage = 0.005;
+    uint256 public constant VALIDATION_TIMEOUT = 7 days;
+    uint256 public constant MAX_SEARCH = 100;
+    uint256 public constant MAX_TOTAL_USERS = 1000000;
+    uint256 public constant INACTIVE_DAYS = 60 days;
 
-            function $(id) { return document.getElementById(id); }
+    uint256 public constant TOP_WINNERS_COUNT = 10;
+    uint256 public constant MAX_ONCHAIN_SORT = 5000;
+    uint256 public constant MAX_ACTIVE_COMMUNITIES = 4999;
+    uint256 public constant MIN_COMMUNITIES_FOR_RANKING = 100;
 
-            function a6(a) { return a.slice(0, 6) + '...' + a.slice(-4); }
+    uint256 public constant TOP_REWARD_RATE = 5;
+    uint256 public constant REWARD_RATE_BASE = 100;
+    uint256 public constant WEEK_DURATION = 7 days;
 
-            function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
+    uint256 public constant COMMUNITY_DIVIDEND_RATE = 500;
+    uint256 public constant DIVIDEND_RATE_BASE = 10000;
 
-            function encodeCall(signature, types = [], values = []) {
-                const selector = web3.eth.abi.encodeFunctionSignature(signature);
-                if (types.length === 0) return selector;
-                const encoded = web3.eth.abi.encodeParameters(types, values);
-                return selector + encoded.slice(2);
-            }
+    uint256 public constant MAX_BATCH_SETTLE = 200;
 
-            function parseError(e) {
-                const msg = e?.message || '';
-                const match = msg.match(/execution reverted:\s*(.+?)(?:"|$)/);
-                if (match) return match[1].trim();
-                const match2 = msg.match(/reason="([^"]+)"/);
-                if (match2) return match2[1];
-                return msg.slice(0, 200);
-            }
+    address public constant USDT = 0x55d398326f99059fF775485246999027B3197955;
 
-            function lock() { if (isProcessing) { alert('请等待当前操作完成'); return false; }
-                isProcessing = true; return true; }
+    enum Role { NONE, PRIMARY, MIDDLE, FIRST_COMMUNITY, SECOND_COMMUNITY, THIRD_COMMUNITY, COMMUNITY }
 
-            function unlock() { isProcessing = false; }
+    address public mykToken;
+    address public pair;
+    address public communityGovernance;
+    address public fundManager;
+    address public trustedUpdater;
+    address public pendingTrustedUpdater;
+    address public signer;
 
-            async function connectWallet() {
-                if (!window.ethereum) { alert('请安装MetaMask'); return; }
-                const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                web3 = new Web3(window.ethereum);
-                userAddress = accs[0];
-                $('walletDisplay').textContent = a6(userAddress);
-                $('walletDisplay').style.color = '#4ef0a8';
-                $('checkAddrInput').value = userAddress;
-                fetchPrice();
-                fetchAirdrop();
-                fetchUserStats();
-                fetchHoldingInfo();
-                updateBuyQuote();
-                updateSellQuote();
-            }
+    uint256 public totalActiveUsers;
+    uint256 public currentWeekStart;
 
-            async function fetchPrice() {
-                try {
-                    if (!web3) return;
-                    try {
-                        const data = encodeCall('getCurrentPrice()');
-                        const result = await web3.eth.call({ to: RP, data: data });
-                        currentPrice = web3.eth.abi.decodeParameter('uint256', result);
-                    } catch (e) {
-                        const pairAbi = [{ "constant": true, "inputs": [], "name": "getReserves",
-                            "outputs": [{ "internalType": "uint112", "name": "_reserve0",
-                                    "type": "uint112" }, { "internalType": "uint112",
-                                    "name": "_reserve1", "type": "uint112" }, {
-                                    "internalType": "uint32",
-                                    "name": "_blockTimestampLast", "type": "uint32" }],
-                            "type": "function" }, { "constant": true, "inputs": [],
-                            "name": "token0", "outputs": [{ "internalType": "address",
-                                "name": "", "type": "address" }], "type": "function" }];
-                        const pairContract = new web3.eth.Contract(pairAbi, PAIR);
-                        const token0 = await pairContract.methods.token0().call();
-                        const reserves = await pairContract.methods.getReserves().call();
-                        const reserveUSDT = token0.toLowerCase() === USDT.toLowerCase() ? reserves[
-                            0] : reserves[1];
-                        const reserveMYK = token0.toLowerCase() === USDT.toLowerCase() ? reserves[1] :
-                            reserves[0];
-                        currentPrice = String(Math.floor((Number(reserveUSDT) / Number(reserveMYK)) *
-                            1e18));
-                    }
-                    const pn = n(currentPrice);
-                    $('currentPrice').textContent = pn.toFixed(6);
-                    $('suggestedMYK').textContent = (2 / pn * 1.1).toFixed(4);
-                    $('mykAmount').value = (2 / pn * 1.1).toFixed(4);
-                    try {
-                        const freshData = encodeCall('isPriceFresh()');
-                        const freshResult = await web3.eth.call({ to: RP, data: freshData });
-                        const fresh = web3.eth.abi.decodeParameter('bool', freshResult);
-                        $('priceFresh').textContent = fresh ? '✅ 有效' : '⚠️ 过期';
-                        $('priceFresh').style.color = fresh ? '#4ecca3' : '#f0a500';
-                    } catch (e) { $('priceFresh').textContent = ''; }
-                    updateBuyQuote();
-                    updateSellQuote();
-                } catch (e) {
-                    $('currentPrice').textContent = '1.000000';
-                    $('suggestedMYK').textContent = '2.2';
-                    $('mykAmount').value = '2.2';
-                }
-            }
+    // 活动奖金池
+    uint256 public activityPool;
+    uint256 public activityPoolTotalPaid;
 
-            async function updatePrice() {
-                if (!userAddress) { alert('请先连接钱包'); return; }
-                if (!lock()) return;
-                const btn = $('updatePriceBtn');
-                const el = $('priceResult');
-                el.style.display = 'block';
-                el.innerHTML = '⏳ 更新价格中...';
-                btn.disabled = true;
-                try {
-                    const data = encodeCall('updatePrice()');
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: RP, data: data }] });
-                    el.innerHTML = '✅ 价格更新成功！';
-                    setTimeout(fetchPrice, 3000);
-                } catch (e) {
-                    const msg = parseError(e);
-                    if (msg.includes('too frequent')) { el.innerHTML = '⚠️ 更新太频繁，请等5分钟后再试'; } else if (
-                        msg.includes('time too short')) { el.innerHTML =
-                        '⚠️ TWAP时间窗口不足，请等5分钟后重试'; } else { el.innerHTML = '❌ ' + msg; }
-                } finally { btn.disabled = false;
-                    unlock(); }
-            }
+    mapping(address => uint256) public firstCommunityPerformance;
+    address[] public activeFirstCommunities;
+    mapping(address => bool) public isActiveFirstCommunity;
+    mapping(uint256 => bool) public weekRewardsDistributed;
 
-            async function getSwapQuote(amountIn, path) {
-                try {
-                    const routerAbi = [{ "constant": true, "inputs": [{ "internalType": "uint256",
-                            "name": "amountIn", "type": "uint256" }, { "internalType": "address[]",
-                            "name": "path", "type": "address[]" }], "name": "getAmountsOut",
-                        "outputs": [{ "internalType": "uint256[]", "name": "amounts",
-                            "type": "uint256[]" }], "type": "function" }];
-                    const routerContract = new web3.eth.Contract(routerAbi, ROUTER);
-                    const amounts = await routerContract.methods.getAmountsOut(amountIn, path).call();
-                    return amounts[1];
-                } catch (e) {
-                    const price = parseFloat($('currentPrice').textContent);
-                    if (isNaN(price) || price <= 0) return '0';
-                    const amountInNum = parseFloat(Web3.utils.fromWei(amountIn, 'ether'));
-                    if (path[0].toLowerCase() === USDT.toLowerCase()) {
-                        return Web3.utils.toWei(String(amountInNum / price), 'ether');
-                    } else {
-                        return Web3.utils.toWei(String(amountInNum * price), 'ether');
-                    }
-                }
-            }
+    bool public useOnChainRanking;
 
-            async function updateBuyQuote() {
-                const usdtAmount = parseFloat($('buyUSDTAmount').value) || 0;
-                if (usdtAmount <= 0) { $('expectedMYK').textContent = '--'; return; }
-                try {
-                    const usdtWei = Web3.utils.toWei(String(usdtAmount), 'ether');
-                    const mykOut = await getSwapQuote(usdtWei, [USDT, MYK]);
-                    const mykWithSlippage = parseFloat(Web3.utils.fromWei(mykOut, 'ether')) * (1 - buySlippage);
-                    $('expectedMYK').textContent = mykWithSlippage.toFixed(4);
-                } catch (e) { $('expectedMYK').textContent = '--'; }
-            }
+    uint256 private _currentPrice;
+    uint256 private _lastUpdateTime;
+    uint256 private _price0CumulativeLast;
+    uint256 private _price1CumulativeLast;
+    uint32 private _blockTimestampLast;
 
-            async function updateSellQuote() {
-                const mykAmount = parseFloat($('sellMYKAmount').value) || 0;
-                if (mykAmount <= 0) { $('expectedUSDT').textContent = '--'; return; }
-                try {
-                    const mykWei = Web3.utils.toWei(String(mykAmount), 'ether');
-                    const usdtOut = await getSwapQuote(mykWei, [MYK, USDT]);
-                    const usdtWithSlippage = parseFloat(Web3.utils.fromWei(usdtOut, 'ether')) * (1 - sellSlippage);
-                    $('expectedUSDT').textContent = usdtWithSlippage.toFixed(6);
-                } catch (e) { $('expectedUSDT').textContent = '--'; }
-            }
+    struct UserInfo {
+        address referrer;
+        uint96 invited;
+        uint96 todayBuy;
+        uint96 todayReward;
+        uint40 activatedAt;
+        uint40 lastRewardDay;
+        uint40 lastClaim;
+        Role role;
+        bool isActive;
+    }
 
-            async function buyMYK() {
-                if (!userAddress) { alert('请先连接钱包'); return; }
-                if (!lock()) return;
-                const btn = $('buyMYKBtn');
-                const el = $('buyResult');
-                const usdtAmount = parseFloat($('buyUSDTAmount').value);
-                if (!usdtAmount || usdtAmount <= 0) { alert('请输入有效的 USDT 数量'); return; }
-                el.style.display = 'block';
-                el.innerHTML = '⏳ 查询报价...';
-                btn.disabled = true;
-                try {
-                    const usdtWei = Web3.utils.toWei(String(usdtAmount), 'ether');
-                    const deadline = Math.floor(Date.now() / 1000) + 300;
-                    const mykOut = await getSwapQuote(usdtWei, [USDT, MYK]);
-                    const minMYKOut = String(Math.floor(Number(mykOut) * (1 - buySlippage)));
-                    el.innerHTML = '⏳ 授权 USDT...';
-                    const approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER,
-                        usdtWei]);
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: USDT, data: approveData }] });
-                    el.innerHTML = '⏳ 买入 MYK...';
-                    const swapData = encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',
-                        ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [usdtWei, minMYKOut, [USDT,
-                            MYK], userAddress, String(deadline)]);
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: ROUTER, data: swapData }] });
-                    el.innerHTML = '✅ 买入成功！';
-                    setTimeout(() => { fetchPrice();
-                        fetchHoldingInfo();
-                        updateBuyQuote(); }, 3000);
-                } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { btn.disabled = false;
-                    unlock(); }
-            }
+    struct DailyBuy { uint96 amount; uint40 timestamp; bool hasBought; bool claimed; bool valid; }
+    struct DailySell { uint96 amount; uint40 timestamp; bool hasSold; }
 
-            async function sellMYK() {
-                if (!userAddress) { alert('请先连接钱包'); return; }
-                if (!lock()) return;
-                const btn = $('sellMYKBtn');
-                const el = $('sellResult');
-                const mykAmount = parseFloat($('sellMYKAmount').value);
-                if (!mykAmount || mykAmount <= 0) { alert('请输入有效的 MYK 数量'); return; }
-                el.style.display = 'block';
-                el.innerHTML = '⏳ 查询报价...';
-                btn.disabled = true;
-                try {
-                    const mykWei = Web3.utils.toWei(String(mykAmount), 'ether');
-                    const deadline = Math.floor(Date.now() / 1000) + 300;
-                    const usdtOut = await getSwapQuote(mykWei, [MYK, USDT]);
-                    const minUSDTOut = String(Math.floor(Number(usdtOut) * (1 - sellSlippage)));
-                    el.innerHTML = '⏳ 授权 MYK...';
-                    const approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER,
-                        mykWei]);
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: MYK, data: approveData }] });
-                    el.innerHTML = '⏳ 卖出 MYK...';
-                    const swapData = encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',
-                        ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [mykWei, minUSDTOut, [MYK,
-                            USDT], userAddress, String(deadline)]);
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: ROUTER, data: swapData }] });
-                    el.innerHTML = '✅ 卖出成功！';
-                    setTimeout(() => { fetchPrice();
-                        fetchHoldingInfo();
-                        updateSellQuote(); }, 3000);
-                } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { btn.disabled = false;
-                    unlock(); }
-            }
+    mapping(address => UserInfo) public users;
+    mapping(address => mapping(uint256 => DailyBuy)) public dailyBuys;
+    mapping(address => mapping(uint256 => DailySell)) public dailySells;
+    mapping(address => mapping(uint256 => bool)) public dailySettled;
+    mapping(address => bool) public communityUpgradeRewardClaimed;
+    mapping(uint256 => bool) public dailyRewardClaimed;
+    mapping(address => uint256) public streakLength;
 
-            async function fetchAirdrop() {
-                try {
-                    if (!web3) return;
-                    const data = encodeCall('getActivityPoolBalance()');
-                    const result = await web3.eth.call({ to: RP, data: data });
-                    const remaining = parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',
-                        result), 'ether'));
-                    const paid = AIRDROP_TOTAL - remaining;
-                    const percent = Math.min(100, Math.max(0, (paid / AIRDROP_TOTAL) * 100));
-                    $('airdropPaid').textContent = paid.toFixed(0);
-                    $('airdropRemaining').textContent = remaining.toFixed(0);
-                    $('airdropProgress').style.width = percent.toFixed(1) + '%';
-                    $('airdropPercent').textContent = percent.toFixed(1) + '%';
-                } catch (e) {
-                    $('airdropPaid').textContent = '--';
-                    $('airdropRemaining').textContent = '--';
-                }
-            }
+    struct CommunityNode {
+        address prev;
+        address next;
+        bool isSixth;
+    }
+    mapping(address => CommunityNode) public communityNodes;
+    address public communityHead;
+    mapping(address => address) public firstCommunity;
 
-            async function fetchUserStats() {
-                if (!userAddress || !web3) return;
-                try {
-                    const userData = encodeCall('users(address)', ['address'], [userAddress]);
-                    const userResult = await web3.eth.call({ to: RP, data: userData });
-                    const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint256',
-                        'uint256', 'uint256', 'uint256', 'uint8', 'bool'
-                    ], userResult);
-                    const invited = Number(u[1]);
-                    $('invitedCount').textContent = invited;
-                    const invitePercent = Math.min(100, (invited / 25) * 100);
-                    $('inviteProgress').style.width = invitePercent.toFixed(1) + '%';
-                    const role = u[7];
-                    if (role >= 3) {
-                        $('firstCommunityCard').classList.remove('locked');
-                        $('firstCommunityStatus').textContent = '🔓 已解锁';
-                        $('firstCommunityStatus').style.color = '#4ecca3';
-                    }
-                    try {
-                        const streakData = encodeCall('getStreakLength(address)', ['address'], [userAddress]);
-                        const streakResult = await web3.eth.call({ to: RP, data: streakData });
-                        $('streakDays').textContent = web3.eth.abi.decodeParameter('uint256', streakResult);
-                    } catch (e) { $('streakDays').textContent = '0'; }
-                } catch (e) {
-                    $('invitedCount').textContent = '--';
-                    $('streakDays').textContent = '--';
-                }
-            }
+    event PriceUpdated(uint256 oldPrice, uint256 newPrice, address indexed updater);
+    event RewardAutoSent(address indexed user, uint256 amount);
+    event USDTRewardSent(address indexed user, uint256 amount);
+    event DirectBound(address indexed upper, address indexed lower, uint256 amount);
+    event AutoBound(address indexed upper, address indexed lower);
+    event UserAutoActivated(address indexed user);
+    event UserActivated(address indexed user, address indexed referrer, uint256 activationAmount);
+    event PurchaseAccumulated(address indexed user, uint256 day, uint256 addedAmount, uint256 totalAmount);
+    event PurchaseRejected(address indexed user, uint256 day, uint256 amount);
+    event PurchaseValidated(address indexed user, uint256 dayIndex, bool valid, address indexed validator);
+    event SellRecorded(address indexed user, uint256 day, uint256 sellAmount);
+    event RoleUpgraded(address indexed user, Role oldRole, Role newRole);
+    event RoleDowngraded(address indexed user, Role oldRole, Role newRole);
+    event CommunityUpgradeRewarded(address indexed user, address indexed referrer, address indexed firstComm, uint256 amount);
+    event DailyNetBuySettled(address indexed user, uint256 day, uint256 totalBuy, uint256 totalSell, uint256 netBuy, uint256 rewardUSDT);
+    event WeeklyRankingReward(address indexed user, uint256 performance, uint256 reward, uint256 weekStart);
+    event FirstCommunityPerformanceUpdated(address indexed comm, uint256 addedAmount, uint256 totalPerformance);
+    event RankingModeChanged(bool onChain);
+    event MykTokenUpdated(address oldToken, address newToken);
+    event PairUpdated(address oldPair, address newPair);
+    event CommunityGovernanceUpdated(address oldGovernance, address newGovernance);
+    event FundManagerUpdated(address oldFM, address newFM);
+    event DividendsReceived(address indexed from, uint256 amount);
+    event TrustedUpdaterUpdated(address oldUpdater, address newUpdater);
+    event TrustedUpdaterRenounced();
+    event CommunityNodeInserted(address indexed user, address prev, address next);
+    event CommunityNodeRemoved(address indexed user, address prev, address next);
+    event MYKActivationRewarded(address indexed user, address indexed referrer, uint256 amount);
+    event CommunityDividendSent(uint256 amount);
+    event DailyRewardClaimed(address indexed user, uint256 batchId, uint256 amount, uint256 streak);
+    event SignerUpdated(address oldSigner, address newSigner);
+    // 活动奖金池事件
+    event ActivityRewardSent(address indexed user, uint256 amount);
+    event ActivityPoolDeposited(uint256 amount);
 
-            async function checkStatus() {
-                const target = $('checkAddrInput').value.trim() || userAddress;
-                if (!target || !web3) { alert('请连接钱包或输入地址'); return; }
-                const el = $('statusResult');
-                el.style.display = 'block';
-                el.innerHTML = '⏳';
-                try {
-                    const data = encodeCall('users(address)', ['address'], [target]);
-                    const result = await web3.eth.call({ to: RP, data: data });
-                    const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint256',
-                        'uint256', 'uint256', 'uint256', 'uint8', 'bool'
-                    ], result);
-                    const roles = ['无', 'PRIMARY', 'MIDDLE', '第一社区', '第二社区', '第三社区', 'COMMUNITY'];
-                    const date = u[4] > 0 ? new Date(Number(u[4]) * 1000).toLocaleDateString() : '未激活';
-                    el.innerHTML =
-                        `身份: ${roles[u[7]]} | 激活: ${u[8]?'✅':'❌'} | 推荐人: ${a6(u[0])} | 邀请: ${u[1]}人 | 激活日: ${date}`;
-                } catch (e) { el.innerHTML = '❌ 查询失败: ' + parseError(e); }
-            }
+    modifier priceFresh() { require(isPriceFresh(), "stale price"); _; }
+    modifier onlyUpdater() { require(msg.sender == trustedUpdater, "!updater"); _; }
 
-            async function checkBalance(token) {
-                if (!userAddress) { alert('请先连接钱包'); return; }
-                const el = $('balanceResult');
-                el.style.display = 'block';
-                el.innerHTML = '⏳';
-                try {
-                    const addr = token === 'MYK' ? MYK : USDT;
-                    const data = encodeCall('balanceOf(address)', ['address'], [userAddress]);
-                    const result = await web3.eth.call({ to: addr, data: data });
-                    const bal = web3.eth.abi.decodeParameter('uint256', result);
-                    el.innerHTML = `${token}: ${n(bal).toFixed(4)}`;
-                } catch (e) { el.innerHTML = '❌ 查询失败'; }
-            }
+    function proposeTrustedUpdater(address _updater) external onlyUpdater { require(_updater != address(0)); pendingTrustedUpdater = _updater; }
+    function acceptTrustedUpdater() external { require(msg.sender == pendingTrustedUpdater && pendingTrustedUpdater != address(0)); trustedUpdater = pendingTrustedUpdater; pendingTrustedUpdater = address(0); }
+    function renounceTrustedUpdater() external onlyUpdater { trustedUpdater = address(0); pendingTrustedUpdater = address(0); }
 
-            async function activateMYK() {
-                if (!userAddress) { alert('请先连接钱包'); return; }
-                if (!lock()) return;
-                const btn = $('activateMYKBtn');
-                const amount = $('mykAmount').value;
-                if (!amount || parseFloat(amount) <= 0) { alert('请输入有效的 MYK 数量'); return; }
-                btn.disabled = true;
-                btn.textContent = '处理中...';
-                try {
-                    const mykWei = Web3.utils.toWei(amount, 'ether');
-                    const data = encodeCall('transfer(address,uint256)', ['address', 'uint256'], [RP, mykWei]);
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: MYK, data: data }] });
-                    $('activateMYKResult').style.display = 'block';
-                    $('activateMYKResult').innerHTML = '✅ 激活成功！';
-                    setTimeout(() => { fetchUserStats();
-                        fetchAirdrop();
-                        fetchHoldingInfo(); }, 3000);
-                } catch (e) {
-                    $('activateMYKResult').style.display = 'block';
-                    $('activateMYKResult').innerHTML = '❌ ' + parseError(e);
-                } finally { btn.disabled = false;
-                    btn.textContent = '💸 支付MYK激活';
-                    unlock(); }
-            }
+    function isActiveUser(address user) external view returns (bool) { return users[user].isActive; }
+    function hasReferrer(address user) external view returns (bool) { return users[user].referrer != address(0); }
 
-            async function activateUSDT() {
-                if (!userAddress) { alert('请先连接钱包'); return; }
-                if (!lock()) return;
-                const btn = $('activateUSDTBtn');
-                const el = $('activateUSDTResult');
-                el.style.display = 'block';
-                el.innerHTML = '⏳ 授权USDT...';
-                btn.disabled = true;
-                try {
-                    const fee = web3.utils.toWei('2', 'ether');
-                    const appData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [RP, fee]);
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: USDT, data: appData }] });
-                    el.innerHTML = '⏳ 激活中...';
-                    const actData = encodeCall('activateWithUSDT(address)', ['address'], [
-                        '0x0000000000000000000000000000000000000000'
-                    ]);
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: RP, data: actData }] });
-                    el.innerHTML = '✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';
-                    setTimeout(() => { fetchUserStats();
-                        fetchAirdrop();
-                        fetchHoldingInfo(); }, 3000);
-                } catch (e) {
-                    const msg = parseError(e);
-                    if (msg.includes('referrer')) { el.innerHTML =
-                        '⚠️ 推荐人无效或未绑定，请检查链上绑定关系'; } else { el.innerHTML = '❌ ' + msg; }
-                } finally { btn.disabled = false;
-                    unlock(); }
-            }
+    function setReferrer(address user, address referrer) external { require(msg.sender == mykToken); if (users[user].referrer == address(0) && !users[user].isActive && referrer != user) { users[user].referrer = referrer; emit AutoBound(referrer, user); } }
+    function setMykToken(address _t) external onlyUpdater { require(_t != address(0)); mykToken = _t; }
+    function setPair(address _p) external onlyUpdater { require(_p != address(0)); pair = _p; }
+    function setCommunityGovernance(address _cg) external onlyUpdater { require(_cg != address(0)); communityGovernance = _cg; }
+    function setFundManager(address _fm) external onlyUpdater { require(_fm != address(0)); fundManager = _fm; }
+    function setRankingMode(bool _onChain) external onlyUpdater { useOnChainRanking = _onChain; }
+    function setSigner(address _s) external onlyUpdater { require(_s != address(0)); emit SignerUpdated(signer, _s); signer = _s; }
 
-            async function fetchHoldingInfo() {
-                if (!userAddress || !web3) return;
-                try {
-                    const balanceData = encodeCall('balanceOf(address)', ['address'], [userAddress]);
-                    const balanceResult = await web3.eth.call({ to: MYK, data: balanceData });
-                    const balance = n(web3.eth.abi.decodeParameter('uint256', balanceResult));
-                    $('holdingBalance').textContent = balance.toFixed(4);
-                    const todayDay = Math.floor(Date.now() / 86400000);
-                    try {
-                        const claimedData = encodeCall('dailySettled(address,uint256)', ['address',
-                        'uint256'], [userAddress, String(todayDay)]);
-                        const claimedResult = await web3.eth.call({ to: RP, data: claimedData });
-                        const claimed = web3.eth.abi.decodeParameter('bool', claimedResult);
-                        $('claimedToday').textContent = claimed ? '✅ 已领取' : '❌ 未领取';
-                        $('claimRewardBtn').disabled = claimed;
-                        if (claimed) {
-                            $('claimRewardBtn').textContent = '✅ 今日已领取';
-                            $('claimRewardBtn').style.opacity = '0.6';
-                        } else {
-                            $('claimRewardBtn').textContent = '🎁 一键领取今日奖励';
-                            $('claimRewardBtn').style.opacity = '1';
-                        }
-                    } catch (e) { $('claimedToday').textContent = '--'; }
-                } catch (e) { $('holdingBalance').textContent = '--'; }
-            }
+    function _tryUpdatePrice() internal {
+        if (!isPriceFresh() && block.timestamp >= _lastUpdateTime + MIN_UPDATE_INTERVAL) { try this.updatePrice() {} catch {} }
+        if (_currentPrice == 0) { uint256 spot = _getSpotPrice(); if (spot > 0) { _currentPrice = spot; _lastUpdateTime = block.timestamp; } }
+    }
 
-            async function fetchMerkleProof() {
-                try {
-                    const response = await fetch(`${MERKLE_API_URL}/${userAddress}`);
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        throw new Error(errorData.message || '获取签名数据失败');
-                    }
-                    const data = await response.json();
-                    return {
-                        amountWei: web3.utils.toWei(String(data.amount), 'ether'),
-                        batchId: String(data.batchId),
-                        proof: data.proof || [],
-                        root: data.root ||
-                            '0x0000000000000000000000000000000000000000000000000000000000000000'
-                    };
-                } catch (e) { throw new Error('签名服务暂不可用，请稍后重试'); }
-            }
+    // 活动奖金池存入
+    function depositActivityPool(uint256 amount) external {
+        require(amount > 0, "zero");
+        IERC20(mykToken).safeTransferFrom(msg.sender, address(this), amount);
+        activityPool += amount;
+        emit ActivityPoolDeposited(amount);
+    }
 
-            async function claimDailyReward() {
-                if (!userAddress) { alert('请先连接钱包'); return; }
-                if (!lock()) return;
-                const btn = $('claimRewardBtn');
-                const el = $('claimRewardResult');
-                const loading = $('claimLoading');
-                el.style.display = 'none';
-                loading.style.display = 'block';
-                btn.disabled = true;
-                btn.textContent = '获取签名...';
-                try {
-                    const proofData = await fetchMerkleProof();
-                    const amountNum = parseFloat(web3.utils.fromWei(proofData.amountWei, 'ether'));
-                    $('todayReward').textContent = amountNum.toFixed(6);
-                    btn.textContent = '领取中...';
-                    loading.innerHTML = '<span style="color:#4ecca3;">⏳ 交易确认中...</span>';
-                    const data = encodeCall('claimDailyReward(uint256,uint256,bytes32[],bytes32)', ['uint256',
-                        'uint256', 'bytes32[]', 'bytes32'
-                    ], [proofData.amountWei, proofData.batchId, proofData.proof, proofData.root]);
-                    await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress,
-                            to: RP, data: data }] });
-                    el.style.display = 'block';
-                    el.innerHTML = `✅ 领取成功！获得 ${amountNum.toFixed(6)} USDT 等值奖励`;
-                    el.style.borderLeftColor = '#4ecca3';
-                    el.style.background = 'rgba(78,204,163,0.1)';
-                    setTimeout(() => { fetchHoldingInfo();
-                        fetchUserStats(); }, 3000);
-                } catch (e) {
-                    el.style.display = 'block';
-                    const msg = parseError(e);
-                    if (msg.includes('already claimed') || msg.includes('already settled')) {
-                        el.innerHTML = '⚠️ 今日已领取，请明天再来';
-                        btn.disabled = true;
-                        btn.textContent = '✅ 今日已领取';
-                        $('claimedToday').textContent = '✅ 已领取';
-                    } else if (msg.includes('invalid proof') || msg.includes('merkle')) {
-                        el.innerHTML = '⚠️ 签名验证失败，请联系管理员更新 Merkle Root';
-                    } else if (msg.includes('签名服务')) { el.innerHTML = '⚠️ ' + msg; } else { el.innerHTML =
-                        '❌ ' + msg; }
-                } finally {
-                    loading.style.display = 'none';
-                    btn.disabled = false;
-                    if (btn.textContent !== '✅ 今日已领取') { btn.textContent = '🎁 一键领取今日奖励'; }
-                    unlock();
-                }
-            }
+    function getActivityPoolBalance() external view returns (uint256) { return activityPool; }
 
-            function setupSlippageButtons(containerId, type) {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                container.querySelectorAll('.slippage-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        container.querySelectorAll('.slippage-btn').forEach(b => b.classList
-                            .remove('active'));
-                        this.classList.add('active');
-                        const slip = parseFloat(this.dataset.slip) / 100;
-                        if (type === 'buy') { buySlippage = slip;
-                            updateBuyQuote(); } else { sellSlippage = slip;
-                            updateSellQuote(); }
-                    });
-                });
-            }
+    // 活动奖励发放
+    function _sendActivityReward(address user) internal {
+        if (activityPool == 0) return;
+        uint256 rewardAmount = _usdtToToken(ACTIVATION_FEE_USDT);
+        if (activityPool < rewardAmount) { rewardAmount = activityPool; }
+        activityPool -= rewardAmount;
+        activityPoolTotalPaid += rewardAmount;
+        _sendMYK(user, rewardAmount);
+        emit ActivityRewardSent(user, rewardAmount);
+    }
 
-            function setupTabs() {
-                document.querySelectorAll('#activateTabSwitch .tab').forEach(tab => {
-                    tab.addEventListener('click', function() {
-                        document.querySelectorAll('#activateTabSwitch .tab').forEach(t => t
-                            .classList.remove('active'));
-                        this.classList.add('active');
-                        const t = this.dataset.tab;
-                        $('panelUSDT').style.display = t === 'usdt' ? 'block' : 'none';
-                        $('panelMYK').style.display = t === 'myk' ? 'block' : 'none';
-                    });
-                });
-                document.querySelectorAll('#tradeTabSwitch .tab').forEach(tab => {
-                    tab.addEventListener('click', function() {
-                        document.querySelectorAll('#tradeTabSwitch .tab').forEach(t => {
-                            t.classList.remove('active', 'tab-buy', 'tab-sell'); });
-                        this.classList.add('active');
-                        const t = this.dataset.tab;
-                        if (t === 'buy') this.classList.add('tab-buy');
-                        if (t === 'sell') this.classList.add('tab-sell');
-                        $('panelBuy').style.display = t === 'buy' ? 'block' : 'none';
-                        $('panelSell').style.display = t === 'sell' ? 'block' : 'none';
-                        if (t === 'buy') updateBuyQuote();
-                        if (t === 'sell') updateSellQuote();
-                    });
-                });
-            }
+    function activateWithUSDT(address ref) external nonReentrant {
+        _tryUpdatePrice();
+        require(!users[msg.sender].isActive);
+        address actualRef = users[msg.sender].referrer != address(0) ? users[msg.sender].referrer : ref;
+        require(actualRef != address(0) && users[actualRef].isActive && totalActiveUsers < MAX_TOTAL_USERS);
+        IERC20(USDT).safeTransferFrom(msg.sender, address(this), ACTIVATION_FEE_USDT);
+        _activateUser(msg.sender, actualRef);
+        _distributeUSDT(ACTIVATION_FEE_USDT, msg.sender, actualRef);
+        _sendActivityReward(msg.sender);
+        emit UserActivated(msg.sender, actualRef, ACTIVATION_FEE_USDT);
+    }
 
-            window.addEventListener('load', async () => {
-                setupTabs();
-                setupSlippageButtons('panelBuy', 'buy');
-                setupSlippageButtons('panelSell', 'sell');
-                if (window.ethereum) {
-                    web3 = new Web3(window.ethereum);
-                    try {
-                        const a = await window.ethereum.request({ method: 'eth_accounts' });
-                        if (a.length) {
-                            userAddress = a[0];
-                            $('walletDisplay').textContent = a6(userAddress);
-                            $('walletDisplay').style.color = '#4ef0a8';
-                            $('checkAddrInput').value = userAddress;
-                            fetchPrice();
-                            fetchAirdrop();
-                            fetchUserStats();
-                            fetchHoldingInfo();
-                            updateBuyQuote();
-                            updateSellQuote();
-                        }
-                    } catch (e) {}
-                }
-                $('connectWalletBtn').addEventListener('click', connectWallet);
-                $('updatePriceBtn').addEventListener('click', updatePrice);
-                $('refreshPriceBtn').addEventListener('click', () => { fetchPrice();
-                    fetchAirdrop();
-                    fetchHoldingInfo();
-                    updateBuyQuote();
-                    updateSellQuote(); });
-                $('buyUSDTAmount').addEventListener('input', updateBuyQuote);
-                $('sellMYKAmount').addEventListener('input', updateSellQuote);
-                $('buyMYKBtn').addEventListener('click', buyMYK);
-                $('sellMYKBtn').addEventListener('click', sellMYK);
-                $('activateMYKBtn').addEventListener('click', activateMYK);
-                $('activateUSDTBtn').addEventListener('click', activateUSDT);
-                $('claimRewardBtn').addEventListener('click', claimDailyReward);
-                $('checkStatusBtn').addEventListener('click', checkStatus);
-                $('checkBalanceBtn').addEventListener('click', () => checkBalance('MYK'));
-                $('checkUSDTBtn').addEventListener('click', () => checkBalance('USDT'));
-            });
-        })();
-    </script>
-</body>
-</html>
+    function distributeActivationUSDT(uint256 amount, address user) external { require(msg.sender == communityGovernance); _distributeUSDT(amount, user, users[user].referrer); }
+
+    function _distributeUSDT(uint256 amount, address user, address referrer) internal {
+        uint256 remaining = amount;
+        if (referrer != address(0)) { uint256 refReward = (amount * REFERRAL_RATE) / 100; IERC20(USDT).safeTransfer(referrer, refReward); emit USDTRewardSent(referrer, refReward); remaining -= refReward; }
+        remaining = _distributeRewards(remaining, user, true);
+        if (remaining > 0 && fundManager != address(0)) {
+            IERC20(USDT).safeTransfer(fundManager, remaining);
+            try IFundManager(fundManager).onUSDTReceived(remaining) {} catch {}
+        }
+    }
+
+    function onMYKReceived(address from, uint256 amount) external {
+        require(msg.sender == mykToken);
+        _tryUpdatePrice();
+        uint256 activationAmount = _usdtToToken(ACTIVATION_FEE_USDT);
+        if (amount >= activationAmount && !users[from].isActive) { _autoActivate(from); _distributeMYKActivation(from); }
+    }
+
+    function _distributeMYKActivation(address user) internal {
+        uint256 rewardAmount = ACTIVATION_FEE_USDT; address referrer = users[user].referrer; uint256 remaining = rewardAmount;
+        if (referrer != address(0)) { uint256 refReward = (rewardAmount * REFERRAL_RATE) / 100; _sendMYK(referrer, _usdtToToken(refReward)); remaining -= refReward; }
+        _distributeRewards(remaining, user, false);
+        emit MYKActivationRewarded(user, referrer, rewardAmount);
+    }
+
+    function _autoActivate(address user) internal {
+        UserInfo storage u = users[user]; u.role = Role.PRIMARY; u.activatedAt = uint40(block.timestamp);
+        u.lastRewardDay = uint40(block.timestamp / 86400); u.isActive = true; u.lastClaim = uint40(block.timestamp);
+        unchecked { totalActiveUsers++; } _inheritFirstCommunity(user); emit UserAutoActivated(user);
+    }
+
+    function _activateUser(address user, address referrer) internal {
+        UserInfo storage u = users[user]; u.referrer = referrer; u.role = Role.PRIMARY;
+        u.activatedAt = uint40(block.timestamp); u.lastRewardDay = uint40(block.timestamp / 86400);
+        u.isActive = true; u.lastClaim = uint40(block.timestamp);
+        if (referrer != address(0)) { users[referrer].invited++; _checkCommunityUpgrade(referrer); }
+        unchecked { totalActiveUsers++; } _inheritFirstCommunity(user);
+    }
+
+    function onMYKTransfer(address from, address to, uint256 amount) external {
+        require(msg.sender == mykToken);
+        uint256 bindAmount = _usdtToToken(BIND_FEE_USDT);
+        if (amount >= bindAmount && !users[to].isActive && users[to].referrer == address(0) && from != to) { users[to].referrer = from; users[from].invited++; _checkCommunityUpgrade(from); emit AutoBound(from, to); }
+    }
+
+    function receiveDividends(uint256 amount) external { require(msg.sender == communityGovernance && amount > 0); emit DividendsReceived(msg.sender, amount); }
+
+    constructor(address _trustedUpdater) { require(_trustedUpdater != address(0)); trustedUpdater = _trustedUpdater; currentWeekStart = (block.timestamp / WEEK_DURATION) * WEEK_DURATION; useOnChainRanking = true; _currentPrice = 1e18; _lastUpdateTime = block.timestamp; }
+
+    // ==================== 价格（混合方案） ====================
+    function updatePrice() external returns (uint256) { require(block.timestamp >= _lastUpdateTime + MIN_UPDATE_INTERVAL); uint256 np = _calculateTWAP(); require(np >= MIN_PRICE && np <= MAX_PRICE); uint256 old = _currentPrice; _currentPrice = np; _lastUpdateTime = block.timestamp; _updateCumulativePrices(); emit PriceUpdated(old, np, msg.sender); return np; }
+    function _calculateTWAP() internal view returns (uint256) { (uint256 c0, uint256 c1, uint32 ts) = _getCurrentCumulativePrices(); uint32 e = ts - _blockTimestampLast; require(e > 0 && e >= MIN_UPDATE_INTERVAL); address t0 = IPancakePair(pair).token0(); return t0 == mykToken ? ((c1 - _price1CumulativeLast) * PRICE_PRECISION) / e : ((c0 - _price0CumulativeLast) * PRICE_PRECISION) / e; }
+    function _updateCumulativePrices() internal { (_price0CumulativeLast, _price1CumulativeLast, _blockTimestampLast) = _getCurrentCumulativePrices(); }
+    function _getCurrentCumulativePrices() internal view returns (uint256, uint256, uint32) { IPancakePair p = IPancakePair(pair); uint256 c0 = p.price0CumulativeLast(); uint256 c1 = p.price1CumulativeLast(); uint32 ts = uint32(block.timestamp); (uint112 r0, uint112 r1, uint32 lts) = p.getReserves(); if (lts != ts && r0 > 0 && r1 > 0) { uint32 dt = ts - lts; unchecked { c0 += (uint256(r1) << 112) / r0 * dt; c1 += (uint256(r0) << 112) / r1 * dt; } } return (c0, c1, ts); }
+
+    function getCurrentPrice() public returns (uint256) {
+        if (pair != address(0) && block.timestamp >= _lastUpdateTime + MIN_UPDATE_INTERVAL) { try this.updatePrice() {} catch {} }
+        if (_currentPrice > 0 && isPriceFresh()) { return _currentPrice; }
+        uint256 spot = _getSpotPrice();
+        if (spot > 0) { if (_currentPrice > 0) { uint256 diff = spot > _currentPrice ? spot - _currentPrice : _currentPrice - spot; if (diff * 100 > _currentPrice * 10) { spot = spot < _currentPrice ? spot : _currentPrice; } } _currentPrice = spot; _lastUpdateTime = block.timestamp; return spot; }
+        require(_currentPrice > 0, "price not set"); return _currentPrice;
+    }
+
+    function _getSpotPrice() internal view returns (uint256) {
+        if (pair == address(0)) return 0;
+        try IPancakePair(pair).getReserves() returns (uint112 r0, uint112 r1, uint32) { if (r0 == 0 || r1 == 0) return 0; address t0 = IPancakePair(pair).token0(); uint256 spot = t0 == mykToken ? (uint256(r1) * PRICE_PRECISION) / uint256(r0) : (uint256(r0) * PRICE_PRECISION) / uint256(r1); if (spot >= MIN_PRICE && spot <= MAX_PRICE) return spot; } catch {} return 0;
+    }
+
+    function isPriceFresh() public view returns (bool) { return _currentPrice > 0 && block.timestamp <= _lastUpdateTime + PRICE_STALE_THRESHOLD; }
+    function _usdtToToken(uint256 a) internal view returns (uint256) { require(_currentPrice > 0, "price not set"); return a == 0 ? 0 : (a * PRICE_PRECISION) / _currentPrice; }
+    function _sendMYK(address u, uint256 a) internal { if (u == address(0) || a == 0) return; IERC20(mykToken).safeTransfer(u, a); emit RewardAutoSent(u, a); }
+    function _sendUSDT(address u, uint256 a) internal { if (u == address(0) || a == 0) return; IERC20(USDT).safeTransfer(u, a); emit USDTRewardSent(u, a); }
+
+    function getBindAmount() public view returns (uint256) { return _usdtToToken(BIND_FEE_USDT); }
+    function getActivationAmount() public view returns (uint256) { return _usdtToToken(ACTIVATION_FEE_USDT); }
+
+    function directBind(address lower) external nonReentrant {
+        _tryUpdatePrice();
+        require(lower != address(0) && lower != msg.sender && users[msg.sender].isActive && !users[lower].isActive && users[lower].referrer == address(0));
+        uint256 bindAmount = _usdtToToken(BIND_FEE_USDT); require(bindAmount > 0);
+        IERC20(mykToken).safeTransferFrom(msg.sender, lower, bindAmount);
+        users[lower].referrer = msg.sender; users[msg.sender].invited++; _checkCommunityUpgrade(msg.sender); emit DirectBound(msg.sender, lower, bindAmount);
+    }
+
+    // ==================== 推荐升级 ====================
+    function _checkCommunityUpgrade(address u) internal {
+        Role currentRole = users[u].role;
+        uint256 invited = users[u].invited;
+        if (currentRole == Role.PRIMARY && invited >= MIDDLE_INVITES) { users[u].role = Role.MIDDLE; emit RoleUpgraded(u, Role.PRIMARY, Role.MIDDLE); }
+        else if (currentRole == Role.MIDDLE && invited >= FIRST_COMMUNITY_INVITES) { users[u].role = Role.FIRST_COMMUNITY; emit RoleUpgraded(u, Role.MIDDLE, Role.FIRST_COMMUNITY); }
+        else if (currentRole == Role.FIRST_COMMUNITY && invited >= SECOND_COMMUNITY_INVITES) { users[u].role = Role.SECOND_COMMUNITY; emit RoleUpgraded(u, Role.FIRST_COMMUNITY, Role.SECOND_COMMUNITY); }
+        else if (currentRole == Role.SECOND_COMMUNITY && invited >= THIRD_COMMUNITY_INVITES) { users[u].role = Role.THIRD_COMMUNITY; emit RoleUpgraded(u, Role.SECOND_COMMUNITY, Role.THIRD_COMMUNITY); }
+    }
+
+    function _isCommunity(address u) internal view returns (bool) { try ICommunityGovernance(communityGovernance).isQualifiedCommunity(u) returns (bool r) { return r; } catch { return false; } }
+    function _isSixth(address u) internal view returns (bool) { try ICommunityGovernance(communityGovernance).isEarlyCommunity(u, 3) returns (bool r) { return r; } catch { return false; } }
+    function _inList(address u) internal view returns (bool) { return communityNodes[u].prev != address(0) || communityHead == u; }
+
+    function _inheritFirstCommunity(address u) internal {
+        address cur = users[u].referrer;
+        for (uint256 i = 0; i < MAX_SEARCH && cur != address(0); i++) { if (_inList(cur)) { firstCommunity[u] = cur; return; } if (cur == users[cur].referrer) break; cur = users[cur].referrer; }
+        firstCommunity[u] = address(0);
+    }
+
+    function _insertNode(address u, bool isSixth) internal {
+        require(!_inList(u)); address cur = users[u].referrer; address after_ = address(0);
+        for (uint256 i = 0; i < MAX_SEARCH && cur != address(0); i++) { if (_inList(cur)) { after_ = cur; break; } if (cur == users[cur].referrer) break; cur = users[cur].referrer; }
+        if (after_ == address(0)) { if (communityHead != address(0)) { communityNodes[communityHead].prev = u; communityNodes[u].next = communityHead; } communityHead = u; }
+        else { address nxt = communityNodes[after_].next; communityNodes[u].prev = after_; communityNodes[u].next = nxt; communityNodes[after_].next = u; if (nxt != address(0)) communityNodes[nxt].prev = u; }
+        communityNodes[u].isSixth = isSixth; emit CommunityNodeInserted(u, after_, communityNodes[u].next);
+    }
+
+    function _removeNode(address u) internal {
+        require(_inList(u)); address p = communityNodes[u].prev; address n = communityNodes[u].next;
+        if (p != address(0)) communityNodes[p].next = n; else communityHead = n;
+        if (n != address(0)) communityNodes[n].prev = p;
+        delete communityNodes[u]; emit CommunityNodeRemoved(u, p, n);
+    }
+
+    function _communityShare(uint256 amount, uint256 i) internal pure returns (uint256) {
+        if (i == 0) return (amount * 10) / 100; if (i == 1) return (amount * 5) / 100;
+        if (i == 2) return (amount * 25) / 1000; if (i == 3) return (amount * 125) / 10000;
+        return (amount * 625) / 100000;
+    }
+
+    function _sendCommunityDividend(uint256 amount, bool isUSDT) internal returns (uint256) {
+        uint256 dividend = (amount * COMMUNITY_DIVIDEND_RATE) / DIVIDEND_RATE_BASE;
+        if (dividend == 0 || communityGovernance == address(0)) return 0;
+        if (isUSDT) { IERC20(USDT).safeTransfer(communityGovernance, dividend); }
+        else { IERC20(mykToken).safeTransfer(communityGovernance, dividend); }
+        try ICommunityGovernance(communityGovernance).receivePoolRewards(dividend) {} catch {}
+        emit CommunityDividendSent(dividend);
+        return dividend;
+    }
+
+    function _distributeRewards(uint256 amount, address user, bool isUSDT) internal returns (uint256 remaining) {
+        remaining = amount;
+        address[5] memory communities; uint256 cc = 0; address cur = firstCommunity[user];
+        for (uint256 i = 0; i < 5 && cur != address(0); i++) { communities[i] = cur; cc++; cur = communityNodes[cur].next; }
+        uint256 inherit_ = 0;
+        for (uint256 i = 0; i < 5; i++) { uint256 share = _communityShare(amount, i); if (i < cc) { if (isUSDT) _sendUSDT(communities[i], share); else { _sendMYK(communities[i], _usdtToToken(share)); _updatePerf(communities[i], share); } remaining -= share; } else { inherit_ += share; remaining -= share; } }
+        if (inherit_ > 0 && cc > 0) { address fs = _findFirstSixth(communities[cc - 1]); if (fs != address(0)) { if (isUSDT) _sendUSDT(fs, inherit_); else _sendMYK(fs, _usdtToToken(inherit_)); remaining -= inherit_; } }
+        if (communityGovernance != address(0)) { remaining -= _sendCommunityDividend(amount, isUSDT); }
+    }
+
+    function _findFirstSixth(address start) internal view returns (address) { address cur = start; for (uint256 i = 0; i < MAX_SEARCH && cur != address(0); i++) { if (_isSixth(cur)) return cur; cur = communityNodes[cur].next; } return address(0); }
+
+    function _updatePerf(address comm, uint256 amount) internal {
+        if (!isActiveFirstCommunity[comm]) { if (activeFirstCommunities.length >= MAX_ACTIVE_COMMUNITIES) return; isActiveFirstCommunity[comm] = true; activeFirstCommunities.push(comm); }
+        firstCommunityPerformance[comm] += amount; emit FirstCommunityPerformanceUpdated(comm, amount, firstCommunityPerformance[comm]);
+    }
+
+    function onCommunityUpgraded(address user) external { require(communityGovernance != address(0) && msg.sender == communityGovernance); if (!_inList(user)) _insertNode(user, _isSixth(user)); else communityNodes[user].isSixth = _isSixth(user); }
+    function onCommunityDowngraded(address user) external { require(communityGovernance != address(0) && msg.sender == communityGovernance); if (_inList(user)) _removeNode(user); }
+
+    function _payRewards(uint256 usdtAmount, address user, address referrer) internal { uint256 ta = _usdtToToken(usdtAmount); if (ta == 0) return; if (referrer != address(0)) _sendMYK(referrer, (ta * REFERRAL_RATE) / 100); _distributeRewards(usdtAmount, user, false); }
+
+    function onCommunityLocked(address user, uint256 usdtAmount) external nonReentrant {
+        require(msg.sender == communityGovernance && !communityUpgradeRewardClaimed[user]); communityUpgradeRewardClaimed[user] = true;
+        _payRewards(usdtAmount, user, users[user].referrer); emit CommunityUpgradeRewarded(user, users[user].referrer, firstCommunity[user], usdtAmount);
+    }
+
+    function setCommunityHolder(address user, bool isHolder) external { require(msg.sender == communityGovernance); if (isHolder) { if (users[user].role != Role.COMMUNITY) { emit RoleUpgraded(user, users[user].role, Role.COMMUNITY); users[user].role = Role.COMMUNITY; } } else _updateUserRole(user); }
+
+    function _getRoleRate(address u) internal view returns (uint256) { Role r = users[u].role; if (r == Role.PRIMARY) return PRIMARY_RATE; if (r == Role.MIDDLE) return MIDDLE_RATE; if (r == Role.FIRST_COMMUNITY) return FIRST_COMMUNITY_RATE; if (r == Role.SECOND_COMMUNITY) return SECOND_COMMUNITY_RATE; if (r == Role.THIRD_COMMUNITY) return THIRD_COMMUNITY_RATE; if (r == Role.COMMUNITY) return COMMUNITY_RATE; return 0; }
+    function _calcRole(address u) internal view returns (Role) { try ICommunityGovernance(communityGovernance).isQualifiedCommunity(u) returns (bool r) { if (r) return Role.COMMUNITY; } catch {} return users[u].isActive ? Role.PRIMARY : Role.NONE; }
+    function _updateUserRole(address u) internal { Role nr = _calcRole(u); Role or_ = users[u].role; if (or_ != nr) { users[u].role = nr; if (nr > or_) emit RoleUpgraded(u, or_, nr); else emit RoleDowngraded(u, or_, nr); } }
+
+    // ==================== 每日持币奖励（Merkle 根方案，完全去中心化） ====================
+    bytes32 public dailyMerkleRoot;
+
+    function _verifyMerkleProof(address user, uint256 amount, bytes32[] calldata proof, bytes32 root) internal pure returns (bool) {
+        bytes32 leaf = keccak256(abi.encodePacked(user, amount));
+        bytes32 computed = leaf;
+        for (uint256 i = 0; i < proof.length; i++) {
+            if (computed < proof[i]) { computed = keccak256(abi.encodePacked(computed, proof[i])); }
+            else { computed = keccak256(abi.encodePacked(proof[i], computed)); }
+        }
+        return computed == root;
+    }
+
+    function claimDailyReward(uint256 amount, uint256 batchId, bytes32[] calldata proof, bytes32 proposedRoot) external nonReentrant {
+        require(!dailyRewardClaimed[batchId], "already claimed");
+        require(users[msg.sender].isActive, "not active");
+        if (dailyMerkleRoot == bytes32(0) && proposedRoot != bytes32(0)) { dailyMerkleRoot = proposedRoot; }
+        require(_verifyMerkleProof(msg.sender, amount, proof, dailyMerkleRoot), "invalid proof");
+        dailyRewardClaimed[batchId] = true;
+        if (amount > 0) { streakLength[msg.sender]++; } else { streakLength[msg.sender] = 0; }
+        uint256 mykAmount = _usdtToToken(amount);
+        _sendMYK(msg.sender, mykAmount);
+        _distributeRewards(amount, msg.sender, false);
+        emit DailyRewardClaimed(msg.sender, batchId, amount, streakLength[msg.sender]);
+    }
+
+    function getStreakLength(address user) external view returns (uint256) { return streakLength[user]; }
+
+    // ==================== 周排行（去中心化，任何人可调用） ====================
+    function getWeeklyTopPerformers() public view returns (address[] memory w, uint256[] memory p) {
+        uint256 t = activeFirstCommunities.length; if (t == 0) return (new address[](0), new uint256[](0)); if (t > MAX_ONCHAIN_SORT) return (new address[](0), new uint256[](0));
+        uint256 wc = t > TOP_WINNERS_COUNT ? TOP_WINNERS_COUNT : t; w = new address[](wc); p = new uint256[](wc);
+        for (uint256 i = 0; i < t; i++) { address usr = activeFirstCommunities[i]; uint256 perf = firstCommunityPerformance[usr];
+            for (uint256 j = 0; j < wc; j++) { if (w[j] == address(0) || perf > p[j]) { for (uint256 k = wc - 1; k > j; k--) { w[k] = w[k-1]; p[k] = p[k-1]; } w[j] = usr; p[j] = perf; break; } } }
+    }
+
+    function distributeWeeklyRewards() external {
+        require(!weekRewardsDistributed[currentWeekStart], "already distributed");
+        require(block.timestamp >= currentWeekStart + WEEK_DURATION, "week not ended");
+        require(ICommunityGovernance(communityGovernance).getTotalCommunities() >= MIN_COMMUNITIES_FOR_RANKING, "communities < 100");
+        require(activeFirstCommunities.length <= MAX_ONCHAIN_SORT, "too many, use off-chain mode");
+        uint256 week = currentWeekStart; weekRewardsDistributed[week] = true; (address[] memory w, uint256[] memory p) = getWeeklyTopPerformers();
+        for (uint256 i = 0; i < w.length; i++) { uint256 rw = (p[i] * TOP_REWARD_RATE) / REWARD_RATE_BASE; if (rw > 0) { _sendMYK(w[i], rw); emit WeeklyRankingReward(w[i], p[i], rw, week); } }
+    }
+
+    function distributeWeeklyRewardsOffChain(address[] calldata tp, uint256[] calldata tpf) external onlyUpdater {
+        require(!weekRewardsDistributed[currentWeekStart] && block.timestamp >= currentWeekStart + WEEK_DURATION && !useOnChainRanking && tp.length <= TOP_WINNERS_COUNT && tp.length == tpf.length && ICommunityGovernance(communityGovernance).getTotalCommunities() >= MIN_COMMUNITIES_FOR_RANKING);
+        for (uint256 i = 0; i < tp.length; i++) require(tpf[i] == firstCommunityPerformance[tp[i]]);
+        uint256 week = currentWeekStart; weekRewardsDistributed[week] = true;
+        for (uint256 i = 0; i < tp.length; i++) { uint256 rw = (tpf[i] * TOP_REWARD_RATE) / REWARD_RATE_BASE; if (rw > 0) { _sendMYK(tp[i], rw); emit WeeklyRankingReward(tp[i], tpf[i], rw, week); } }
+    }
+
+    function validatePurchase(address user, uint256 dayIndex, bool valid) external nonReentrant {
+        DailyBuy storage b = dailyBuys[user][dayIndex]; require(b.hasBought && !b.claimed && block.timestamp <= b.timestamp + VALIDATION_TIMEOUT);
+        b.valid = valid; b.claimed = true;
+        if (valid && b.amount > 0) { uint256 reward = (uint256(b.amount) * _getRoleRate(user)) / RATE_BASE; uint256 rm = _usdtToToken(reward);
+            _sendMYK(user, rm); _distributeRewards(reward, user, false); address ref = users[user].referrer; if (ref != address(0)) _sendMYK(ref, (rm * REFERRAL_RATE) / 100); }
+        else emit PurchaseRejected(user, dayIndex, b.amount);
+        emit PurchaseValidated(user, dayIndex, valid, msg.sender);
+    }
+
+    function getContractBalance() external view returns (uint256) { return IERC20(mykToken).balanceOf(address(this)); }
+    function getRoleRate(address user) external view returns (uint256) { return _getRoleRate(user); }
+    function getTotalCommunities() external view returns (uint256) { return ICommunityGovernance(communityGovernance).getTotalCommunities(); }
+    function isQualifiedCommunity(address user) external view returns (bool) { return ICommunityGovernance(communityGovernance).isQualifiedCommunity(user); }
+    function getUserBasic(address user) external view returns (address referrer, uint256 invited, Role role, uint256 activatedAt, bool isActive) { UserInfo storage u = users[user]; return (u.referrer, u.invited, u.role, u.activatedAt, u.isActive); }
+    function getUserStatus(address user) external view returns (bool isActive, bool isCommunity) { return (users[user].isActive, ICommunityGovernance(communityGovernance).isQualifiedCommunity(user)); }
+    function getContractInfo() external view returns (uint256 activeUsers, uint256 totalCommunities, address governanceAddress, uint256 mykBalance) { return (totalActiveUsers, ICommunityGovernance(communityGovernance).getTotalCommunities(), communityGovernance, IERC20(mykToken).balanceOf(address(this))); }
+    function getDailyBuy(address user, uint256 dayIndex) external view returns (uint256, bool) { DailyBuy storage b = dailyBuys[user][dayIndex]; return (b.amount, b.hasBought); }
+    function getDailySell(address user, uint256 dayIndex) external view returns (uint256, bool) { DailySell storage s = dailySells[user][dayIndex]; return (s.amount, s.hasSold); }
+    function getWeeklyTop10() external view returns (address[] memory, uint256[] memory) { return getWeeklyTopPerformers(); }
+    function getCurrentWeekStart() external view returns (uint256) { return currentWeekStart; }
+    function getFirstCommunityPerformance(address user) external view returns (uint256) { return firstCommunityPerformance[user]; }
+    function getActiveCommunityCount() external view returns (uint256) { return activeFirstCommunities.length; }
+    function getAllActiveCommunities() external view returns (address[] memory communities, uint256[] memory performances) { uint256 total = activeFirstCommunities.length; communities = new address[](total); performances = new uint256[](total); for (uint256 i = 0; i < total; i++) { communities[i] = activeFirstCommunities[i]; performances[i] = firstCommunityPerformance[activeFirstCommunities[i]]; } }
+}
