@@ -42,6 +42,8 @@
     .btn-outline { background: #2d325a; box-shadow: none; padding: 10px 16px; }
     .btn-sm { padding: 10px 14px; font-size: 13px; width: auto; }
     .btn-green { background: linear-gradient(135deg, #4ecca3, #2e8b6a); box-shadow: 0 8px 18px rgba(78, 204, 163, 0.3); }
+    .btn-blue { background: linear-gradient(135deg, #3498db, #1e6fa0); box-shadow: 0 8px 18px rgba(52, 152, 219, 0.3); }
+    .btn-purple { background: linear-gradient(135deg, #9b59b6, #6c3483); box-shadow: 0 8px 18px rgba(155, 89, 182, 0.3); }
     .tab-container { display: flex; background: #0c0f1c; border-radius: 16px; padding: 4px; margin: 12px 0; border: 1px solid #2d3355; }
     .tab { flex: 1; text-align: center; padding: 10px; border-radius: 14px; font-weight: 600; color: #9aa0c0; cursor: pointer; transition: 0.2s; }
     .tab.active { background: #e94560; color: white; }
@@ -115,7 +117,27 @@
     </div>
   </div>
 
-  <!-- 激活卡片（USDT在上，MYK在下） -->
+  <!-- 🔄 买卖 MYK -->
+  <div class="glass-card">
+    <h2>🔄 买卖 MYK</h2>
+    <div class="desc">通过 FundManager 快速交易</div>
+    <div class="tab-container" id="tradeTabSwitch">
+      <div class="tab active" data-tab="buy">🟢 买入 MYK</div>
+      <div class="tab" data-tab="sell">🔴 卖出 MYK</div>
+    </div>
+    <div id="panelBuy">
+      <input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.01" min="0">
+      <button class="btn btn-blue" id="buyMYKBtn">💵 用 USDT 买 MYK</button>
+      <div class="info-box" id="buyResult" style="display:none;"></div>
+    </div>
+    <div id="panelSell" style="display:none;">
+      <input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="100" step="0.1" min="0">
+      <button class="btn btn-purple" id="sellMYKBtn">💎 卖 MYK 换 USDT</button>
+      <div class="info-box" id="sellResult" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- 激活卡片 -->
   <div class="glass-card">
     <h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2>
     <div class="tab-container" id="activateTabSwitch">
@@ -185,11 +207,13 @@
 
 <script>
   (function() {
+    // ====== 最新合约地址 ======
     const MYK = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const RP = '0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0';
     const GOV = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
+    const FM = '0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027';
     const USDT = '0x55d398326f99059fF775485246999027B3197955';
-    const AIRDROP_TOTAL = 1000000; // 100万 MYK 空投总量
+    const AIRDROP_TOTAL = 1000000;
 
     let web3, userAddress, currentPrice = '1000000000000000000';
     let isProcessing = false;
@@ -227,7 +251,6 @@
       fetchUserStats();
     }
 
-    // ====== 价格 ======
     async function fetchPrice() {
       try {
         if (!web3) return;
@@ -244,11 +267,10 @@
           const fresh = web3.eth.abi.decodeParameter('bool', freshResult);
           $('priceFresh').textContent = fresh ? '✅ 有效' : '⚠️ 过期';
           $('priceFresh').style.color = fresh ? '#4ecca3' : '#f0a500';
-        } catch(e) { $('priceFresh').textContent = ''; }
+        } catch(e) {}
       } catch(e) {
         $('currentPrice').textContent = '1.000000';
         $('suggestedMYK').textContent = '2.2';
-        $('mykAmount').value = '2.2';
       }
     }
 
@@ -265,13 +287,12 @@
         setTimeout(fetchPrice, 3000);
       } catch(e) {
         const msg = parseError(e);
-        if (msg.includes('too frequent')) { el.innerHTML = '⚠️ 更新太频繁，请等5分钟后再试'; }
-        else if (msg.includes('time too short')) { el.innerHTML = '⚠️ TWAP时间窗口不足，请等5分钟后重试'; }
-        else { el.innerHTML = '❌ ' + msg; }
+        if (msg.includes('too frequent')) el.innerHTML = '⚠️ 更新太频繁，请等5分钟后再试';
+        else if (msg.includes('time too short')) el.innerHTML = '⚠️ TWAP时间窗口不足，请等5分钟后重试';
+        else el.innerHTML = '❌ ' + msg;
       } finally { btn.disabled = false; unlock(); }
     }
 
-    // ====== 空投进度 ======
     async function fetchAirdrop() {
       try {
         if (!web3) return;
@@ -284,43 +305,76 @@
         $('airdropRemaining').textContent = remaining.toFixed(0);
         $('airdropProgress').style.width = percent.toFixed(1) + '%';
         $('airdropPercent').textContent = percent.toFixed(1) + '%';
-      } catch(e) {
-        $('airdropPaid').textContent = '--';
-        $('airdropRemaining').textContent = '--';
-      }
+      } catch(e) {}
     }
 
-    // ====== 用户统计 ======
     async function fetchUserStats() {
       if (!userAddress || !web3) return;
       try {
-        // 查询直推人数
         const userData = encodeCall('users(address)', ['address'], [userAddress]);
         const userResult = await web3.eth.call({to:RP, data:userData});
         const u = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], userResult);
-        const invited = Number(u[1]);
-        $('invitedCount').textContent = invited;
-        const invitePercent = Math.min(100, (invited / 25) * 100);
+        $('invitedCount').textContent = Number(u[1]);
+        const invitePercent = Math.min(100, (Number(u[1]) / 25) * 100);
         $('inviteProgress').style.width = invitePercent.toFixed(1) + '%';
-
-        // 检查第一社区身份
-        const role = u[7];
-        if (role >= 3) { // FIRST_COMMUNITY = 3
+        if (u[7] >= 3) {
           $('firstCommunityCard').classList.remove('locked');
           $('firstCommunityStatus').textContent = '🔓 已解锁';
           $('firstCommunityStatus').style.color = '#4ecca3';
         }
-
-        // 连续天数
         try {
           const streakData = encodeCall('getStreakLength(address)', ['address'], [userAddress]);
           const streakResult = await web3.eth.call({to:RP, data:streakData});
           $('streakDays').textContent = web3.eth.abi.decodeParameter('uint256', streakResult);
         } catch(e) { $('streakDays').textContent = '0'; }
+      } catch(e) {}
+    }
+
+    // ====== 买卖 MYK ======
+    async function buyMYK() {
+      if (!userAddress) { alert('请先连接钱包'); return; }
+      if (!lock()) return;
+      const btn = $('buyMYKBtn'); const el = $('buyResult');
+      const amount = $('buyUSDTAmount').value;
+      if (!amount || parseFloat(amount) <= 0) { alert('请输入金额'); return; }
+      el.style.display = 'block'; el.innerHTML = '⏳ 买入中...';
+      btn.disabled = true;
+      try {
+        const wei = web3.utils.toWei(amount, 'ether');
+        // 先授权 USDT 给 FundManager
+        const appData = encodeCall('approve(address,uint256)', ['address','uint256'], [FM, wei]);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:USDT, data:appData}]});
+        // 调用 swapUSDTForMYK（1% 滑点）
+        const minOut = web3.utils.toWei(String(parseFloat(amount) * 0.99 / n(currentPrice)), 'ether');
+        const swapData = encodeCall('swapUSDTForMYK(uint256,uint256)', ['uint256','uint256'], [wei, minOut]);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:FM, data:swapData}]});
+        el.innerHTML = '✅ 买入成功！';
       } catch(e) {
-        $('invitedCount').textContent = '--';
-        $('streakDays').textContent = '--';
-      }
+        el.innerHTML = '❌ ' + parseError(e);
+      } finally { btn.disabled = false; unlock(); }
+    }
+
+    async function sellMYK() {
+      if (!userAddress) { alert('请先连接钱包'); return; }
+      if (!lock()) return;
+      const btn = $('sellMYKBtn'); const el = $('sellResult');
+      const amount = $('sellMYKAmount').value;
+      if (!amount || parseFloat(amount) <= 0) { alert('请输入数量'); return; }
+      el.style.display = 'block'; el.innerHTML = '⏳ 卖出中...';
+      btn.disabled = true;
+      try {
+        const wei = web3.utils.toWei(amount, 'ether');
+        // 先授权 MYK 给 FundManager
+        const appData = encodeCall('approve(address,uint256)', ['address','uint256'], [FM, wei]);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:MYK, data:appData}]});
+        // 调用 swapMYKForUSDT（1% 滑点）
+        const minOut = web3.utils.toWei(String(parseFloat(amount) * n(currentPrice) * 0.99), 'ether');
+        const swapData = encodeCall('swapMYKForUSDT(uint256,uint256)', ['uint256','uint256'], [wei, minOut]);
+        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:FM, data:swapData}]});
+        el.innerHTML = '✅ 卖出成功！';
+      } catch(e) {
+        el.innerHTML = '❌ ' + parseError(e);
+      } finally { btn.disabled = false; unlock(); }
     }
 
     // ====== 查询 ======
@@ -345,8 +399,7 @@
         const addr = token === 'MYK' ? MYK : USDT;
         const data = encodeCall('balanceOf(address)', ['address'], [userAddress]);
         const result = await web3.eth.call({to:addr, data:data});
-        const bal = web3.eth.abi.decodeParameter('uint256', result);
-        el.innerHTML += `\n${token}: ${n(bal).toFixed(4)}`;
+        el.innerHTML += `\n${token}: ${n(web3.eth.abi.decodeParameter('uint256', result)).toFixed(4)}`;
       } catch(e) {}
     }
 
@@ -383,7 +436,6 @@
         const appData = encodeCall('approve(address,uint256)', ['address','uint256'], [RP, fee]);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:USDT, data:appData}]});
         el.innerHTML = '⏳ 激活中...';
-        // 传入零地址，合约自动使用链上绑定的推荐人
         const actData = encodeCall('activateWithUSDT(address)', ['address'], ['0x0000000000000000000000000000000000000000']);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:actData}]});
         el.innerHTML = '✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';
@@ -391,12 +443,11 @@
         setTimeout(fetchAirdrop, 3000);
       } catch(e) {
         const msg = parseError(e);
-        if (msg.includes('referrer')) { el.innerHTML = '⚠️ 推荐人无效或未绑定，请检查链上绑定关系'; }
-        else { el.innerHTML = '❌ ' + msg; }
+        if (msg.includes('referrer')) el.innerHTML = '⚠️ 推荐人无效或未绑定，请检查链上绑定关系';
+        else el.innerHTML = '❌ ' + msg;
       } finally { btn.disabled = false; unlock(); }
     }
 
-    // ====== 每日持币奖励 ======
     async function claimDailyReward() {
       if (!userAddress) { alert('请先连接钱包'); return; }
       if (!lock()) return;
@@ -409,7 +460,6 @@
         const proofStr = $('rewardProof').value.trim();
         const proof = proofStr ? proofStr.split(',').map(s => s.trim()) : [];
         const proposedRoot = $('rewardRoot').value.trim() || '0x0000000000000000000000000000000000000000000000000000000000000000';
-
         const data = encodeCall('claimDailyReward(uint256,uint256,bytes32[],bytes32)',
           ['uint256','uint256','bytes32[]','bytes32'],
           [amountWei, batchId, proof, proposedRoot]
@@ -417,9 +467,8 @@
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:data}]});
         el.innerHTML = '✅ 领取成功！';
         setTimeout(fetchUserStats, 3000);
-      } catch(e) {
-        el.innerHTML = '❌ ' + parseError(e);
-      } finally { btn.disabled = false; unlock(); }
+      } catch(e) { el.innerHTML = '❌ ' + parseError(e); }
+      finally { btn.disabled = false; unlock(); }
     }
 
     // ====== Tab 切换 ======
@@ -427,40 +476,11 @@
       tab.addEventListener('click', function() {
         document.querySelectorAll('#activateTabSwitch .tab').forEach(t => t.classList.remove('active'));
         this.classList.add('active');
-        const t = this.dataset.tab;
-        $('panelUSDT').style.display = t === 'usdt' ? 'block' : 'none';
-        $('panelMYK').style.display = t === 'myk' ? 'block' : 'none';
+        $('panelUSDT').style.display = this.dataset.tab === 'usdt' ? 'block' : 'none';
+        $('panelMYK').style.display = this.dataset.tab === 'myk' ? 'block' : 'none';
       });
     });
-
-    // ====== 初始化 ======
-    window.addEventListener('load', async () => {
-      if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        try {
-          const a = await window.ethereum.request({method:'eth_accounts'});
-          if (a.length) {
-            userAddress = a[0];
-            $('walletDisplay').textContent = a6(userAddress);
-            $('walletDisplay').style.color = '#4ef0a8';
-            $('checkAddrInput').value = userAddress;
-            fetchPrice();
-            fetchAirdrop();
-            fetchUserStats();
-          }
-        } catch(e) {}
-      }
-      $('connectWalletBtn').addEventListener('click', connectWallet);
-      $('updatePriceBtn').addEventListener('click', updatePrice);
-      $('refreshPriceBtn').addEventListener('click', ()=>{fetchPrice();fetchAirdrop();});
-      $('activateMYKBtn').addEventListener('click', activateMYK);
-      $('activateUSDTBtn').addEventListener('click', activateUSDT);
-      $('claimRewardBtn').addEventListener('click', claimDailyReward);
-      $('checkStatusBtn').addEventListener('click', checkStatus);
-      $('checkBalanceBtn').addEventListener('click', ()=>checkBalance('MYK'));
-      $('checkUSDTBtn').addEventListener('click', ()=>checkBalance('USDT'));
-    });
-  })();
-</script>
-</body>
-</html>
+    document.querySelectorAll('#tradeTabSwitch .tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('#tradeTabSwitch .tab').forEach(t => t.classList.remove('active'));
+        this.classList.add
