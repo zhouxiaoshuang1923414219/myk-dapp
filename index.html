@@ -115,7 +115,7 @@
         </div>
         <div id="panelBuy">
             <div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div>
-            <div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div>
+            <div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div>
             <input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0">
             <div class="price-row"><span>预计获得: <span class="price-value" id="expectedMYK">--</span> MYK</span></div>
             <button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button>
@@ -123,7 +123,7 @@
         </div>
         <div id="panelSell" style="display:none;">
             <div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div>
-            <div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div>
+            <div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div>
             <input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0">
             <div class="price-row"><span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span></div>
             <button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button>
@@ -187,68 +187,13 @@
     const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',GOV='0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
 
-    // ========== 涨跌幅基准价格管理 ==========
     const STORAGE_KEY = 'myk_baseline_price';
 
-    function getTodayKey() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
-    function getBaselinePrice() {
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (!stored) return null;
-            const data = JSON.parse(stored);
-            // 检查是否是今天的基准价格
-            if (data.date === getTodayKey()) {
-                return data.price;
-            }
-            // 过期，清除
-            localStorage.removeItem(STORAGE_KEY);
-            return null;
-        } catch(e) {
-            return null;
-        }
-    }
-
-    function setBaselinePrice(price) {
-        try {
-            const data = { date: getTodayKey(), price: price };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            console.log(`✅ 今日基准价格已记录: ${price} (${getTodayKey()})`);
-        } catch(e) {
-            console.warn('localStorage 写入失败:', e);
-        }
-    }
-
-    function calculateChangePercent(currentPrice, baselinePrice) {
-        if (!baselinePrice || baselinePrice <= 0 || currentPrice <= 0) return null;
-        return ((currentPrice - baselinePrice) / baselinePrice) * 100;
-    }
-
-    function updatePriceDisplay(price, changePercent) {
-        // 当前价格
-        $('tradePriceDisplay').textContent = formatPrice(price);
-
-        // 涨跌幅
-        const changeEl = $('tradeChangeDisplay');
-        const badge = $('tradePriceBadge');
-
-        if (changePercent === null) {
-            changeEl.textContent = '0.00%';
-            badge.className = 'trade-price-badge price-change-flat';
-        } else if (changePercent > 0) {
-            changeEl.textContent = '+' + changePercent.toFixed(2) + '%';
-            badge.className = 'trade-price-badge price-change-up';
-        } else if (changePercent < 0) {
-            changeEl.textContent = changePercent.toFixed(2) + '%';
-            badge.className = 'trade-price-badge price-change-down';
-        } else {
-            changeEl.textContent = '0.00%';
-            badge.className = 'trade-price-badge price-change-flat';
-        }
-    }
+    function getTodayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    function getBaselinePrice() { try { const stored = localStorage.getItem(STORAGE_KEY); if (!stored) return null; const data = JSON.parse(stored); if (data.date === getTodayKey()) { return data.price; } localStorage.removeItem(STORAGE_KEY); return null; } catch(e) { return null; } }
+    function setBaselinePrice(price) { try { const data = { date: getTodayKey(), price: price }; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); console.log(`✅ 今日基准价格已记录: ${price} (${getTodayKey()})`); } catch(e) { console.warn('localStorage 写入失败:', e); } }
+    function calculateChangePercent(currentPrice, baselinePrice) { if (!baselinePrice || baselinePrice <= 0 || currentPrice <= 0) return null; return ((currentPrice - baselinePrice) / baselinePrice) * 100; }
+    function updatePriceDisplay(price, changePercent) { $('tradePriceDisplay').textContent = formatPrice(price); const changeEl = $('tradeChangeDisplay'); const badge = $('tradePriceBadge'); if (changePercent === null) { changeEl.textContent = '0.00%'; badge.className = 'trade-price-badge price-change-flat'; } else if (changePercent > 0) { changeEl.textContent = '+' + changePercent.toFixed(2) + '%'; badge.className = 'trade-price-badge price-change-up'; } else if (changePercent < 0) { changeEl.textContent = changePercent.toFixed(2) + '%'; badge.className = 'trade-price-badge price-change-down'; } else { changeEl.textContent = '0.00%'; badge.className = 'trade-price-badge price-change-flat'; } }
 
     function $(id){return document.getElementById(id)}
     function a6(a){return a.slice(0,6)+'...'+a.slice(-4)}
@@ -274,12 +219,8 @@
         try{
             if(!web3){console.warn('web3未初始化');return}
             let as='未知',ss='未知';
-
-            // 1. 激活价格（RewardPool）
             try{const d=encodeCall('getCurrentPrice()'),r=await web3.eth.call({to:RP,data:d}),rp=web3.eth.abi.decodeParameter('uint256',r);if(BigInt(rp)>BigInt(0)){activationPrice=rp.toString();as='RewardPool'}else throw new Error('0')}
             catch(e1){console.warn('激活价格失败:',e1.message?.slice(0,50));if(BigInt(spotPrice)>BigInt(0)){activationPrice=spotPrice;as='现货降级'}}
-
-            // 2. 现货价格（Pair）
             try{
                 const pAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];
                 const pc=new web3.eth.Contract(pAbi,PAIR),t0=await pc.methods.token0().call(),rv=await pc.methods.getReserves().call(),r0=BigInt(rv[0]),r1=BigInt(rv[1]);
@@ -291,14 +232,8 @@
             const sp=getSpotPrice();
             $('priceSourceTag')&&($('priceSourceTag').textContent=ss);
 
-            // ========== 涨跌幅计算（基于localStorage基准价格） ==========
             let baselinePrice = getBaselinePrice();
-            if (!baselinePrice) {
-                // 今天还没有基准价格，记录当前价格作为基准
-                setBaselinePrice(sp);
-                baselinePrice = sp;
-                console.log(`📌 设定今日基准价格: ${sp.toFixed(6)}`);
-            }
+            if (!baselinePrice) { setBaselinePrice(sp); baselinePrice = sp; console.log(`📌 设定今日基准价格: ${sp.toFixed(6)}`); }
             const changePercent = calculateChangePercent(sp, baselinePrice);
             updatePriceDisplay(sp, changePercent);
 
@@ -319,17 +254,8 @@
     function startPriceAutoRefresh(){
         fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});
         priceRefreshInterval=setInterval(()=>{
-            // 检查是否跨天，如果是则清除基准价格
             const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                try {
-                    const data = JSON.parse(stored);
-                    if (data.date !== getTodayKey()) {
-                        localStorage.removeItem(STORAGE_KEY);
-                        console.log('🔄 跨天，清除旧基准价格');
-                    }
-                } catch(e) {}
-            }
+            if (stored) { try { const data = JSON.parse(stored); if (data.date !== getTodayKey()) { localStorage.removeItem(STORAGE_KEY); console.log('🔄 跨天，清除旧基准价格'); } } catch(e) {} }
             fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});
         }, 30000);
         setInterval(async()=>{try{const fd=encodeCall('isPriceFresh()'),fr=await web3.eth.call({to:RP,data:fd});if(!web3.eth.abi.decodeParameter('bool',fr)&&userAddress){const ud=encodeCall('updatePrice()');await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:ud}]})}}catch(e){}},300000);
