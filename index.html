@@ -369,13 +369,6 @@
                     <div class="stat-value asset-value" id="cardUSDT">--</div>
                 </div>
             </div>
-            <div style="margin-top:14px; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px;">
-                <div style="display:flex; gap:8px;">
-                    <input class="input-field" id="checkAddrInput" type="text" placeholder="查询他人地址" style="margin:0; flex:1;">
-                    <button class="btn btn-sm" id="checkStatusBtn" style="width:auto; padding: 10px 16px;">🔍 查询</button>
-                </div>
-                <div class="info-box" id="statusResult" style="display:none;"></div>
-            </div>
         </div>
 
         <!-- 📈 买卖 MYK -->
@@ -545,7 +538,6 @@
                 userAddress = accs[0];
                 $('walletDisplay').textContent = a6(userAddress);
                 $('walletDisplay').style.color = '#4ef0a8';
-                $('checkAddrInput').value = userAddress;
                 fetchPrice();
                 fetchAirdrop();
                 fetchUserStats();
@@ -835,28 +827,6 @@
                 } catch (e) {}
             }
 
-            async function checkStatus() {
-                const target = $('checkAddrInput').value.trim() || userAddress;
-                if (!target || !web3) { alert('请连接钱包或输入地址'); return; }
-                const el = $('statusResult');
-                el.style.display = 'block';
-                el.innerHTML = '⏳ 查询中...';
-                try {
-                    const data = encodeCall('users(address)', ['address'], [target]);
-                    const result = await web3.eth.call({ to: RP, data: data });
-                    const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint256',
-                        'uint256', 'uint256', 'uint256', 'uint8', 'bool'
-                    ], result);
-                    const roles = ['无', 'PRIMARY', 'MIDDLE', '第一社区', '第二社区', '第三社区', 'COMMUNITY'];
-                    const date = u[4] > 0 ? new Date(Number(u[4]) * 1000).toLocaleDateString('zh-CN') : '未激活';
-                    el.innerHTML =
-                        `<div style="font-size:12px; color:#888; margin-bottom:4px;">📋 查询结果：${a6(target)}</div>
-                        🏷️ 角色：${roles[u[7]]} | 激活：${u[8]?'✅':'❌'}<br>
-                        👥 推荐人：${a6(u[0])} | 邀请：${u[1]}人<br>
-                        📅 激活日：${date}`;
-                } catch (e) { el.innerHTML = '❌ 查询失败: ' + parseError(e); }
-            }
-
             async function activateMYK() {
                 if (!userAddress) { alert('请先连接钱包'); return; }
                 if (!lock()) return;
@@ -1063,7 +1033,6 @@
                             userAddress = a[0];
                             $('walletDisplay').textContent = a6(userAddress);
                             $('walletDisplay').style.color = '#4ef0a8';
-                            $('checkAddrInput').value = userAddress;
                             fetchPrice();
                             fetchAirdrop();
                             fetchUserStats();
@@ -1089,7 +1058,6 @@
                 $('activateMYKBtn').addEventListener('click', activateMYK);
                 $('activateUSDTBtn').addEventListener('click', activateUSDT);
                 $('claimRewardBtn').addEventListener('click', claimDailyReward);
-                $('checkStatusBtn').addEventListener('click', checkStatus);
             });
         })();
     </script>
