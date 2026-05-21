@@ -124,8 +124,7 @@
     </div>
     <div id="panelUSDT">
       <div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.2%</span>日奖币</div>
-      <div class="hint-text">推荐人由链上绑定关系自动识别（可选填覆盖）</div>
-      <input class="input-field" id="usdtRefInput" type="text" placeholder="推荐人地址（可选留空）">
+      <div class="hint-text">推荐人由链上绑定关系自动识别</div>
       <button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button>
       <div class="info-box" id="activateUSDTResult" style="display:none;"></div>
     </div>
@@ -384,8 +383,8 @@
         const appData = encodeCall('approve(address,uint256)', ['address','uint256'], [RP, fee]);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:USDT, data:appData}]});
         el.innerHTML = '⏳ 激活中...';
-        const ref = $('usdtRefInput').value.trim() || '0x0000000000000000000000000000000000000000';
-        const actData = encodeCall('activateWithUSDT(address)', ['address'], [ref]);
+        // 传入零地址，合约自动使用链上绑定的推荐人
+        const actData = encodeCall('activateWithUSDT(address)', ['address'], ['0x0000000000000000000000000000000000000000']);
         await window.ethereum.request({method:'eth_sendTransaction', params:[{from:userAddress, to:RP, data:actData}]});
         el.innerHTML = '✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';
         setTimeout(fetchUserStats, 3000);
