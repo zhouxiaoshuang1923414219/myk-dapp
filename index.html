@@ -88,7 +88,7 @@
         .transfer-item .type-transfer { color:#f0b90b; font-size:10px; background:rgba(240,185,11,0.15); padding:2px 6px; border-radius:8px; }
         .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#4ecca3; animation:pulse 1.5s infinite; margin-right:4px; }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-        .contract-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .contract-info-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
     </style>
 </head>
 <body>
@@ -101,7 +101,7 @@
         <button class="btn btn-outline" id="connectWalletBtn" style="margin-top:8px;">🔓 连接钱包</button>
     </div>
 
-    <!-- 合约信息卡片 -->
+    <!-- 合约信息卡片 (2行3列) -->
     <div class="glass-card">
         <div class="contract-info-grid">
             <div class="asset-box">
@@ -114,6 +114,10 @@
             </div>
             <div class="asset-box">
                 <div class="asset-label">🔥 MYK永久销毁</div>
+                <div class="stat-value" id="burnedAmount" style="font-size:14px;">--</div>
+            </div>
+            <div class="asset-box">
+                <div class="asset-label">🔒 社区质押持币</div>
                 <div class="stat-value" id="govLocked" style="font-size:14px;">--</div>
             </div>
             <div class="asset-box">
@@ -231,7 +235,7 @@
 
 <script>
 (function() {
-    const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',FM='0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
+    const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',GOV='0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72',FM='0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
     const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 
@@ -258,7 +262,7 @@
     function unlock(){isProcessing=!1}
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
 
-    // ========== 合约信息查询 ==========
+    // ========== 合约信息查询 (5个卡片) ==========
     async function fetchContractInfo() {
         if (!web3) return;
         // 1. MYK 总发行量
@@ -266,8 +270,10 @@
         // 2. 奖金池余额（RewardPool 总持币）
         try { const d=encodeCall('balanceOf(address)',['address'],[RP]),r=await web3.eth.call({to:MYK,data:d});$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('bonusPool').textContent='--'; }
         // 3. MYK永久销毁（零地址余额）
-        try { const d=encodeCall('balanceOf(address)',['address'],[ZERO_ADDR]),r=await web3.eth.call({to:MYK,data:d});$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('govLocked').textContent='--'; }
-        // 4. 底池维护资产（FundManager 持币）
+        try { const d=encodeCall('balanceOf(address)',['address'],[ZERO_ADDR]),r=await web3.eth.call({to:MYK,data:d});$('burnedAmount').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('burnedAmount').textContent='--'; }
+        // 4. 社区质押持币（CommunityGovernance 锁仓量）
+        try { const d=encodeCall('totalLockedAmount()'),r=await web3.eth.call({to:GOV,data:d});$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('govLocked').textContent='--'; }
+        // 5. 底池维护资产（FundManager 持币）
         try { const d=encodeCall('balanceOf(address)',['address'],[FM]),r=await web3.eth.call({to:MYK,data:d});$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('fundAsset').textContent='--'; }
     }
 
