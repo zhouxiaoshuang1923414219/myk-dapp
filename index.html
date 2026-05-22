@@ -113,6 +113,16 @@
     </div>
 
     <div class="glass-card">
+        <h2>🎁 每日奖励</h2>
+        <div class="desc">持币即可领奖，<span class="highlight">一键领取</span></div>
+        <div class="stat-row"><span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span><span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span></div>
+        <div class="stat-row" style="margin-top:8px;"><span>今日可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领取：<span class="stat-value" id="claimedToday">--</span></span></div>
+        <button class="btn btn-green" id="claimRewardBtn"> 一键领取今日奖励</button>
+        <div id="claimLoading" style="display:none; text-align:center; margin-top:12px;"><span style="color:#f0b90b;">⏳ 正在获取签名数据...</span></div>
+        <div class="info-box" id="claimRewardResult" style="display:none;"></div>
+    </div>
+
+    <div class="glass-card">
         <h2 style="justify-content:space-between;">
             <span>📈 买卖 MYK</span>
             <span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span><span class="price-source-tag">Pair现货</span></span>
@@ -136,23 +146,6 @@
             <div class="price-row"><span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span></div>
             <button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button>
             <div class="info-box" id="sellResult" style="display:none;"></div>
-        </div>
-    </div>
-
-    <!-- 🆕 持币地址监控 -->
-    <div class="glass-card">
-        <h2>📊 链上监控 <span class="live-dot"></span><span style="font-size:11px;color:#4ecca3;">实时</span></h2>
-        <div class="stat-row">
-            <span>持币地址数：<span class="stat-value" id="holderCount">0</span></span>
-            <span>新增持币：<span class="stat-value" id="newHolderCount">0</span></span>
-        </div>
-        <div class="stat-row" style="margin-top:2px;">
-            <span>24h转账笔数：<span class="stat-value" id="transfer24hCount">0</span></span>
-            <span>24h转账量：<span class="stat-value" id="transfer24hVolume">0</span> MYK</span>
-        </div>
-        <div class="desc" style="margin-top:8px;">最近转账记录</div>
-        <div class="transfer-list" id="transferList">
-            <div style="text-align:center;color:#888;padding:20px;">⏳ 监听中...</div>
         </div>
     </div>
 
@@ -194,14 +187,21 @@
         <div class="progress-bar-container"><div class="progress-bar-fill" id="inviteProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
     </div>
 
+    <!-- 🆕 持币地址监控 -->
     <div class="glass-card">
-        <h2>🎁 每日持币奖励</h2>
-        <div class="desc">持币即可领奖，<span class="highlight">一键领取</span></div>
-        <div class="stat-row"><span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span><span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span></div>
-        <div class="stat-row" style="margin-top:8px;"><span>今日可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领取：<span class="stat-value" id="claimedToday">--</span></span></div>
-        <button class="btn btn-green" id="claimRewardBtn"> 一键领取今日奖励</button>
-        <div id="claimLoading" style="display:none; text-align:center; margin-top:12px;"><span style="color:#f0b90b;">⏳ 正在获取签名数据...</span></div>
-        <div class="info-box" id="claimRewardResult" style="display:none;"></div>
+        <h2>📊 链上监控 <span class="live-dot"></span><span style="font-size:11px;color:#4ecca3;">实时</span></h2>
+        <div class="stat-row">
+            <span>持币地址数：<span class="stat-value" id="holderCount">0</span></span>
+            <span>新增持币：<span class="stat-value" id="newHolderCount">0</span></span>
+        </div>
+        <div class="stat-row" style="margin-top:2px;">
+            <span>24h转账笔数：<span class="stat-value" id="transfer24hCount">0</span></span>
+            <span>24h转账量：<span class="stat-value" id="transfer24hVolume">0</span> MYK</span>
+        </div>
+        <div class="desc" style="margin-top:8px;">最近转账记录</div>
+        <div class="transfer-list" id="transferList">
+            <div style="text-align:center;color:#888;padding:20px;">⏳ 监听中...</div>
+        </div>
     </div>
 
     <div class="footer-note">✨ MYK 生态操作面板 · 去中心化交互工具</div>
