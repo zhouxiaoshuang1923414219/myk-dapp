@@ -101,7 +101,7 @@
         <button class="btn btn-outline" id="connectWalletBtn" style="margin-top:8px;">🔓 连接钱包</button>
     </div>
 
-    <!-- 🆕 合约信息卡片 -->
+    <!-- 合约信息卡片 -->
     <div class="glass-card">
         <div class="contract-info-grid">
             <div class="asset-box">
@@ -235,19 +235,14 @@
     const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
-    let holderSet = new Set();
-    let newHolderSet = new Set();
-    let transferRecords = [];
-    let transfer24hCount = 0;
-    let transfer24hVolume = 0;
-    const MAX_TRANSFER_RECORDS = 50;
-    const STORAGE_KEY = 'myk_baseline_price';
+    let holderSet = new Set(), newHolderSet = new Set(), transferRecords = [], transfer24hCount = 0, transfer24hVolume = 0;
+    const MAX_TRANSFER_RECORDS = 50, STORAGE_KEY = 'myk_baseline_price';
 
     function getTodayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-    function getBaselinePrice() { try { const stored = localStorage.getItem(STORAGE_KEY); if (!stored) return null; const data = JSON.parse(stored); if (data.date === getTodayKey()) { return data.price; } localStorage.removeItem(STORAGE_KEY); return null; } catch(e) { return null; } }
-    function setBaselinePrice(price) { try { const data = { date: getTodayKey(), price: price }; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {} }
-    function calculateChangePercent(currentPrice, baselinePrice) { if (!baselinePrice || baselinePrice <= 0 || currentPrice <= 0) return null; return ((currentPrice - baselinePrice) / baselinePrice) * 100; }
-    function updatePriceDisplay(price, changePercent) { $('tradePriceDisplay').textContent = formatPrice(price); const changeEl = $('tradeChangeDisplay'); const badge = $('tradePriceBadge'); if (changePercent === null) { changeEl.textContent = '0.00%'; badge.className = 'trade-price-badge price-change-flat'; } else if (changePercent > 0) { changeEl.textContent = '+' + changePercent.toFixed(2) + '%'; badge.className = 'trade-price-badge price-change-up'; } else if (changePercent < 0) { changeEl.textContent = changePercent.toFixed(2) + '%'; badge.className = 'trade-price-badge price-change-down'; } else { changeEl.textContent = '0.00%'; badge.className = 'trade-price-badge price-change-flat'; } }
+    function getBaselinePrice() { try { const s = localStorage.getItem(STORAGE_KEY); if (!s) return null; const d = JSON.parse(s); if (d.date === getTodayKey()) return d.price; localStorage.removeItem(STORAGE_KEY); return null; } catch(e) { return null; } }
+    function setBaselinePrice(p) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify({date:getTodayKey(),price:p})); } catch(e) {} }
+    function calcChange(cp,bp) { if (!bp||bp<=0||cp<=0) return null; return ((cp-bp)/bp)*100; }
+    function updatePriceDisplay(p,ch) { $('tradePriceDisplay').textContent=formatPrice(p); const ce=$('tradeChangeDisplay'),bd=$('tradePriceBadge'); if(ch===null){ce.textContent='0.00%';bd.className='trade-price-badge price-change-flat'}else if(ch>0){ce.textContent='+'+ch.toFixed(2)+'%';bd.className='trade-price-badge price-change-up'}else if(ch<0){ce.textContent=ch.toFixed(2)+'%';bd.className='trade-price-badge price-change-down'}else{ce.textContent='0.00%';bd.className='trade-price-badge price-change-flat'} }
 
     function $(id){return document.getElementById(id)}
     function a6(a){return a.slice(0,6)+'...'+a.slice(-4)}
@@ -260,210 +255,37 @@
     function parseError(e){const m=e?.message||'',mc=m.match(/execution reverted:\s*(.+?)(?:"|$)/);if(mc)return mc[1].trim();const m2=m.match(/reason="([^"]+)"/);if(m2)return m2[1];return m.slice(0,200)}
     function lock(){if(isProcessing){alert('请等待当前操作完成');return!1}isProcessing=!0;return!0}
     function unlock(){isProcessing=!1}
-
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
 
     // ========== 合约信息查询 ==========
     async function fetchContractInfo() {
         if (!web3) return;
-        
-        // 1. MYK 总发行量
-        try {
-            const data = encodeCall('totalSupply()');
-            const result = await web3.eth.call({ to: MYK, data: data });
-            $('totalSupply').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
-        } catch(e) { $('totalSupply').textContent = '--'; }
-
-        // 2. 奖金池余额
-        try {
-            const data = encodeCall('getActivityPoolBalance()');
-            const result = await web3.eth.call({ to: RP, data: data });
-            $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
-        } catch(e) {
-            try {
-                const data = encodeCall('activityPool()');
-                const result = await web3.eth.call({ to: RP, data: data });
-                $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
-            } catch(e2) { $('bonusPool').textContent = '--'; }
-        }
-
-        // 3. 社区治理持币
-        try {
-            const data = encodeCall('totalLockedAmount()');
-            const result = await web3.eth.call({ to: GOV, data: data });
-            $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
-        } catch(e) { $('govLocked').textContent = '--'; }
-
-        // 4. 基金合约资产
-        try {
-            const data = encodeCall('balanceOf(address)', ['address'], [FM]);
-            const result = await web3.eth.call({ to: MYK, data: data });
-            $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
-        } catch(e) { $('fundAsset').textContent = '--'; }
+        try { const d=encodeCall('totalSupply()'),r=await web3.eth.call({to:MYK,data:d});$('totalSupply').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('totalSupply').textContent='--'; }
+        try { const d=encodeCall('balanceOf(address)',['address'],[RP]),r=await web3.eth.call({to:MYK,data:d});$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('bonusPool').textContent='--'; }
+        try { const d=encodeCall('totalLockedAmount()'),r=await web3.eth.call({to:GOV,data:d});$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('govLocked').textContent='--'; }
+        try { const d=encodeCall('balanceOf(address)',['address'],[FM]),r=await web3.eth.call({to:MYK,data:d});$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('fundAsset').textContent='--'; }
     }
 
-    // ========== 持币地址监控 ==========
+    // ========== 链上监控 ==========
     function updateTransferUI() {
-        $('holderCount').textContent = holderSet.size;
-        $('newHolderCount').textContent = newHolderSet.size;
-        $('transfer24hCount').textContent = transfer24hCount;
-        $('transfer24hVolume').textContent = transfer24hVolume.toFixed(2);
-        const listEl = $('transferList');
-        if (transferRecords.length === 0) {
-            listEl.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">⏳ 暂无转账数据，请点击刷新</div>';
-            return;
-        }
-        listEl.innerHTML = transferRecords.slice(0, 20).map(r => {
-            const isNew = r.isNewHolder ? 'type-new' : 'type-transfer';
-            const typeLabel = r.isNewHolder ? 'NEW' : '转账';
-            const time = new Date(r.timestamp * 1000).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-            return `<div class="transfer-item">
-                <span style="display:flex;align-items:center;gap:6px;">
-                    <span class="addr">${a6(r.to)}</span>
-                    <span class="${isNew}">${typeLabel}</span>
-                </span>
-                <span style="display:flex;align-items:center;gap:6px;">
-                    <span class="amount">${parseFloat(r.amount).toFixed(2)} MYK</span>
-                    <span style="color:#888;font-size:10px;">${time}</span>
-                </span>
-            </div>`;
-        }).join('');
+        $('holderCount').textContent=holderSet.size;$('newHolderCount').textContent=newHolderSet.size;
+        $('transfer24hCount').textContent=transfer24hCount;$('transfer24hVolume').textContent=transfer24hVolume.toFixed(2);
+        const le=$('transferList');
+        if(!transferRecords.length){le.innerHTML='<div style="text-align:center;color:#888;padding:20px;">⏳ 暂无转账数据，请点击刷新</div>';return}
+        le.innerHTML=transferRecords.slice(0,20).map(r=>`<div class="transfer-item"><span style="display:flex;align-items:center;gap:6px;"><span class="addr">${a6(r.to)}</span><span class="${r.isNewHolder?'type-new':'type-transfer'}">${r.isNewHolder?'NEW':'转账'}</span></span><span style="display:flex;align-items:center;gap:6px;"><span class="amount">${parseFloat(r.amount).toFixed(2)} MYK</span><span style="color:#888;font-size:10px;">${new Date(r.timestamp*1000).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span></span></div>`).join('');
     }
+    function handleTransferEvent(f,t,v,ts){const a=Web3.utils.fromWei(v,'ether'),nH=!holderSet.has(t)&&t!=='0x0000000000000000000000000000000000000000';if(nH)newHolderSet.add(t);holderSet.add(t);const n=Math.floor(Date.now()/1000);if(n-ts<86400){transfer24hCount++;transfer24hVolume+=parseFloat(a)}transferRecords.unshift({from:f,to:t,amount:a,timestamp:ts,isNewHolder:nH});if(transferRecords.length>MAX_TRANSFER_RECORDS)transferRecords=transferRecords.slice(0,MAX_TRANSFER_RECORDS);updateTransferUI()}
+    async function getLogsWithRetry(fb,tb,rt=3){for(let i=0;i<rt;i++){try{return await web3.eth.getPastLogs({address:MYK,topics:[TRANSFER_TOPIC],fromBlock:fb,toBlock:tb})}catch(e){if(i===rt-1)throw e;await new Promise(r=>setTimeout(r,1000*(i+1)))}}}
+    async function fetchPastTransfers(){if(!web3)return;try{const cb=await web3.eth.getBlockNumber(),fb=Math.max(0,cb-50000);let logs;try{logs=await getLogsWithRetry(fb,'latest',2)}catch(e){try{logs=await getLogsWithRetry(Math.max(0,cb-10000),'latest',1)}catch(e2){updateTransferUI();return}}if(!logs||!logs.length){updateTransferUI();return}const n=Math.floor(Date.now()/1000);for(let i=0;i<logs.length;i+=50){const b=logs.slice(i,i+50);for(const l of b){const f='0x'+l.topics[1].slice(26),t='0x'+l.topics[2].slice(26),v=l.data;if(t!=='0x0000000000000000000000000000000000000000')holderSet.add(t);if(f!=='0x0000000000000000000000000000000000000000')holderSet.add(f);try{const bl=await web3.eth.getBlock(l.blockNumber),ts=Number(bl.timestamp);if(n-ts<86400){transfer24hCount++;transfer24hVolume+=parseFloat(Web3.utils.fromWei(v,'ether'))}if(i+b.indexOf(l)>=logs.length-30)transferRecords.push({from:f,to:t,amount:Web3.utils.fromWei(v,'ether'),timestamp:ts,isNewHolder:!1})}catch(e){}}await new Promise(r=>setTimeout(r,10))}if(transferRecords.length>MAX_TRANSFER_RECORDS)transferRecords=transferRecords.slice(0,MAX_TRANSFER_RECORDS);transferRecords.sort((a,b)=>b.timestamp-a.timestamp);updateTransferUI()}catch(e){updateTransferUI()}}
+    function subscribeTransferEvents(){if(!web3)return;let lb=0;return setInterval(async()=>{try{const cb=await web3.eth.getBlockNumber();if(lb===0){lb=cb;return}if(cb<=lb)return;const logs=await getLogsWithRetry(lb+1,cb,2);for(const l of logs){try{const bl=await web3.eth.getBlock(l.blockNumber);handleTransferEvent('0x'+l.topics[1].slice(26),'0x'+l.topics[2].slice(26),l.data,Number(bl.timestamp))}catch(e){}}lb=cb}catch(e){}},5000)}
+    function setupRefreshBtn(){$('refreshTransferBtn').addEventListener('click',async()=>{$('transferList').innerHTML='<div style="text-align:center;color:#888;padding:20px;">⏳ 正在刷新数据...</div>';transfer24hCount=0;transfer24hVolume=0;transferRecords=[];newHolderSet.clear();await fetchPastTransfers()})}
 
-    function handleTransferEvent(from, to, value, timestamp) {
-        const amount = Web3.utils.fromWei(value, 'ether');
-        const isNewHolder = !holderSet.has(to) && to !== '0x0000000000000000000000000000000000000000';
-        if (isNewHolder) newHolderSet.add(to);
-        holderSet.add(to);
-        const now = Math.floor(Date.now() / 1000);
-        if (now - timestamp < 86400) { transfer24hCount++; transfer24hVolume += parseFloat(amount); }
-        transferRecords.unshift({ from, to, amount, timestamp, isNewHolder });
-        if (transferRecords.length > MAX_TRANSFER_RECORDS) transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
-        updateTransferUI();
-    }
+    async function connectWallet(){if(!window.ethereum){alert('请安装MetaMask');return}const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();fetchPastTransfers();subscribeTransferEvents()}
 
-    async function getLogsWithRetry(fromBlock, toBlock, retries = 3) {
-        for (let i = 0; i < retries; i++) {
-            try { return await web3.eth.getPastLogs({ address: MYK, topics: [TRANSFER_TOPIC], fromBlock: fromBlock, toBlock: toBlock }); }
-            catch (e) { if (i === retries - 1) throw e; await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); }
-        }
-    }
+    async function fetchPrice(){try{if(!web3)return;let ss='未知';try{const d=encodeCall('getCurrentPrice()'),r=await web3.eth.call({to:RP,data:d}),rp=web3.eth.abi.decodeParameter('uint256',r);if(BigInt(rp)>BigInt(0))activationPrice=rp.toString()}catch(e1){if(BigInt(spotPrice)>BigInt(0))activationPrice=spotPrice}try{const pAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}],pc=new web3.eth.Contract(pAbi,PAIR),t0=await pc.methods.token0().call(),rv=await pc.methods.getReserves().call(),r0=BigInt(rv[0]),r1=BigInt(rv[1]);if(r0===BigInt(0)||r1===BigInt(0))throw new Error('0');let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1}else{rU=r1;rM=r0}spotPrice=((rU*BigInt(10**18))/rM).toString();ss='Pair现货'}catch(e2){ss='默认值'}const sp=getSpotPrice();$('priceSourceTag')&&($('priceSourceTag').textContent=ss);let bp=getBaselinePrice();if(!bp){setBaselinePrice(sp);bp=sp}updatePriceDisplay(sp,calcChange(sp,bp));updateActivateSuggestion();updateBuyQuote();updateSellQuote()}catch(e){$('tradePriceDisplay').textContent='1.00';$('tradePriceBadge').className='trade-price-badge price-change-flat';$('tradeChangeDisplay').textContent='--';updateActivateSuggestion()}}
+    function startPriceAutoRefresh(){fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});priceRefreshInterval=setInterval(()=>{const s=localStorage.getItem(STORAGE_KEY);if(s){try{const d=JSON.parse(s);if(d.date!==getTodayKey())localStorage.removeItem(STORAGE_KEY)}catch(e){}}fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()})},30000)}
 
-    async function fetchPastTransfers() {
-        if (!web3) return;
-        try {
-            const currentBlock = await web3.eth.getBlockNumber();
-            const fromBlock = Math.max(0, currentBlock - 50000);
-            let logs;
-            try { logs = await getLogsWithRetry(fromBlock, 'latest', 2); }
-            catch (e) {
-                const smallerFrom = Math.max(0, currentBlock - 10000);
-                try { logs = await getLogsWithRetry(smallerFrom, 'latest', 1); }
-                catch (e2) { updateTransferUI(); return; }
-            }
-            if (!logs || logs.length === 0) { updateTransferUI(); return; }
-            const now = Math.floor(Date.now() / 1000);
-            const batchSize = 50;
-            for (let i = 0; i < logs.length; i += batchSize) {
-                const batch = logs.slice(i, i + batchSize);
-                for (const log of batch) {
-                    const from = '0x' + log.topics[1].slice(26);
-                    const to = '0x' + log.topics[2].slice(26);
-                    const value = log.data;
-                    if (to !== '0x0000000000000000000000000000000000000000') holderSet.add(to);
-                    if (from !== '0x0000000000000000000000000000000000000000') holderSet.add(from);
-                    try {
-                        const block = await web3.eth.getBlock(log.blockNumber);
-                        const timestamp = Number(block.timestamp);
-                        if (now - timestamp < 86400) { transfer24hCount++; transfer24hVolume += parseFloat(Web3.utils.fromWei(value, 'ether')); }
-                        if (i + batch.indexOf(log) >= logs.length - 30) {
-                            transferRecords.push({ from, to, amount: Web3.utils.fromWei(value, 'ether'), timestamp, isNewHolder: false });
-                        }
-                    } catch(e) {}
-                }
-                await new Promise(resolve => setTimeout(resolve, 10));
-            }
-            if (transferRecords.length > MAX_TRANSFER_RECORDS) transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
-            transferRecords.sort((a, b) => b.timestamp - a.timestamp);
-            updateTransferUI();
-        } catch(e) { updateTransferUI(); }
-    }
-
-    function subscribeTransferEvents() {
-        if (!web3) return;
-        let lastBlock = 0;
-        const pollInterval = setInterval(async () => {
-            try {
-                const currentBlock = await web3.eth.getBlockNumber();
-                if (lastBlock === 0) { lastBlock = currentBlock; return; }
-                if (currentBlock <= lastBlock) return;
-                const logs = await getLogsWithRetry(lastBlock + 1, currentBlock, 2);
-                for (const log of logs) {
-                    try {
-                        const block = await web3.eth.getBlock(log.blockNumber);
-                        handleTransferEvent('0x' + log.topics[1].slice(26), '0x' + log.topics[2].slice(26), log.data, Number(block.timestamp));
-                    } catch(e) {}
-                }
-                lastBlock = currentBlock;
-            } catch(e) {}
-        }, 5000);
-        return pollInterval;
-    }
-
-    function setupRefreshButton() {
-        $('refreshTransferBtn').addEventListener('click', async () => {
-            $('transferList').innerHTML = '<div style="text-align:center;color:#888;padding:20px;">⏳ 正在刷新数据...</div>';
-            transfer24hCount = 0; transfer24hVolume = 0; transferRecords = []; newHolderSet.clear();
-            await fetchPastTransfers();
-        });
-    }
-
-    async function connectWallet(){
-        if(!window.ethereum){alert('请安装MetaMask');return}
-        const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];
-        $('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';
-        await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();
-        fetchContractInfo();fetchPastTransfers();subscribeTransferEvents();
-    }
-
-    async function fetchPrice(){
-        try{
-            if(!web3){console.warn('web3未初始化');return}
-            let ss='未知';
-            try{const d=encodeCall('getCurrentPrice()'),r=await web3.eth.call({to:RP,data:d}),rp=web3.eth.abi.decodeParameter('uint256',r);if(BigInt(rp)>BigInt(0)){activationPrice=rp.toString()}else throw new Error('0')}
-            catch(e1){if(BigInt(spotPrice)>BigInt(0)){activationPrice=spotPrice}}
-            try{
-                const pAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];
-                const pc=new web3.eth.Contract(pAbi,PAIR),t0=await pc.methods.token0().call(),rv=await pc.methods.getReserves().call(),r0=BigInt(rv[0]),r1=BigInt(rv[1]);
-                if(r0===BigInt(0)||r1===BigInt(0))throw new Error('流动性0');
-                let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1}else{rU=r1;rM=r0}
-                spotPrice=((rU*BigInt(10**18))/rM).toString();ss='Pair现货';
-            }catch(e2){ss='默认值'}
-            const sp=getSpotPrice();
-            $('priceSourceTag')&&($('priceSourceTag').textContent=ss);
-            let baselinePrice = getBaselinePrice();
-            if (!baselinePrice) { setBaselinePrice(sp); baselinePrice = sp; }
-            const changePercent = calculateChangePercent(sp, baselinePrice);
-            updatePriceDisplay(sp, changePercent);
-            updateActivateSuggestion();
-            updateBuyQuote();updateSellQuote();
-        }catch(e){
-            $('tradePriceDisplay').textContent='1.00';$('tradePriceBadge').className='trade-price-badge price-change-flat';
-            $('tradeChangeDisplay').textContent='--';updateActivateSuggestion();
-        }
-    }
-
-    function startPriceAutoRefresh(){
-        fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});
-        priceRefreshInterval=setInterval(()=>{
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) { try { const data = JSON.parse(stored); if (data.date !== getTodayKey()) { localStorage.removeItem(STORAGE_KEY); } } catch(e) {} }
-            fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});
-        }, 30000);
-    }
-
-    async function getSwapQuote(amIn,path){try{const rAbi=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}],rc=new web3.eth.Contract(rAbi,ROUTER),ams=await rc.methods.getAmountsOut(amIn,path).call();return ams[1]}catch(e){const p=getSpotPrice();if(isNaN(p)||p<=0)return'0';const aNum=parseFloat(Web3.utils.fromWei(amIn,'ether'));return path[0].toLowerCase()===USDT.toLowerCase()?Web3.utils.toWei(String(aNum/p),'ether'):Web3.utils.toWei(String(aNum*p),'ether')}}
-
+    async function getSwapQuote(ai,p){try{const rAbi=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}],rc=new web3.eth.Contract(rAbi,ROUTER),ams=await rc.methods.getAmountsOut(ai,p).call();return ams[1]}catch(e){const pr=getSpotPrice();if(isNaN(pr)||pr<=0)return'0';const an=parseFloat(Web3.utils.fromWei(ai,'ether'));return p[0].toLowerCase()===USDT.toLowerCase()?Web3.utils.toWei(String(an/pr),'ether'):Web3.utils.toWei(String(an*pr),'ether')}}
     async function updateBuyQuote(){const ua=parseFloat($('buyUSDTAmount').value)||0;if(ua<=0){$('expectedMYK').textContent='--';return}try{const uw=Web3.utils.toWei(String(ua),'ether'),mo=await getSwapQuote(uw,[USDT,MYK]),ms=parseFloat(Web3.utils.fromWei(mo,'ether'))*(1-buySlippage);$('expectedMYK').textContent=ms.toFixed(4)}catch(e){$('expectedMYK').textContent='--'}}
     async function updateSellQuote(){const ma=parseFloat($('sellMYKAmount').value)||0;if(ma<=0){$('expectedUSDT').textContent='--';return}try{const mw=Web3.utils.toWei(String(ma),'ether'),uo=await getSwapQuote(mw,[MYK,USDT]),us=parseFloat(Web3.utils.fromWei(uo,'ether'))*(1-sellSlippage);$('expectedUSDT').textContent=us.toFixed(6)}catch(e){$('expectedUSDT').textContent='--'}}
 
@@ -484,41 +306,7 @@
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote()}else{sellSlippage=s;updateSellQuote()}})})}
     function setupTabs(){document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion()})});document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell')});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote()})})}
 
-    window.addEventListener('load',async()=>{
-        setupTabs();
-        setupSlippageButtons('panelBuy','buy');
-        setupSlippageButtons('panelSell','sell');
-        setupRefreshButton();
-        if(window.ethereum){
-            web3=new Web3(window.ethereum);
-            try{
-                const a=await window.ethereum.request({method:'eth_accounts'});
-                if(a.length){
-                    userAddress=a[0];
-                    $('walletDisplay').textContent=a6(userAddress);
-                    $('walletDisplay').style.color='#4ef0a8';
-                    startPriceAutoRefresh();
-                    fetchAirdrop();
-                    fetchUserStats();
-                    fetchHoldingInfo();
-                    refreshIdentityCard();
-                    fetchContractInfo();
-                    fetchPastTransfers();
-                    subscribeTransferEvents();
-                }
-            }catch(e){}
-            window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});});
-        }
-        setInterval(fetchContractInfo, 60000);
-        $('connectWalletBtn').addEventListener('click',connectWallet);
-        $('buyUSDTAmount').addEventListener('input',updateBuyQuote);
-        $('sellMYKAmount').addEventListener('input',updateSellQuote);
-        $('buyMYKBtn').addEventListener('click',buyMYK);
-        $('sellMYKBtn').addEventListener('click',sellMYK);
-        $('activateMYKBtn').addEventListener('click',activateMYK);
-        $('activateUSDTBtn').addEventListener('click',activateUSDT);
-        $('claimRewardBtn').addEventListener('click',claimDailyReward);
-    });
+    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupRefreshBtn();if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();fetchPastTransfers();subscribeTransferEvents()}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()})})}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward)});
 })();
 </script>
 </body>
