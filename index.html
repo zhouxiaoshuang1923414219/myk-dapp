@@ -187,6 +187,7 @@
         <div class="progress-bar-container"><div class="progress-bar-fill" id="inviteProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
     </div>
 
+    <!-- 🆕 持币地址监控（已优化） -->
     <div class="glass-card">
         <h2>📊 链上监控 <span class="live-dot"></span><span style="font-size:11px;color:#4ecca3;">实时</span></h2>
         <div class="stat-row">
@@ -197,9 +198,9 @@
             <span>24h转账笔数：<span class="stat-value" id="transfer24hCount">0</span></span>
             <span>24h转账量：<span class="stat-value" id="transfer24hVolume">0</span> MYK</span>
         </div>
-        <div class="desc" style="margin-top:8px;">最近转账记录</div>
+        <div class="desc" style="margin-top:8px;">最近转账记录 <button id="refreshTransferBtn" style="background:none;border:none;color:#f0b90b;cursor:pointer;font-size:12px;padding:0;">🔄 刷新</button></div>
         <div class="transfer-list" id="transferList">
-            <div style="text-align:center;color:#888;padding:20px;">⏳ 监听中...</div>
+            <div style="text-align:center;color:#888;padding:20px;">⏳ 正在加载历史数据...</div>
         </div>
     </div>
 
@@ -240,6 +241,7 @@
 
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
 
+    // ========== 持币地址监控（已优化） ==========
     function updateTransferUI() {
         $('holderCount').textContent = holderSet.size;
         $('newHolderCount').textContent = newHolderSet.size;
@@ -247,7 +249,7 @@
         $('transfer24hVolume').textContent = transfer24hVolume.toFixed(2);
         const listEl = $('transferList');
         if (transferRecords.length === 0) {
-            listEl.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">⏳ 等待转账事件...</div>';
+            listEl.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">⏳ 暂无转账数据，请点击刷新</div>';
             return;
         }
         listEl.innerHTML = transferRecords.slice(0, 20).map(r => {
@@ -269,42 +271,155 @@
 
     function handleTransferEvent(from, to, value, timestamp) {
         const amount = Web3.utils.fromWei(value, 'ether');
+        // 关键修复：基于预先填充的 holderSet 来判断是否为新地址
         const isNewHolder = !holderSet.has(to) && to !== '0x0000000000000000000000000000000000000000';
-        if (isNewHolder) newHolderSet.add(to);
+        
+        if (isNewHolder) {
+            newHolderSet.add(to);
+        }
         holderSet.add(to);
+        
         const now = Math.floor(Date.now() / 1000);
         if (now - timestamp < 86400) { transfer24hCount++; transfer24hVolume += parseFloat(amount); }
+
         transferRecords.unshift({ from, to, amount, timestamp, isNewHolder });
         if (transferRecords.length > MAX_TRANSFER_RECORDS) transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
         updateTransferUI();
     }
 
+    async function getLogsWithRetry(fromBlock, toBlock, retries = 3) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                return await web3.eth.getPastLogs({
+                    address: MYK,
+                    topics: [TRANSFER_TOPIC],
+                    fromBlock: fromBlock,
+                    toBlock: toBlock
+                });
+            } catch (e) {
+                if (i === retries - 1) throw e;
+                // 指数退避重试
+                await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+            }
+        }
+    }
+
+    async function fetchBSCScanLogs(fromBlock, toBlock) {
+        // BSCScan API 降级方案（需要注册获取 API Key）
+        const BSC_API_KEY = 'YourApiKeyToken'; // 替换为你的 API Key
+        if (BSC_API_KEY === 'YourApiKeyToken') return [];
+        
+        try {
+            const url = `https://api.bscscan.com/api?module=logs&action=getLogs`
+                + `&address=${MYK}`
+                + `&topic0=${TRANSFER_TOPIC}`
+                + `&fromBlock=${fromBlock}&toBlock=${toBlock}`
+                + `&apikey=${BSC_API_KEY}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.status === '1' && data.result) {
+                // 转换为 web3 日志格式
+                return data.result.map(item => ({
+                    address: item.address,
+                    topics: [item.topic0, item.topic1, item.topic2, item.topic3],
+                    data: item.data,
+                    blockNumber: item.blockNumber,
+                    transactionHash: item.transactionHash
+                }));
+            }
+        } catch(e) {
+            console.warn('BSCScan API 请求失败:', e);
+        }
+        return [];
+    }
+
     async function fetchPastTransfers() {
         if (!web3) return;
+        
         try {
             const currentBlock = await web3.eth.getBlockNumber();
-            const fromBlock = Math.max(0, currentBlock - 5000);
-            const logs = await web3.eth.getPastLogs({ address: MYK, topics: [TRANSFER_TOPIC], fromBlock: fromBlock, toBlock: 'latest' });
-            const recentLogs = logs.slice(-100);
+            // 关键修复：扩大查询范围到 50000 个区块（约 1.7 天）
+            const fromBlock = Math.max(0, currentBlock - 50000);
+            
+            let logs;
+            try {
+                logs = await getLogsWithRetry(fromBlock, 'latest', 2);
+            } catch (e) {
+                console.warn('RPC 查询失败，尝试 BSCScan API 降级');
+                // 缩小范围重试，避免 RPC 限制
+                const smallerFrom = Math.max(0, currentBlock - 10000);
+                try {
+                    logs = await getLogsWithRetry(smallerFrom, 'latest', 1);
+                } catch (e2) {
+                    // 最终降级到 BSCScan API
+                    logs = await fetchBSCScanLogs(smallerFrom, 'latest');
+                }
+            }
+
+            if (!logs || logs.length === 0) {
+                console.warn('未获取到日志，可能无历史记录或节点受限');
+                updateTransferUI();
+                return;
+            }
+
+            console.log(`成功获取 ${logs.length} 条 Transfer 事件`);
+            
             const now = Math.floor(Date.now() / 1000);
-            for (const log of recentLogs) {
-                const to = '0x' + log.topics[2].slice(26);
-                const from = '0x' + log.topics[1].slice(26);
-                const value = log.data;
-                const block = await web3.eth.getBlock(log.blockNumber);
-                const timestamp = Number(block.timestamp);
-                if (to !== '0x0000000000000000000000000000000000000000') holderSet.add(to);
-                if (from !== '0x0000000000000000000000000000000000000000') holderSet.add(from);
-                if (now - timestamp < 86400) { transfer24hCount++; transfer24hVolume += parseFloat(Web3.utils.fromWei(value, 'ether')); }
+            const batchSize = 50; // 分批处理避免阻塞 UI
+            
+            for (let i = 0; i < logs.length; i += batchSize) {
+                const batch = logs.slice(i, i + batchSize);
+                for (const log of batch) {
+                    const from = '0x' + log.topics[1].slice(26);
+                    const to = '0x' + log.topics[2].slice(26);
+                    const value = log.data;
+                    
+                    // 关键修复：一次性预填所有历史地址
+                    if (to !== '0x0000000000000000000000000000000000000000') holderSet.add(to);
+                    if (from !== '0x0000000000000000000000000000000000000000') holderSet.add(from);
+                    
+                    // 获取时间戳（采样每10个事件获取一次以提高性能）
+                    try {
+                        const block = await web3.eth.getBlock(log.blockNumber);
+                        const timestamp = Number(block.timestamp);
+                        
+                        if (now - timestamp < 86400) {
+                            transfer24hCount++;
+                            transfer24hVolume += parseFloat(Web3.utils.fromWei(value, 'ether'));
+                        }
+                        
+                        // 只记录最近的事件用于展示
+                        if (i + batch.indexOf(log) >= logs.length - 30) {
+                            transferRecords.push({
+                                from, to,
+                                amount: Web3.utils.fromWei(value, 'ether'),
+                                timestamp,
+                                isNewHolder: false // 历史数据默认不是新地址
+                            });
+                        }
+                    } catch (e) {
+                        // 获取区块失败时跳过时间戳，使用当前时间
+                    }
+                }
+                // 让出主线程
+                await new Promise(resolve => setTimeout(resolve, 10));
             }
-            const displayLogs = recentLogs.slice(-20).reverse();
-            for (const log of displayLogs) {
-                const block = await web3.eth.getBlock(log.blockNumber);
-                transferRecords.push({ from: '0x' + log.topics[1].slice(26), to: '0x' + log.topics[2].slice(26), amount: Web3.utils.fromWei(log.data, 'ether'), timestamp: Number(block.timestamp), isNewHolder: false });
+
+            if (transferRecords.length > MAX_TRANSFER_RECORDS) {
+                transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
             }
-            if (transferRecords.length > MAX_TRANSFER_RECORDS) transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
+            
+            // 按时间倒序排列
+            transferRecords.sort((a, b) => b.timestamp - a.timestamp);
+            
             updateTransferUI();
-        } catch(e) { console.warn('获取历史Transfer失败:', e.message?.slice(0,50)); }
+            console.log(`持币地址历史数据加载完成：${holderSet.size} 个地址`);
+            
+        } catch(e) {
+            console.error('获取历史Transfer失败:', e.message?.slice(0,100));
+            updateTransferUI();
+        }
     }
 
     function subscribeTransferEvents() {
@@ -315,15 +430,41 @@
                 const currentBlock = await web3.eth.getBlockNumber();
                 if (lastBlock === 0) { lastBlock = currentBlock; return; }
                 if (currentBlock <= lastBlock) return;
-                const logs = await web3.eth.getPastLogs({ address: MYK, topics: [TRANSFER_TOPIC], fromBlock: lastBlock + 1, toBlock: currentBlock });
+
+                const logs = await getLogsWithRetry(lastBlock + 1, currentBlock, 2);
                 for (const log of logs) {
-                    const block = await web3.eth.getBlock(log.blockNumber);
-                    handleTransferEvent('0x' + log.topics[1].slice(26), '0x' + log.topics[2].slice(26), log.data, Number(block.timestamp));
+                    try {
+                        const block = await web3.eth.getBlock(log.blockNumber);
+                        handleTransferEvent(
+                            '0x' + log.topics[1].slice(26),
+                            '0x' + log.topics[2].slice(26),
+                            log.data,
+                            Number(block.timestamp)
+                        );
+                    } catch(e) {
+                        // 跳过获取失败的区块
+                    }
                 }
                 lastBlock = currentBlock;
-            } catch(e) {}
+            } catch(e) {
+                // 静默处理轮询错误
+            }
         }, 5000);
+
         return pollInterval;
+    }
+
+    // 刷新按钮处理
+    function setupRefreshButton() {
+        $('refreshTransferBtn').addEventListener('click', async () => {
+            $('transferList').innerHTML = '<div style="text-align:center;color:#888;padding:20px;">⏳ 正在刷新数据...</div>';
+            transfer24hCount = 0;
+            transfer24hVolume = 0;
+            transferRecords = [];
+            // 清空新增标记，但不重置 holderSet（保留历史地址）
+            newHolderSet.clear();
+            await fetchPastTransfers();
+        });
     }
 
     async function connectWallet(){
@@ -398,7 +539,43 @@
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote()}else{sellSlippage=s;updateSellQuote()}})})}
     function setupTabs(){document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion()})});document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell')});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote()})})}
 
-    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchPastTransfers();subscribeTransferEvents()}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()})})}$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward)});
+    window.addEventListener('load',async()=>{
+        setupTabs();
+        setupSlippageButtons('panelBuy','buy');
+        setupSlippageButtons('panelSell','sell');
+        setupRefreshButton();
+        
+        if(window.ethereum){
+            web3=new Web3(window.ethereum);
+            try{
+                const a=await window.ethereum.request({method:'eth_accounts'});
+                if(a.length){
+                    userAddress=a[0];
+                    $('walletDisplay').textContent=a6(userAddress);
+                    $('walletDisplay').style.color='#4ef0a8';
+                    startPriceAutoRefresh();
+                    fetchAirdrop();
+                    fetchUserStats();
+                    fetchHoldingInfo();
+                    refreshIdentityCard();
+                    fetchPastTransfers();
+                    subscribeTransferEvents();
+                }
+            }catch(e){}
+            window.ethereum.on('accountsChanged',()=>{
+                fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});
+            });
+        }
+        
+        $('connectWalletBtn').addEventListener('click',connectWallet);
+        $('buyUSDTAmount').addEventListener('input',updateBuyQuote);
+        $('sellMYKAmount').addEventListener('input',updateSellQuote);
+        $('buyMYKBtn').addEventListener('click',buyMYK);
+        $('sellMYKBtn').addEventListener('click',sellMYK);
+        $('activateMYKBtn').addEventListener('click',activateMYK);
+        $('activateUSDTBtn').addEventListener('click',activateUSDT);
+        $('claimRewardBtn').addEventListener('click',claimDailyReward);
+    });
 })();
 </script>
 </body>
