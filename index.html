@@ -72,7 +72,8 @@
         .slippage-row { display:flex; align-items:center; gap:8px; margin:8px 0; }
         .slippage-btn { padding:6px 12px; border-radius:12px; background:#2d325a; border:1px solid #394056; color:#aaa; cursor:pointer; font-size:12px; font-weight:600; transition:0.2s; }
         .slippage-btn.active { background:#e94560; color:white; border-color:#e94560; }
-        .asset-box { flex:1; background:#0f1422; border-radius:16px; padding:14px; text-align:center; border:1px solid #2a2f52; }
+        .asset-box { background:#0f1422; border-radius:16px; padding:14px; text-align:center; border:1px solid #2a2f52; }
+        .asset-box-full { grid-column:1 / -1; }
         .asset-label { font-size:12px; color:#a3adc9; margin-bottom:4px; }
         .asset-value { font-size:18px; }
         .trade-price-badge { font-size:13px; font-weight:400; padding:4px 12px; border-radius:20px; white-space:nowrap; display:flex; align-items:center; gap:6px; }
@@ -88,7 +89,7 @@
         .transfer-item .type-transfer { color:#f0b90b; font-size:10px; background:rgba(240,185,11,0.15); padding:2px 6px; border-radius:8px; }
         .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#4ecca3; animation:pulse 1.5s infinite; margin-right:4px; }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-        .contract-info-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+        .contract-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     </style>
 </head>
 <body>
@@ -101,24 +102,27 @@
         <button class="btn btn-outline" id="connectWalletBtn" style="margin-top:8px;">🔓 连接钱包</button>
     </div>
 
-    <!-- 合约信息卡片 (2行3列) -->
+    <!-- 合约信息卡片 (三排布局) -->
     <div class="glass-card">
         <div class="contract-info-grid">
-            <div class="asset-box">
+            <!-- 第一排：MYK总发行量（独占一行） -->
+            <div class="asset-box asset-box-full">
                 <div class="asset-label">📊 MYK总发行量</div>
-                <div class="stat-value" id="totalSupply" style="font-size:14px;">--</div>
+                <div class="stat-value" id="totalSupply" style="font-size:16px;">--</div>
             </div>
+            <!-- 第二排：奖金池余额 + 社区质押持币 -->
             <div class="asset-box">
                 <div class="asset-label">🎁 奖金池余额</div>
                 <div class="stat-value" id="bonusPool" style="font-size:14px;">--</div>
             </div>
             <div class="asset-box">
-                <div class="asset-label">🔥 MYK永久销毁</div>
-                <div class="stat-value" id="burnedAmount" style="font-size:14px;">--</div>
-            </div>
-            <div class="asset-box">
                 <div class="asset-label">🔒 社区质押持币</div>
                 <div class="stat-value" id="govLocked" style="font-size:14px;">--</div>
+            </div>
+            <!-- 第三排：MYK永久销毁 + 底池维护资产 -->
+            <div class="asset-box">
+                <div class="asset-label">🔥 MYK永久销毁</div>
+                <div class="stat-value" id="burnedAmount" style="font-size:14px;">--</div>
             </div>
             <div class="asset-box">
                 <div class="asset-label">💰 底池维护资产</div>
@@ -265,15 +269,10 @@
     // ========== 合约信息查询 (5个卡片) ==========
     async function fetchContractInfo() {
         if (!web3) return;
-        // 1. MYK 总发行量
         try { const d=encodeCall('totalSupply()'),r=await web3.eth.call({to:MYK,data:d});$('totalSupply').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('totalSupply').textContent='--'; }
-        // 2. 奖金池余额（RewardPool 总持币）
         try { const d=encodeCall('balanceOf(address)',['address'],[RP]),r=await web3.eth.call({to:MYK,data:d});$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('bonusPool').textContent='--'; }
-        // 3. MYK永久销毁（零地址余额）
         try { const d=encodeCall('balanceOf(address)',['address'],[ZERO_ADDR]),r=await web3.eth.call({to:MYK,data:d});$('burnedAmount').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('burnedAmount').textContent='--'; }
-        // 4. 社区质押持币（CommunityGovernance 锁仓量）
         try { const d=encodeCall('totalLockedAmount()'),r=await web3.eth.call({to:GOV,data:d});$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('govLocked').textContent='--'; }
-        // 5. 底池维护资产（FundManager 持币）
         try { const d=encodeCall('balanceOf(address)',['address'],[FM]),r=await web3.eth.call({to:MYK,data:d});$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('fundAsset').textContent='--'; }
     }
 
