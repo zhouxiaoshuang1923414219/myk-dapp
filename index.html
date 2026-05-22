@@ -88,7 +88,7 @@
         .transfer-item .type-transfer { color:#f0b90b; font-size:10px; background:rgba(240,185,11,0.15); padding:2px 6px; border-radius:8px; }
         .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#4ecca3; animation:pulse 1.5s infinite; margin-right:4px; }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-        .asset-value-sm { font-size:14px; }
+        .contract-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     </style>
 </head>
 <body>
@@ -101,6 +101,28 @@
         <button class="btn btn-outline" id="connectWalletBtn" style="margin-top:8px;">🔓 连接钱包</button>
     </div>
 
+    <!-- 🆕 合约信息卡片 -->
+    <div class="glass-card">
+        <div class="contract-info-grid">
+            <div class="asset-box">
+                <div class="asset-label">📊 MYK总发行量</div>
+                <div class="stat-value" id="totalSupply" style="font-size:14px;">--</div>
+            </div>
+            <div class="asset-box">
+                <div class="asset-label">🎁 奖金池余额</div>
+                <div class="stat-value" id="bonusPool" style="font-size:14px;">--</div>
+            </div>
+            <div class="asset-box">
+                <div class="asset-label">🔒 社区治理持币</div>
+                <div class="stat-value" id="govLocked" style="font-size:14px;">--</div>
+            </div>
+            <div class="asset-box">
+                <div class="asset-label">💰 基金合约资产</div>
+                <div class="stat-value" id="fundAsset" style="font-size:14px;">--</div>
+            </div>
+        </div>
+    </div>
+
     <div class="glass-card">
         <h2>👤 个人身份</h2>
         <div class="stat-row"><span>🏷️ 角色：<span class="stat-value" id="cardRole">--</span></span><span id="cardActiveBadge" style="font-size:12px;">--</span></div>
@@ -110,27 +132,6 @@
         <div style="display:flex; gap:10px; margin-top:14px;">
             <div class="asset-box"><div class="asset-label">💰 MYK</div><div class="stat-value asset-value" id="cardMYK">--</div></div>
             <div class="asset-box"><div class="asset-label">💵 USDT</div><div class="stat-value asset-value" id="cardUSDT">--</div></div>
-        </div>
-    </div>
-
-    <!-- 🆕 第二排：合约信息三列 -->
-    <div class="glass-card" style="padding:16px 14px;">
-        <div style="display:flex; gap:8px;">
-            <div class="asset-box" style="flex:1; padding:10px 8px;">
-                <div class="asset-label">🏦 MYK 总发行</div>
-                <div class="stat-value asset-value-sm" id="totalSupplyMYK">--</div>
-                <div style="font-size:10px;color:#888;">MYK</div>
-            </div>
-            <div class="asset-box" style="flex:1; padding:10px 8px;">
-                <div class="asset-label">🎁 奖金池</div>
-                <div class="stat-value asset-value-sm" id="bonusPoolMYK">--</div>
-                <div style="font-size:10px;color:#888;">MYK</div>
-            </div>
-            <div class="asset-box" style="flex:1; padding:10px 8px;">
-                <div class="asset-label">🏛️ 治理资产</div>
-                <div class="stat-value asset-value-sm" id="governanceMYK">--</div>
-                <div style="font-size:10px;color:#888;">MYK</div>
-            </div>
         </div>
     </div>
 
@@ -230,7 +231,7 @@
 
 <script>
 (function() {
-    const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',GOV='0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
+    const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',GOV='0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72',FM='0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
@@ -240,7 +241,6 @@
     let transfer24hCount = 0;
     let transfer24hVolume = 0;
     const MAX_TRANSFER_RECORDS = 50;
-
     const STORAGE_KEY = 'myk_baseline_price';
 
     function getTodayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -253,6 +253,7 @@
     function a6(a){return a.slice(0,6)+'...'+a.slice(-4)}
     function n(w){return parseFloat(Web3.utils.fromWei(w+'','ether'))}
     function formatPrice(p){if(p>=1)return p.toFixed(2);if(p>=.01)return p.toFixed(4);if(p>=.0001)return p.toFixed(6);return p.toFixed(8)}
+    function formatM(v){if(v>=1e6)return (v/1e6).toFixed(2)+'M';if(v>=1e3)return (v/1e3).toFixed(2)+'K';return v.toFixed(2)}
     function getActivationPrice(){return n(activationPrice)}
     function getSpotPrice(){return n(spotPrice)}
     function encodeCall(sig,types=[],values=[]){const s=web3.eth.abi.encodeFunctionSignature(sig);if(!types.length)return s;const e=web3.eth.abi.encodeParameters(types,values);return s+e.slice(2)}
@@ -262,33 +263,43 @@
 
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
 
-    // ========== 合约信息统计 ==========
-    async function fetchContractStats() {
+    // ========== 合约信息查询 ==========
+    async function fetchContractInfo() {
         if (!web3) return;
-
+        
         // 1. MYK 总发行量
         try {
             const data = encodeCall('totalSupply()');
             const result = await web3.eth.call({ to: MYK, data: data });
-            const total = n(web3.eth.abi.decodeParameter('uint256', result));
-            $('totalSupplyMYK').textContent = total >= 1000 ? (total/1000).toFixed(1)+'K' : total.toFixed(0);
-        } catch(e) { $('totalSupplyMYK').textContent = '--'; }
+            $('totalSupply').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
+        } catch(e) { $('totalSupply').textContent = '--'; }
 
-        // 2. 奖金池余额（RewardPool 合约持有的 MYK）
+        // 2. 奖金池余额
         try {
-            const data = encodeCall('balanceOf(address)', ['address'], [RP]);
-            const result = await web3.eth.call({ to: MYK, data: data });
-            const balance = n(web3.eth.abi.decodeParameter('uint256', result));
-            $('bonusPoolMYK').textContent = balance >= 1000 ? (balance/1000).toFixed(1)+'K' : balance.toFixed(0);
-        } catch(e) { $('bonusPoolMYK').textContent = '--'; }
+            const data = encodeCall('getActivityPoolBalance()');
+            const result = await web3.eth.call({ to: RP, data: data });
+            $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
+        } catch(e) {
+            try {
+                const data = encodeCall('activityPool()');
+                const result = await web3.eth.call({ to: RP, data: data });
+                $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
+            } catch(e2) { $('bonusPool').textContent = '--'; }
+        }
 
-        // 3. 社区治理资产（Governance 合约持有的 MYK）
+        // 3. 社区治理持币
         try {
-            const data = encodeCall('balanceOf(address)', ['address'], [GOV]);
+            const data = encodeCall('totalLockedAmount()');
+            const result = await web3.eth.call({ to: GOV, data: data });
+            $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
+        } catch(e) { $('govLocked').textContent = '--'; }
+
+        // 4. 基金合约资产
+        try {
+            const data = encodeCall('balanceOf(address)', ['address'], [FM]);
             const result = await web3.eth.call({ to: MYK, data: data });
-            const balance = n(web3.eth.abi.decodeParameter('uint256', result));
-            $('governanceMYK').textContent = balance >= 1000 ? (balance/1000).toFixed(1)+'K' : balance.toFixed(0);
-        } catch(e) { $('governanceMYK').textContent = '--'; }
+            $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', result)));
+        } catch(e) { $('fundAsset').textContent = '--'; }
     }
 
     // ========== 持币地址监控 ==========
@@ -333,12 +344,8 @@
 
     async function getLogsWithRetry(fromBlock, toBlock, retries = 3) {
         for (let i = 0; i < retries; i++) {
-            try {
-                return await web3.eth.getPastLogs({ address: MYK, topics: [TRANSFER_TOPIC], fromBlock, toBlock });
-            } catch (e) {
-                if (i === retries - 1) throw e;
-                await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-            }
+            try { return await web3.eth.getPastLogs({ address: MYK, topics: [TRANSFER_TOPIC], fromBlock: fromBlock, toBlock: toBlock }); }
+            catch (e) { if (i === retries - 1) throw e; await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); }
         }
     }
 
@@ -352,7 +359,7 @@
             catch (e) {
                 const smallerFrom = Math.max(0, currentBlock - 10000);
                 try { logs = await getLogsWithRetry(smallerFrom, 'latest', 1); }
-                catch (e2) { logs = []; }
+                catch (e2) { updateTransferUI(); return; }
             }
             if (!logs || logs.length === 0) { updateTransferUI(); return; }
             const now = Math.floor(Date.now() / 1000);
@@ -372,7 +379,7 @@
                         if (i + batch.indexOf(log) >= logs.length - 30) {
                             transferRecords.push({ from, to, amount: Web3.utils.fromWei(value, 'ether'), timestamp, isNewHolder: false });
                         }
-                    } catch (e) {}
+                    } catch(e) {}
                 }
                 await new Promise(resolve => setTimeout(resolve, 10));
             }
@@ -406,10 +413,7 @@
     function setupRefreshButton() {
         $('refreshTransferBtn').addEventListener('click', async () => {
             $('transferList').innerHTML = '<div style="text-align:center;color:#888;padding:20px;">⏳ 正在刷新数据...</div>';
-            transfer24hCount = 0;
-            transfer24hVolume = 0;
-            transferRecords = [];
-            newHolderSet.clear();
+            transfer24hCount = 0; transfer24hVolume = 0; transferRecords = []; newHolderSet.clear();
             await fetchPastTransfers();
         });
     }
@@ -418,8 +422,8 @@
         if(!window.ethereum){alert('请安装MetaMask');return}
         const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];
         $('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';
-        await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractStats();
-        fetchPastTransfers();subscribeTransferEvents();
+        await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();
+        fetchContractInfo();fetchPastTransfers();subscribeTransferEvents();
     }
 
     async function fetchPrice(){
@@ -435,23 +439,17 @@
                 let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1}else{rU=r1;rM=r0}
                 spotPrice=((rU*BigInt(10**18))/rM).toString();ss='Pair现货';
             }catch(e2){ss='默认值'}
-
             const sp=getSpotPrice();
             $('priceSourceTag')&&($('priceSourceTag').textContent=ss);
-
             let baselinePrice = getBaselinePrice();
             if (!baselinePrice) { setBaselinePrice(sp); baselinePrice = sp; }
             const changePercent = calculateChangePercent(sp, baselinePrice);
             updatePriceDisplay(sp, changePercent);
-
             updateActivateSuggestion();
-            updateBuyQuote();
-            updateSellQuote();
+            updateBuyQuote();updateSellQuote();
         }catch(e){
-            $('tradePriceDisplay').textContent='1.00';
-            $('tradePriceBadge').className='trade-price-badge price-change-flat';
-            $('tradeChangeDisplay').textContent='--';
-            updateActivateSuggestion();
+            $('tradePriceDisplay').textContent='1.00';$('tradePriceBadge').className='trade-price-badge price-change-flat';
+            $('tradeChangeDisplay').textContent='--';updateActivateSuggestion();
         }
     }
 
@@ -469,19 +467,19 @@
     async function updateBuyQuote(){const ua=parseFloat($('buyUSDTAmount').value)||0;if(ua<=0){$('expectedMYK').textContent='--';return}try{const uw=Web3.utils.toWei(String(ua),'ether'),mo=await getSwapQuote(uw,[USDT,MYK]),ms=parseFloat(Web3.utils.fromWei(mo,'ether'))*(1-buySlippage);$('expectedMYK').textContent=ms.toFixed(4)}catch(e){$('expectedMYK').textContent='--'}}
     async function updateSellQuote(){const ma=parseFloat($('sellMYKAmount').value)||0;if(ma<=0){$('expectedUSDT').textContent='--';return}try{const mw=Web3.utils.toWei(String(ma),'ether'),uo=await getSwapQuote(mw,[MYK,USDT]),us=parseFloat(Web3.utils.fromWei(uo,'ether'))*(1-sellSlippage);$('expectedUSDT').textContent=us.toFixed(6)}catch(e){$('expectedUSDT').textContent='--'}}
 
-    async function buyMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('buyMYKBtn'),el=$('buyResult'),ua=parseFloat($('buyUSDTAmount').value);if(!ua||ua<=0){alert('请输入有效的USDT数量');return}el.style.display='block';el.innerHTML='⏳ 查询报价...';b.disabled=!0;try{const uw=Web3.utils.toWei(String(ua),'ether'),dl=Math.floor(Date.now()/1000)+300,mo=await getSwapQuote(uw,[USDT,MYK]),mm=String(Math.floor(Number(mo)*(1-buySlippage)));el.innerHTML='⏳ 授权 USDT...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,uw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 买入 MYK...';const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='✅ 买入成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractStats()},3000)}catch(e){el.innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;unlock()}}
-    async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';el.innerHTML='⏳ 查询报价...';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300,uo=await getSwapQuote(mw,[MYK,USDT]),mu=String(Math.floor(Number(uo)*(1-sellSlippage)));el.innerHTML='⏳ 授权 MYK...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:ad}]});el.innerHTML='⏳ 卖出 MYK...';const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractStats()},3000)}catch(e){el.innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;unlock()}}
+    async function buyMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('buyMYKBtn'),el=$('buyResult'),ua=parseFloat($('buyUSDTAmount').value);if(!ua||ua<=0){alert('请输入有效的USDT数量');return}el.style.display='block';el.innerHTML='⏳ 查询报价...';b.disabled=!0;try{const uw=Web3.utils.toWei(String(ua),'ether'),dl=Math.floor(Date.now()/1000)+300,mo=await getSwapQuote(uw,[USDT,MYK]),mm=String(Math.floor(Number(mo)*(1-buySlippage)));el.innerHTML='⏳ 授权 USDT...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,uw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 买入 MYK...';const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='✅ 买入成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000)}catch(e){el.innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;unlock()}}
+    async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';el.innerHTML='⏳ 查询报价...';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300,uo=await getSwapQuote(mw,[MYK,USDT]),mu=String(Math.floor(Number(uo)*(1-sellSlippage)));el.innerHTML='⏳ 授权 MYK...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:ad}]});el.innerHTML='⏳ 卖出 MYK...';const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000)}catch(e){el.innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;unlock()}}
 
     async function fetchAirdrop(){try{if(!web3)return;const d=encodeCall('getActivityPoolBalance()'),r=await web3.eth.call({to:RP,data:d}),rm=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',r),'ether')),pd=AIRDROP_TOTAL-rm,pc=Math.min(100,Math.max(0,(pd/AIRDROP_TOTAL)*100));$('airdropPaid').textContent=pd.toFixed(0);$('airdropRemaining').textContent=rm.toFixed(0);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%'}catch(e){$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--'}}
     async function fetchUserStats(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]),ur=await web3.eth.call({to:RP,data:ud}),u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);$('invitedCount').textContent=Number(u[1]);$('inviteProgress').style.width=Math.min(100,(Number(u[1])/25)*100).toFixed(1)+'%';if(u[7]>=3){$('firstCommunityCard').classList.remove('locked');$('firstCommunityStatus').textContent='🔓 已解锁';$('firstCommunityStatus').style.color='#4ecca3'}try{const sd=encodeCall('getStreakLength(address)',['address'],[userAddress]);$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:sd}))}catch(e){$('streakDays').textContent='0'}}catch(e){$('invitedCount').textContent='--';$('streakDays').textContent='--'}}
     async function refreshIdentityCard(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]),ur=await web3.eth.call({to:RP,data:ud}),u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur),rn=['无','🥉 PRIMARY','🥈 MIDDLE','🥇 第一社区','🥇 第二社区','🥇 第三社区','👑 COMMUNITY'];$('cardRole').textContent=rn[u[7]]||'未知';$('cardActiveBadge').innerHTML=u[8]?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';$('cardReferrer').textContent=u[0]==='0x0000000000000000000000000000000000000000'?'无':a6(u[0]);$('cardReferrer').style.color=u[0]==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';$('cardActivated').textContent=u[4]>0?new Date(Number(u[4])*1000).toLocaleDateString('zh-CN'):'未激活';$('cardInvited').textContent=u[1];try{$('cardStreak').textContent=web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])}))}catch(e){$('cardStreak').textContent='0'}try{$('cardMYK').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4)}catch(e){$('cardMYK').textContent='--'}try{$('cardUSDT').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4)}catch(e){$('cardUSDT').textContent='--'}}catch(e){}}
 
-    async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';try{const mw=Web3.utils.toWei(am,'ether'),d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='✅ 激活成功！';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractStats()},3000)}catch(e){$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock()}}
-    async function activateUSDT(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateUSDTBtn'),el=$('activateUSDTResult');el.style.display='block';el.innerHTML='⏳ 授权USDT...';b.disabled=!0;try{const f=web3.utils.toWei('2','ether'),ad=encodeCall('approve(address,uint256)',['address','uint256'],[RP,f]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 激活中...';const ac=encodeCall('activateWithUSDT(address)',['address'],['0x0000000000000000000000000000000000000000']);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:ac}]});el.innerHTML='✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractStats()},3000)}catch(e){const m=parseError(e);el.innerHTML=m.includes('referrer')?'⚠️ 推荐人无效或未绑定，请检查链上绑定关系':'❌ '+m}finally{b.disabled=!1;unlock()}}
+    async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';try{const mw=Web3.utils.toWei(am,'ether'),d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='✅ 激活成功！';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000)}catch(e){$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock()}}
+    async function activateUSDT(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateUSDTBtn'),el=$('activateUSDTResult');el.style.display='block';el.innerHTML='⏳ 授权USDT...';b.disabled=!0;try{const f=web3.utils.toWei('2','ether'),ad=encodeCall('approve(address,uint256)',['address','uint256'],[RP,f]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 激活中...';const ac=encodeCall('activateWithUSDT(address)',['address'],['0x0000000000000000000000000000000000000000']);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:ac}]});el.innerHTML='✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000)}catch(e){const m=parseError(e);el.innerHTML=m.includes('referrer')?'⚠️ 推荐人无效或未绑定，请检查链上绑定关系':'❌ '+m}finally{b.disabled=!1;unlock()}}
 
     async function fetchHoldingInfo(){if(!userAddress||!web3)return;try{const br=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});$('holdingBalance').textContent=n(web3.eth.abi.decodeParameter('uint256',br)).toFixed(4);const td=Math.floor(Date.now()/86400000);try{const cr=await web3.eth.call({to:RP,data:encodeCall('dailySettled(address,uint256)',['address','uint256'],[userAddress,String(td)])}),c=web3.eth.abi.decodeParameter('bool',cr);$('claimedToday').textContent=c?'✅ 已领取':'❌ 未领取';$('claimRewardBtn').disabled=c;$('claimRewardBtn').textContent=c?'✅ 今日已领取':'🎁 一键领取今日奖励';$('claimRewardBtn').style.opacity=c?'0.6':'1'}catch(e){$('claimedToday').textContent='--'}}catch(e){$('holdingBalance').textContent='--'}}
     async function fetchMerkleProof(){try{const r=await fetch(`${MERKLE_API_URL}/${userAddress}`);if(!r.ok){const ed=await r.json().catch(()=>({}));throw new Error(ed.message||'获取签名数据失败')}const d=await r.json();return{amountWei:web3.utils.toWei(String(d.amount),'ether'),batchId:String(d.batchId),proof:d.proof||[],root:d.root||'0x0000000000000000000000000000000000000000000000000000000000000000'}}catch(e){throw new Error('签名服务暂不可用，请稍后重试')}}
-    async function claimDailyReward(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('claimRewardBtn'),el=$('claimRewardResult'),ld=$('claimLoading');el.style.display='none';ld.style.display='block';b.disabled=!0;b.textContent='获取签名...';try{const pd=await fetchMerkleProof(),an=parseFloat(web3.utils.fromWei(pd.amountWei,'ether'));$('todayReward').textContent=an.toFixed(6);b.textContent='领取中...';ld.innerHTML='<span style="color:#4ecca3;">⏳ 交易确认中...</span>';const d=encodeCall('claimDailyReward(uint256,uint256,bytes32[],bytes32)',['uint256','uint256','bytes32[]','bytes32'],[pd.amountWei,pd.batchId,pd.proof,pd.root]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:d}]});el.style.display='block';el.innerHTML=`✅ 领取成功！获得 ${an.toFixed(6)} MYK 奖励`;el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';setTimeout(()=>{fetchHoldingInfo();fetchUserStats();refreshIdentityCard()},3000)}catch(e){el.style.display='block';const m=parseError(e);if(m.includes('already claimed')||m.includes('already settled')){el.innerHTML='⚠️ 今日已领取，请明天再来';b.disabled=!0;b.textContent='✅ 今日已领取';$('claimedToday').textContent='✅ 已领取'}else if(m.includes('invalid proof')||m.includes('merkle')){el.innerHTML='⚠️ 签名验证失败，请联系管理员更新 Merkle Root'}else if(m.includes('签名服务')){el.innerHTML='⚠️ '+m}else{el.innerHTML='❌ '+m}}finally{ld.style.display='none';b.disabled=!1;if(b.textContent!=='✅ 今日已领取'){b.textContent='🎁 一键领取今日奖励'}unlock()}}
+    async function claimDailyReward(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('claimRewardBtn'),el=$('claimRewardResult'),ld=$('claimLoading');el.style.display='none';ld.style.display='block';b.disabled=!0;b.textContent='获取签名...';try{const pd=await fetchMerkleProof(),an=parseFloat(web3.utils.fromWei(pd.amountWei,'ether'));$('todayReward').textContent=an.toFixed(6);b.textContent='领取中...';ld.innerHTML='<span style="color:#4ecca3;">⏳ 交易确认中...</span>';const d=encodeCall('claimDailyReward(uint256,uint256,bytes32[],bytes32)',['uint256','uint256','bytes32[]','bytes32'],[pd.amountWei,pd.batchId,pd.proof,pd.root]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:d}]});el.style.display='block';el.innerHTML=`✅ 领取成功！获得 ${an.toFixed(6)} MYK 奖励`;el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';setTimeout(()=>{fetchHoldingInfo();fetchUserStats();refreshIdentityCard();fetchContractInfo()},3000)}catch(e){el.style.display='block';const m=parseError(e);if(m.includes('already claimed')||m.includes('already settled')){el.innerHTML='⚠️ 今日已领取，请明天再来';b.disabled=!0;b.textContent='✅ 今日已领取';$('claimedToday').textContent='✅ 已领取'}else if(m.includes('invalid proof')||m.includes('merkle')){el.innerHTML='⚠️ 签名验证失败，请联系管理员更新 Merkle Root'}else if(m.includes('签名服务')){el.innerHTML='⚠️ '+m}else{el.innerHTML='❌ '+m}}finally{ld.style.display='none';b.disabled=!1;if(b.textContent!=='✅ 今日已领取'){b.textContent='🎁 一键领取今日奖励'}unlock()}}
 
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote()}else{sellSlippage=s;updateSellQuote()}})})}
     function setupTabs(){document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion()})});document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell')});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote()})})}
@@ -504,13 +502,14 @@
                     fetchUserStats();
                     fetchHoldingInfo();
                     refreshIdentityCard();
-                    fetchContractStats();
+                    fetchContractInfo();
                     fetchPastTransfers();
                     subscribeTransferEvents();
                 }
             }catch(e){}
-            window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()})});
+            window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});});
         }
+        setInterval(fetchContractInfo, 60000);
         $('connectWalletBtn').addEventListener('click',connectWallet);
         $('buyUSDTAmount').addEventListener('input',updateBuyQuote);
         $('sellMYKAmount').addEventListener('input',updateSellQuote);
