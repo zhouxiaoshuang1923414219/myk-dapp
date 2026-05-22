@@ -113,7 +113,7 @@
                 <div class="stat-value" id="bonusPool" style="font-size:14px;">--</div>
             </div>
             <div class="asset-box">
-                <div class="asset-label">❌ MYK永久销毁</div>
+                <div class="asset-label">🔥 MYK永久销毁</div>
                 <div class="stat-value" id="govLocked" style="font-size:14px;">--</div>
             </div>
             <div class="asset-box">
@@ -148,7 +148,7 @@
     <div class="glass-card">
         <h2 style="justify-content:space-between;">
             <span>📈 买卖 MYK</span>
-            <span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span><span class="price-source-tag"></span>
+            <span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span><span class="price-source-tag">Pair现货</span></span>
         </h2>
         <div class="tab-container" id="tradeTabSwitch">
             <div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div>
@@ -231,8 +231,9 @@
 
 <script>
 (function() {
-    const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',GOV='0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72',FM='0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
+    const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',FM='0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+    const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
     let holderSet = new Set(), newHolderSet = new Set(), transferRecords = [], transfer24hCount = 0, transfer24hVolume = 0;
@@ -260,9 +261,13 @@
     // ========== 合约信息查询 ==========
     async function fetchContractInfo() {
         if (!web3) return;
+        // 1. MYK 总发行量
         try { const d=encodeCall('totalSupply()'),r=await web3.eth.call({to:MYK,data:d});$('totalSupply').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('totalSupply').textContent='--'; }
+        // 2. 奖金池余额（RewardPool 总持币）
         try { const d=encodeCall('balanceOf(address)',['address'],[RP]),r=await web3.eth.call({to:MYK,data:d});$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('bonusPool').textContent='--'; }
-        try { const d=encodeCall('totalLockedAmount()'),r=await web3.eth.call({to:GOV,data:d});$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('govLocked').textContent='--'; }
+        // 3. MYK永久销毁（零地址余额）
+        try { const d=encodeCall('balanceOf(address)',['address'],[ZERO_ADDR]),r=await web3.eth.call({to:MYK,data:d});$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('govLocked').textContent='--'; }
+        // 4. 底池维护资产（FundManager 持币）
         try { const d=encodeCall('balanceOf(address)',['address'],[FM]),r=await web3.eth.call({to:MYK,data:d});$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('fundAsset').textContent='--'; }
     }
 
