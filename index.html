@@ -88,6 +88,7 @@
         .transfer-item .type-transfer { color:#f0b90b; font-size:10px; background:rgba(240,185,11,0.15); padding:2px 6px; border-radius:8px; }
         .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#4ecca3; animation:pulse 1.5s infinite; margin-right:4px; }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+        .asset-value-sm { font-size:14px; }
     </style>
 </head>
 <body>
@@ -109,6 +110,27 @@
         <div style="display:flex; gap:10px; margin-top:14px;">
             <div class="asset-box"><div class="asset-label">💰 MYK</div><div class="stat-value asset-value" id="cardMYK">--</div></div>
             <div class="asset-box"><div class="asset-label">💵 USDT</div><div class="stat-value asset-value" id="cardUSDT">--</div></div>
+        </div>
+    </div>
+
+    <!-- 🆕 第二排：合约信息三列 -->
+    <div class="glass-card" style="padding:16px 14px;">
+        <div style="display:flex; gap:8px;">
+            <div class="asset-box" style="flex:1; padding:10px 8px;">
+                <div class="asset-label">🏦 MYK 总发行</div>
+                <div class="stat-value asset-value-sm" id="totalSupplyMYK">--</div>
+                <div style="font-size:10px;color:#888;">MYK</div>
+            </div>
+            <div class="asset-box" style="flex:1; padding:10px 8px;">
+                <div class="asset-label">🎁 奖金池</div>
+                <div class="stat-value asset-value-sm" id="bonusPoolMYK">--</div>
+                <div style="font-size:10px;color:#888;">MYK</div>
+            </div>
+            <div class="asset-box" style="flex:1; padding:10px 8px;">
+                <div class="asset-label">🏛️ 治理资产</div>
+                <div class="stat-value asset-value-sm" id="governanceMYK">--</div>
+                <div style="font-size:10px;color:#888;">MYK</div>
+            </div>
         </div>
     </div>
 
@@ -187,7 +209,6 @@
         <div class="progress-bar-container"><div class="progress-bar-fill" id="inviteProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
     </div>
 
-    <!-- 🆕 持币地址监控（已优化） -->
     <div class="glass-card">
         <h2>📊 链上监控 <span class="live-dot"></span><span style="font-size:11px;color:#4ecca3;">实时</span></h2>
         <div class="stat-row">
@@ -241,7 +262,36 @@
 
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
 
-    // ========== 持币地址监控（已优化） ==========
+    // ========== 合约信息统计 ==========
+    async function fetchContractStats() {
+        if (!web3) return;
+
+        // 1. MYK 总发行量
+        try {
+            const data = encodeCall('totalSupply()');
+            const result = await web3.eth.call({ to: MYK, data: data });
+            const total = n(web3.eth.abi.decodeParameter('uint256', result));
+            $('totalSupplyMYK').textContent = total >= 1000 ? (total/1000).toFixed(1)+'K' : total.toFixed(0);
+        } catch(e) { $('totalSupplyMYK').textContent = '--'; }
+
+        // 2. 奖金池余额（RewardPool 合约持有的 MYK）
+        try {
+            const data = encodeCall('balanceOf(address)', ['address'], [RP]);
+            const result = await web3.eth.call({ to: MYK, data: data });
+            const balance = n(web3.eth.abi.decodeParameter('uint256', result));
+            $('bonusPoolMYK').textContent = balance >= 1000 ? (balance/1000).toFixed(1)+'K' : balance.toFixed(0);
+        } catch(e) { $('bonusPoolMYK').textContent = '--'; }
+
+        // 3. 社区治理资产（Governance 合约持有的 MYK）
+        try {
+            const data = encodeCall('balanceOf(address)', ['address'], [GOV]);
+            const result = await web3.eth.call({ to: MYK, data: data });
+            const balance = n(web3.eth.abi.decodeParameter('uint256', result));
+            $('governanceMYK').textContent = balance >= 1000 ? (balance/1000).toFixed(1)+'K' : balance.toFixed(0);
+        } catch(e) { $('governanceMYK').textContent = '--'; }
+    }
+
+    // ========== 持币地址监控 ==========
     function updateTransferUI() {
         $('holderCount').textContent = holderSet.size;
         $('newHolderCount').textContent = newHolderSet.size;
@@ -271,17 +321,11 @@
 
     function handleTransferEvent(from, to, value, timestamp) {
         const amount = Web3.utils.fromWei(value, 'ether');
-        // 关键修复：基于预先填充的 holderSet 来判断是否为新地址
         const isNewHolder = !holderSet.has(to) && to !== '0x0000000000000000000000000000000000000000';
-        
-        if (isNewHolder) {
-            newHolderSet.add(to);
-        }
+        if (isNewHolder) newHolderSet.add(to);
         holderSet.add(to);
-        
         const now = Math.floor(Date.now() / 1000);
         if (now - timestamp < 86400) { transfer24hCount++; transfer24hVolume += parseFloat(amount); }
-
         transferRecords.unshift({ from, to, amount, timestamp, isNewHolder });
         if (transferRecords.length > MAX_TRANSFER_RECORDS) transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
         updateTransferUI();
@@ -290,136 +334,52 @@
     async function getLogsWithRetry(fromBlock, toBlock, retries = 3) {
         for (let i = 0; i < retries; i++) {
             try {
-                return await web3.eth.getPastLogs({
-                    address: MYK,
-                    topics: [TRANSFER_TOPIC],
-                    fromBlock: fromBlock,
-                    toBlock: toBlock
-                });
+                return await web3.eth.getPastLogs({ address: MYK, topics: [TRANSFER_TOPIC], fromBlock, toBlock });
             } catch (e) {
                 if (i === retries - 1) throw e;
-                // 指数退避重试
                 await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
             }
         }
     }
 
-    async function fetchBSCScanLogs(fromBlock, toBlock) {
-        // BSCScan API 降级方案（需要注册获取 API Key）
-        const BSC_API_KEY = 'YourApiKeyToken'; // 替换为你的 API Key
-        if (BSC_API_KEY === 'YourApiKeyToken') return [];
-        
-        try {
-            const url = `https://api.bscscan.com/api?module=logs&action=getLogs`
-                + `&address=${MYK}`
-                + `&topic0=${TRANSFER_TOPIC}`
-                + `&fromBlock=${fromBlock}&toBlock=${toBlock}`
-                + `&apikey=${BSC_API_KEY}`;
-            
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.status === '1' && data.result) {
-                // 转换为 web3 日志格式
-                return data.result.map(item => ({
-                    address: item.address,
-                    topics: [item.topic0, item.topic1, item.topic2, item.topic3],
-                    data: item.data,
-                    blockNumber: item.blockNumber,
-                    transactionHash: item.transactionHash
-                }));
-            }
-        } catch(e) {
-            console.warn('BSCScan API 请求失败:', e);
-        }
-        return [];
-    }
-
     async function fetchPastTransfers() {
         if (!web3) return;
-        
         try {
             const currentBlock = await web3.eth.getBlockNumber();
-            // 关键修复：扩大查询范围到 50000 个区块（约 1.7 天）
             const fromBlock = Math.max(0, currentBlock - 50000);
-            
             let logs;
-            try {
-                logs = await getLogsWithRetry(fromBlock, 'latest', 2);
-            } catch (e) {
-                console.warn('RPC 查询失败，尝试 BSCScan API 降级');
-                // 缩小范围重试，避免 RPC 限制
+            try { logs = await getLogsWithRetry(fromBlock, 'latest', 2); }
+            catch (e) {
                 const smallerFrom = Math.max(0, currentBlock - 10000);
-                try {
-                    logs = await getLogsWithRetry(smallerFrom, 'latest', 1);
-                } catch (e2) {
-                    // 最终降级到 BSCScan API
-                    logs = await fetchBSCScanLogs(smallerFrom, 'latest');
-                }
+                try { logs = await getLogsWithRetry(smallerFrom, 'latest', 1); }
+                catch (e2) { logs = []; }
             }
-
-            if (!logs || logs.length === 0) {
-                console.warn('未获取到日志，可能无历史记录或节点受限');
-                updateTransferUI();
-                return;
-            }
-
-            console.log(`成功获取 ${logs.length} 条 Transfer 事件`);
-            
+            if (!logs || logs.length === 0) { updateTransferUI(); return; }
             const now = Math.floor(Date.now() / 1000);
-            const batchSize = 50; // 分批处理避免阻塞 UI
-            
+            const batchSize = 50;
             for (let i = 0; i < logs.length; i += batchSize) {
                 const batch = logs.slice(i, i + batchSize);
                 for (const log of batch) {
                     const from = '0x' + log.topics[1].slice(26);
                     const to = '0x' + log.topics[2].slice(26);
                     const value = log.data;
-                    
-                    // 关键修复：一次性预填所有历史地址
                     if (to !== '0x0000000000000000000000000000000000000000') holderSet.add(to);
                     if (from !== '0x0000000000000000000000000000000000000000') holderSet.add(from);
-                    
-                    // 获取时间戳（采样每10个事件获取一次以提高性能）
                     try {
                         const block = await web3.eth.getBlock(log.blockNumber);
                         const timestamp = Number(block.timestamp);
-                        
-                        if (now - timestamp < 86400) {
-                            transfer24hCount++;
-                            transfer24hVolume += parseFloat(Web3.utils.fromWei(value, 'ether'));
-                        }
-                        
-                        // 只记录最近的事件用于展示
+                        if (now - timestamp < 86400) { transfer24hCount++; transfer24hVolume += parseFloat(Web3.utils.fromWei(value, 'ether')); }
                         if (i + batch.indexOf(log) >= logs.length - 30) {
-                            transferRecords.push({
-                                from, to,
-                                amount: Web3.utils.fromWei(value, 'ether'),
-                                timestamp,
-                                isNewHolder: false // 历史数据默认不是新地址
-                            });
+                            transferRecords.push({ from, to, amount: Web3.utils.fromWei(value, 'ether'), timestamp, isNewHolder: false });
                         }
-                    } catch (e) {
-                        // 获取区块失败时跳过时间戳，使用当前时间
-                    }
+                    } catch (e) {}
                 }
-                // 让出主线程
                 await new Promise(resolve => setTimeout(resolve, 10));
             }
-
-            if (transferRecords.length > MAX_TRANSFER_RECORDS) {
-                transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
-            }
-            
-            // 按时间倒序排列
+            if (transferRecords.length > MAX_TRANSFER_RECORDS) transferRecords = transferRecords.slice(0, MAX_TRANSFER_RECORDS);
             transferRecords.sort((a, b) => b.timestamp - a.timestamp);
-            
             updateTransferUI();
-            console.log(`持币地址历史数据加载完成：${holderSet.size} 个地址`);
-            
-        } catch(e) {
-            console.error('获取历史Transfer失败:', e.message?.slice(0,100));
-            updateTransferUI();
-        }
+        } catch(e) { updateTransferUI(); }
     }
 
     function subscribeTransferEvents() {
@@ -430,38 +390,25 @@
                 const currentBlock = await web3.eth.getBlockNumber();
                 if (lastBlock === 0) { lastBlock = currentBlock; return; }
                 if (currentBlock <= lastBlock) return;
-
                 const logs = await getLogsWithRetry(lastBlock + 1, currentBlock, 2);
                 for (const log of logs) {
                     try {
                         const block = await web3.eth.getBlock(log.blockNumber);
-                        handleTransferEvent(
-                            '0x' + log.topics[1].slice(26),
-                            '0x' + log.topics[2].slice(26),
-                            log.data,
-                            Number(block.timestamp)
-                        );
-                    } catch(e) {
-                        // 跳过获取失败的区块
-                    }
+                        handleTransferEvent('0x' + log.topics[1].slice(26), '0x' + log.topics[2].slice(26), log.data, Number(block.timestamp));
+                    } catch(e) {}
                 }
                 lastBlock = currentBlock;
-            } catch(e) {
-                // 静默处理轮询错误
-            }
+            } catch(e) {}
         }, 5000);
-
         return pollInterval;
     }
 
-    // 刷新按钮处理
     function setupRefreshButton() {
         $('refreshTransferBtn').addEventListener('click', async () => {
             $('transferList').innerHTML = '<div style="text-align:center;color:#888;padding:20px;">⏳ 正在刷新数据...</div>';
             transfer24hCount = 0;
             transfer24hVolume = 0;
             transferRecords = [];
-            // 清空新增标记，但不重置 holderSet（保留历史地址）
             newHolderSet.clear();
             await fetchPastTransfers();
         });
@@ -471,7 +418,7 @@
         if(!window.ethereum){alert('请安装MetaMask');return}
         const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];
         $('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';
-        await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();
+        await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractStats();
         fetchPastTransfers();subscribeTransferEvents();
     }
 
@@ -522,15 +469,15 @@
     async function updateBuyQuote(){const ua=parseFloat($('buyUSDTAmount').value)||0;if(ua<=0){$('expectedMYK').textContent='--';return}try{const uw=Web3.utils.toWei(String(ua),'ether'),mo=await getSwapQuote(uw,[USDT,MYK]),ms=parseFloat(Web3.utils.fromWei(mo,'ether'))*(1-buySlippage);$('expectedMYK').textContent=ms.toFixed(4)}catch(e){$('expectedMYK').textContent='--'}}
     async function updateSellQuote(){const ma=parseFloat($('sellMYKAmount').value)||0;if(ma<=0){$('expectedUSDT').textContent='--';return}try{const mw=Web3.utils.toWei(String(ma),'ether'),uo=await getSwapQuote(mw,[MYK,USDT]),us=parseFloat(Web3.utils.fromWei(uo,'ether'))*(1-sellSlippage);$('expectedUSDT').textContent=us.toFixed(6)}catch(e){$('expectedUSDT').textContent='--'}}
 
-    async function buyMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('buyMYKBtn'),el=$('buyResult'),ua=parseFloat($('buyUSDTAmount').value);if(!ua||ua<=0){alert('请输入有效的USDT数量');return}el.style.display='block';el.innerHTML='⏳ 查询报价...';b.disabled=!0;try{const uw=Web3.utils.toWei(String(ua),'ether'),dl=Math.floor(Date.now()/1000)+300,mo=await getSwapQuote(uw,[USDT,MYK]),mm=String(Math.floor(Number(mo)*(1-buySlippage)));el.innerHTML='⏳ 授权 USDT...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,uw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 买入 MYK...';const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='✅ 买入成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard()},3000)}catch(e){el.innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;unlock()}}
-    async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';el.innerHTML='⏳ 查询报价...';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300,uo=await getSwapQuote(mw,[MYK,USDT]),mu=String(Math.floor(Number(uo)*(1-sellSlippage)));el.innerHTML='⏳ 授权 MYK...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:ad}]});el.innerHTML='⏳ 卖出 MYK...';const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard()},3000)}catch(e){el.innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;unlock()}}
+    async function buyMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('buyMYKBtn'),el=$('buyResult'),ua=parseFloat($('buyUSDTAmount').value);if(!ua||ua<=0){alert('请输入有效的USDT数量');return}el.style.display='block';el.innerHTML='⏳ 查询报价...';b.disabled=!0;try{const uw=Web3.utils.toWei(String(ua),'ether'),dl=Math.floor(Date.now()/1000)+300,mo=await getSwapQuote(uw,[USDT,MYK]),mm=String(Math.floor(Number(mo)*(1-buySlippage)));el.innerHTML='⏳ 授权 USDT...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,uw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 买入 MYK...';const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='✅ 买入成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractStats()},3000)}catch(e){el.innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;unlock()}}
+    async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';el.innerHTML='⏳ 查询报价...';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300,uo=await getSwapQuote(mw,[MYK,USDT]),mu=String(Math.floor(Number(uo)*(1-sellSlippage)));el.innerHTML='⏳ 授权 MYK...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:ad}]});el.innerHTML='⏳ 卖出 MYK...';const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractStats()},3000)}catch(e){el.innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;unlock()}}
 
     async function fetchAirdrop(){try{if(!web3)return;const d=encodeCall('getActivityPoolBalance()'),r=await web3.eth.call({to:RP,data:d}),rm=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',r),'ether')),pd=AIRDROP_TOTAL-rm,pc=Math.min(100,Math.max(0,(pd/AIRDROP_TOTAL)*100));$('airdropPaid').textContent=pd.toFixed(0);$('airdropRemaining').textContent=rm.toFixed(0);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%'}catch(e){$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--'}}
     async function fetchUserStats(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]),ur=await web3.eth.call({to:RP,data:ud}),u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);$('invitedCount').textContent=Number(u[1]);$('inviteProgress').style.width=Math.min(100,(Number(u[1])/25)*100).toFixed(1)+'%';if(u[7]>=3){$('firstCommunityCard').classList.remove('locked');$('firstCommunityStatus').textContent='🔓 已解锁';$('firstCommunityStatus').style.color='#4ecca3'}try{const sd=encodeCall('getStreakLength(address)',['address'],[userAddress]);$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:sd}))}catch(e){$('streakDays').textContent='0'}}catch(e){$('invitedCount').textContent='--';$('streakDays').textContent='--'}}
     async function refreshIdentityCard(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]),ur=await web3.eth.call({to:RP,data:ud}),u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur),rn=['无','🥉 PRIMARY','🥈 MIDDLE','🥇 第一社区','🥇 第二社区','🥇 第三社区','👑 COMMUNITY'];$('cardRole').textContent=rn[u[7]]||'未知';$('cardActiveBadge').innerHTML=u[8]?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';$('cardReferrer').textContent=u[0]==='0x0000000000000000000000000000000000000000'?'无':a6(u[0]);$('cardReferrer').style.color=u[0]==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';$('cardActivated').textContent=u[4]>0?new Date(Number(u[4])*1000).toLocaleDateString('zh-CN'):'未激活';$('cardInvited').textContent=u[1];try{$('cardStreak').textContent=web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])}))}catch(e){$('cardStreak').textContent='0'}try{$('cardMYK').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4)}catch(e){$('cardMYK').textContent='--'}try{$('cardUSDT').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4)}catch(e){$('cardUSDT').textContent='--'}}catch(e){}}
 
-    async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';try{const mw=Web3.utils.toWei(am,'ether'),d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='✅ 激活成功！';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard()},3000)}catch(e){$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock()}}
-    async function activateUSDT(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateUSDTBtn'),el=$('activateUSDTResult');el.style.display='block';el.innerHTML='⏳ 授权USDT...';b.disabled=!0;try{const f=web3.utils.toWei('2','ether'),ad=encodeCall('approve(address,uint256)',['address','uint256'],[RP,f]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 激活中...';const ac=encodeCall('activateWithUSDT(address)',['address'],['0x0000000000000000000000000000000000000000']);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:ac}]});el.innerHTML='✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard()},3000)}catch(e){const m=parseError(e);el.innerHTML=m.includes('referrer')?'⚠️ 推荐人无效或未绑定，请检查链上绑定关系':'❌ '+m}finally{b.disabled=!1;unlock()}}
+    async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';try{const mw=Web3.utils.toWei(am,'ether'),d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='✅ 激活成功！';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractStats()},3000)}catch(e){$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='❌ '+parseError(e)}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock()}}
+    async function activateUSDT(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateUSDTBtn'),el=$('activateUSDTResult');el.style.display='block';el.innerHTML='⏳ 授权USDT...';b.disabled=!0;try{const f=web3.utils.toWei('2','ether'),ad=encodeCall('approve(address,uint256)',['address','uint256'],[RP,f]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 激活中...';const ac=encodeCall('activateWithUSDT(address)',['address'],['0x0000000000000000000000000000000000000000']);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:ac}]});el.innerHTML='✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractStats()},3000)}catch(e){const m=parseError(e);el.innerHTML=m.includes('referrer')?'⚠️ 推荐人无效或未绑定，请检查链上绑定关系':'❌ '+m}finally{b.disabled=!1;unlock()}}
 
     async function fetchHoldingInfo(){if(!userAddress||!web3)return;try{const br=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});$('holdingBalance').textContent=n(web3.eth.abi.decodeParameter('uint256',br)).toFixed(4);const td=Math.floor(Date.now()/86400000);try{const cr=await web3.eth.call({to:RP,data:encodeCall('dailySettled(address,uint256)',['address','uint256'],[userAddress,String(td)])}),c=web3.eth.abi.decodeParameter('bool',cr);$('claimedToday').textContent=c?'✅ 已领取':'❌ 未领取';$('claimRewardBtn').disabled=c;$('claimRewardBtn').textContent=c?'✅ 今日已领取':'🎁 一键领取今日奖励';$('claimRewardBtn').style.opacity=c?'0.6':'1'}catch(e){$('claimedToday').textContent='--'}}catch(e){$('holdingBalance').textContent='--'}}
     async function fetchMerkleProof(){try{const r=await fetch(`${MERKLE_API_URL}/${userAddress}`);if(!r.ok){const ed=await r.json().catch(()=>({}));throw new Error(ed.message||'获取签名数据失败')}const d=await r.json();return{amountWei:web3.utils.toWei(String(d.amount),'ether'),batchId:String(d.batchId),proof:d.proof||[],root:d.root||'0x0000000000000000000000000000000000000000000000000000000000000000'}}catch(e){throw new Error('签名服务暂不可用，请稍后重试')}}
@@ -544,7 +491,6 @@
         setupSlippageButtons('panelBuy','buy');
         setupSlippageButtons('panelSell','sell');
         setupRefreshButton();
-        
         if(window.ethereum){
             web3=new Web3(window.ethereum);
             try{
@@ -558,15 +504,13 @@
                     fetchUserStats();
                     fetchHoldingInfo();
                     refreshIdentityCard();
+                    fetchContractStats();
                     fetchPastTransfers();
                     subscribeTransferEvents();
                 }
             }catch(e){}
-            window.ethereum.on('accountsChanged',()=>{
-                fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});
-            });
+            window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()})});
         }
-        
         $('connectWalletBtn').addEventListener('click',connectWallet);
         $('buyUSDTAmount').addEventListener('input',updateBuyQuote);
         $('sellMYKAmount').addEventListener('input',updateSellQuote);
