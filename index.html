@@ -45,6 +45,7 @@
         .btn-green { background:linear-gradient(135deg, #4ecca3, #2e8b6a); box-shadow:0 8px 18px rgba(78,204,163,0.3); }
         .btn-red { background:linear-gradient(135deg, #e94560, #ff6b6b); box-shadow:0 8px 18px rgba(233,69,96,0.3); }
         .btn-gold { background:linear-gradient(135deg, #f0b90b, #e8a000); box-shadow:0 8px 18px rgba(240,185,11,0.3); }
+        .btn-blue { background:linear-gradient(135deg, #4e8cca, #2e6baa); box-shadow:0 8px 18px rgba(78,140,202,0.3); }
         .tab-container { display:flex; background:#0c0f1c; border-radius:16px; padding:4px; margin:12px 0; border:1px solid #2d3355; }
         .tab { flex:1; text-align:center; padding:10px; border-radius:14px; font-weight:600; color:#9aa0c0; cursor:pointer; transition:0.2s; }
         .tab.active { background:#e94560; color:white; }
@@ -123,13 +124,13 @@
         </div>
     </div>
 
-    <!-- 3. MYK买卖 -->
+    <!-- 3. MYK买卖（移除抽奖提示） -->
     <div class="glass-card">
         <h2 style="justify-content:space-between;"><span>📈 买卖 MYK</span><span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span></span></h2>
         <div class="order-panel"><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div><div style="font-size:13px;color:#4ecca3;font-weight:700;" id="buyPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 USDT = <span id="buyRateDisplay">--</span> MYK</div></div><div class="order-divider"></div><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">卖出价</div><div style="font-size:13px;color:#e94560;font-weight:700;" id="sellPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 MYK = <span id="sellRateDisplay">--</span> USDT</div></div></div>
         <div class="tab-container" id="tradeTabSwitch"><div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div><div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div></div>
-        <div id="panelBuy"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK，满1U奖励3次抽奖</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button><div class="info-box" id="buyResult" style="display:none;"></div></div>
-        <div id="panelSell" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT，满1U奖励3次抽奖</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span></div><button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button><div class="info-box" id="sellResult" style="display:none;"></div></div>
+        <div id="panelBuy"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button><div class="info-box" id="buyResult" style="display:none;"></div></div>
+        <div id="panelSell" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span></div><button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button><div class="info-box" id="sellResult" style="display:none;"></div></div>
     </div>
 
     <!-- 4. 每日奖励 -->
@@ -139,11 +140,14 @@
     <div class="glass-card">
         <h2>🎰 抽奖中心</h2>
         <div class="desc">随机获得 <span class="highlight">1 ~ 10000 MYK</span> 奖励</div>
-        <div class="stat-row" style="margin:8px 0;"><span>🎯 剩余次数：<span class="stat-value" id="lotteryCredits">0</span></span></div>
+        <div class="stat-row" style="margin:8px 0;">
+            <span>🎯 剩余次数：<span class="stat-value" id="lotteryCredits">0</span></span>
+            <span>📅 今日已抽：<span class="stat-value" id="lotteryTodayCount">0</span>/10次</span>
+        </div>
         <div style="display:flex; gap:6px; margin:10px 0;">
-            <div class="asset-box lottery-rule-box" style="flex:1; background:rgba(78,204,163,0.1);"><div style="font-size:10px;color:#888;">🎁 激活赠送</div><div style="font-size:13px;color:#4ecca3;font-weight:700;">+1次</div></div>
-            <div class="asset-box lottery-rule-box" style="flex:1; background:rgba(240,185,11,0.1);"><div style="font-size:10px;color:#888;">📈 买≥1U</div><div style="font-size:13px;color:#f0b90b;font-weight:700;">+3次</div></div>
-            <div class="asset-box lottery-rule-box" style="flex:1; background:rgba(233,69,96,0.1);"><div style="font-size:10px;color:#888;">📉 卖≥1U</div><div style="font-size:13px;color:#e94560;font-weight:700;">+3次</div></div>
+            <div class="asset-box lottery-rule-box" style="flex:1; background:rgba(78,204,163,0.1);"><div style="font-size:10px;color:#888;">🎁 激活赠送</div><div style="font-size:13px;color:#4ecca3;font-weight:700;">+1次</div><div style="font-size:9px;color:#666;">仅一次</div></div>
+            <div class="asset-box lottery-rule-box" style="flex:1; background:rgba(240,185,11,0.1);"><div style="font-size:10px;color:#888;">📈 买≥1U</div><div style="font-size:13px;color:#f0b90b;font-weight:700;">+3次</div><div style="font-size:9px;color:#666;">每次交易</div></div>
+            <div class="asset-box lottery-rule-box" style="flex:1; background:rgba(78,140,202,0.1);"><div style="font-size:10px;color:#888;">📅 每日领取</div><div style="font-size:13px;color:#4e8cca;font-weight:700;">+1次</div><div style="font-size:9px;color:#666;">每天一次</div></div>
         </div>
         <button class="btn btn-gold" id="lotteryBtn" disabled>🔒 无抽奖次数</button>
         <div class="info-box" id="lotteryResult" style="display:none;"></div>
@@ -178,6 +182,9 @@
     const PCS_API = 'https://api.pancakeswap.info/api/v2/tokens/0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const LOTTERY_STORAGE = 'myk_lottery_credits';
     const ACTIVATION_CREDITS_GIVEN = 'myk_activation_credits_given';
+    const DAILY_LOTTERY_KEY = 'myk_daily_lottery';
+    const LOTTERY_TODAY_KEY = 'myk_lottery_today';
+    const MAX_DAILY_LOTTERY = 10;
 
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
     let holderSet = new Set(), newHolderSet = new Set(), transferRecords = [], transfer24hCount = 0, transfer24hVolume = 0;
@@ -209,40 +216,25 @@
     async function waitForTransaction(txHash, maxAttempts = 30) {for(let i=0;i<maxAttempts;i++){try{const receipt=await web3.eth.getTransactionReceipt(txHash);if(receipt){if(receipt.status)return receipt;else throw new Error('交易失败：链上 revert');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('交易确认超时');}
     function calcMinOutput(amountOut, slippage) {const amountBigInt=BigInt(amountOut);const numerator=BigInt(Math.round((1-slippage)*10000));const denominator=BigInt(10000);return (amountBigInt*numerator/denominator).toString();}
 
-    // ========== 抽奖次数管理（localStorage） ==========
-    function getLotteryCreditsLocal() {
-        try {
-            const stored = localStorage.getItem(LOTTERY_STORAGE + '_' + userAddress);
-            return stored ? parseInt(stored) : 0;
-        } catch(e) { return 0; }
-    }
+    // ========== 抽奖次数管理 ==========
+    function getLotteryCreditsLocal() { try { const s = localStorage.getItem(LOTTERY_STORAGE + '_' + userAddress); return s ? parseInt(s) : 0; } catch(e) { return 0; } }
+    function getTodayLotteryCount() { try { const s = localStorage.getItem(LOTTERY_TODAY_KEY + '_' + userAddress); if (!s) return 0; const d = JSON.parse(s); if (d.date !== getTodayKey()) { localStorage.removeItem(LOTTERY_TODAY_KEY + '_' + userAddress); return 0; } return d.count; } catch(e) { return 0; } }
+    function addTodayLotteryCount() { try { const c = getTodayLotteryCount() + 1; localStorage.setItem(LOTTERY_TODAY_KEY + '_' + userAddress, JSON.stringify({date:getTodayKey(), count:c})); return c; } catch(e) { return 0; } }
 
-    function addLotteryCredits(amount) {
-        try {
-            const current = getLotteryCreditsLocal();
-            const newAmount = current + amount;
-            localStorage.setItem(LOTTERY_STORAGE + '_' + userAddress, newAmount.toString());
-            updateLotteryDisplay(newAmount);
-            return newAmount;
-        } catch(e) { return 0; }
-    }
-
-    function deductLotteryCredit() {
-        try {
-            const current = getLotteryCreditsLocal();
-            if (current <= 0) return false;
-            localStorage.setItem(LOTTERY_STORAGE + '_' + userAddress, (current - 1).toString());
-            updateLotteryDisplay(current - 1);
-            return true;
-        } catch(e) { return false; }
-    }
+    function addLotteryCredits(amount) { try { const c = getLotteryCreditsLocal() + amount; localStorage.setItem(LOTTERY_STORAGE + '_' + userAddress, c.toString()); updateLotteryDisplay(c); return c; } catch(e) { return 0; } }
+    function deductLotteryCredit() { try { const c = getLotteryCreditsLocal(); if (c <= 0) return false; localStorage.setItem(LOTTERY_STORAGE + '_' + userAddress, (c - 1).toString()); addTodayLotteryCount(); updateLotteryDisplay(c - 1); return true; } catch(e) { return false; } }
 
     function updateLotteryDisplay(credits) {
         const c = credits !== undefined ? credits : getLotteryCreditsLocal();
+        const tc = getTodayLotteryCount();
         $('lotteryCredits').textContent = c;
-        if (c > 0) {
+        $('lotteryTodayCount').textContent = tc;
+        if (c > 0 && tc < MAX_DAILY_LOTTERY) {
             $('lotteryBtn').disabled = false;
             $('lotteryBtn').textContent = '🎰 立即抽奖 (' + c + '次)';
+        } else if (tc >= MAX_DAILY_LOTTERY) {
+            $('lotteryBtn').disabled = true;
+            $('lotteryBtn').textContent = '🔒 今日次数已满';
         } else {
             $('lotteryBtn').disabled = true;
             $('lotteryBtn').textContent = '🔒 无抽奖次数';
@@ -251,36 +243,25 @@
 
     function checkActivationCredits() {
         if (!userAddress) return;
-        try {
-            const key = ACTIVATION_CREDITS_GIVEN + '_' + userAddress;
-            const given = localStorage.getItem(key);
-            if (!given) {
-                addLotteryCredits(1);
-                localStorage.setItem(key, '1');
-            }
-        } catch(e) {}
+        try { const key = ACTIVATION_CREDITS_GIVEN + '_' + userAddress; if (!localStorage.getItem(key)) { addLotteryCredits(1); localStorage.setItem(key, '1'); } } catch(e) {}
     }
 
-    function grantTradeCredits(usdtAmount) {
-        if (!userAddress || usdtAmount < 1) return;
-        const tradeCount = localStorage.getItem('myk_trade_count_' + userAddress) || '0';
-        const newCount = parseInt(tradeCount) + 1;
-        localStorage.setItem('myk_trade_count_' + userAddress, newCount.toString());
-        addLotteryCredits(3);
+    function checkDailyCredits() {
+        if (!userAddress) return;
+        try { const key = DAILY_LOTTERY_KEY + '_' + userAddress; const s = localStorage.getItem(key); if (!s) { addLotteryCredits(1); localStorage.setItem(key, getTodayKey()); return; } if (s !== getTodayKey()) { addLotteryCredits(1); localStorage.setItem(key, getTodayKey()); } } catch(e) {}
     }
 
-    // ========== 抽奖执行 ==========
+    function grantTradeCredits(usdtAmount) { if (!userAddress || usdtAmount < 1) return; addLotteryCredits(3); }
+
     async function doLottery() {
         if (!userAddress) { alert('请先连接钱包'); return; }
+        if (getTodayLotteryCount() >= MAX_DAILY_LOTTERY) { alert('今日抽奖次数已满（10次），请明天再来'); return; }
         const credits = getLotteryCreditsLocal();
-        if (credits <= 0) { alert('抽奖次数不足，请交易获取更多次数'); return; }
+        if (credits <= 0) { alert('抽奖次数不足，请交易或领取每日次数'); return; }
         if (!lock()) return;
-        const btn = $('lotteryBtn');
-        const el = $('lotteryResult');
-        btn.disabled = true;
-        btn.textContent = '抽奖中...';
-        el.style.display = 'block';
-        el.innerHTML = '⏳ 正在抽奖...';
+        const btn = $('lotteryBtn'); const el = $('lotteryResult');
+        btn.disabled = true; btn.textContent = '抽奖中...';
+        el.style.display = 'block'; el.innerHTML = '⏳ 正在抽奖...';
         try {
             const data = encodeCall('tradeLottery()');
             const tx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: data }] });
@@ -288,36 +269,18 @@
             await waitForTransaction(tx);
             deductLotteryCredit();
             el.innerHTML = '🎉 恭喜中奖！请查看余额';
-            el.style.borderLeftColor = '#f0b90b';
-            el.style.background = 'rgba(240,185,11,0.1)';
+            el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
             setTimeout(() => { fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000);
         } catch(e) {
             const m = parseError(e);
-            if (m.includes('no credits')) { el.innerHTML = '⚠️ 抽奖次数不足，请交易获取更多次数'; }
+            if (m.includes('no credits')) { el.innerHTML = '⚠️ 抽奖次数不足'; }
             else { el.innerHTML = '❌ ' + m; }
         } finally { btn.disabled = false; unlock(); }
     }
 
-    async function fetchRoleRates() {
-        if (!web3) return;
-        try { const r=await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')}); const v=web3.eth.abi.decodeParameter('uint256',r); $('primaryRate').textContent=(Number(v)/10).toFixed(1)+'%'; } catch(e) { $('primaryRate').textContent='1.2%'; }
-        try { const r=await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')}); const v=web3.eth.abi.decodeParameter('uint256',r); $('middleRate').textContent=(Number(v)/10).toFixed(1)+'%'; } catch(e) { $('middleRate').textContent='2.0%'; }
-        try { const r=await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')}); const v=web3.eth.abi.decodeParameter('uint256',r); $('communityRate').textContent=(Number(v)/10).toFixed(1)+'%'; } catch(e) { $('communityRate').textContent='2.5%'; }
-    }
-
-    async function fetchContractInfo() {
-        if (!web3) return;
-        try{$('totalSupply').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('totalSupply()')}))));}catch(e){$('totalSupply').textContent='--';}
-        try{$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[RP])}))));}catch(e){$('bonusPool').textContent='--';}
-        try{$('burnedAmount').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[ZERO_ADDR])}))));}catch(e){$('burnedAmount').textContent='--';}
-        try{$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:GOV,data:encodeCall('totalLockedAmount()')}))));}catch(e){$('govLocked').textContent='--';}
-        try{$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[FM])}))));}catch(e){$('fundAsset').textContent='--';}
-        fetchRoleRates();
-    }
-
-    async function updateOrderPanel() {
-        try{if(!web3)return;const pairAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];const pc=new web3.eth.Contract(pairAbi,PAIR);const token0=await pc.methods.token0().call();const reserves=await pc.methods.getReserves().call();const r0=BigInt(reserves[0]),r1=BigInt(reserves[1]);let reserveUSDT,reserveMYK;if(token0.toLowerCase()===USDT.toLowerCase()){reserveUSDT=r0;reserveMYK=r1;}else{reserveUSDT=r1;reserveMYK=r0;}const sellRate=Number((reserveUSDT*BigInt(10**18))/reserveMYK)/1e18;const buyRate=Number((reserveMYK*BigInt(10**18))/reserveUSDT)/1e18;$('buyRateDisplay').textContent=buyRate.toFixed(4);$('sellRateDisplay').textContent=sellRate.toFixed(6);$('buyPriceDisplay').textContent='$'+sellRate.toFixed(6);$('sellPriceDisplay').textContent='$'+sellRate.toFixed(6);}catch(e){}}
-
+    async function fetchRoleRates() { if(!web3)return; try{$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.2%';} try{$('middleRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('middleRate').textContent='2.0%';} try{$('communityRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('communityRate').textContent='2.5%';} }
+    async function fetchContractInfo() { if(!web3)return; try{$('totalSupply').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('totalSupply()')}))));}catch(e){$('totalSupply').textContent='--';} try{$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[RP])}))));}catch(e){$('bonusPool').textContent='--';} try{$('burnedAmount').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[ZERO_ADDR])}))));}catch(e){$('burnedAmount').textContent='--';} try{$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:GOV,data:encodeCall('totalLockedAmount()')}))));}catch(e){$('govLocked').textContent='--';} try{$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[FM])}))));}catch(e){$('fundAsset').textContent='--';} fetchRoleRates(); }
+    async function updateOrderPanel() { try{if(!web3)return;const pairAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];const pc=new web3.eth.Contract(pairAbi,PAIR);const token0=await pc.methods.token0().call();const reserves=await pc.methods.getReserves().call();const r0=BigInt(reserves[0]),r1=BigInt(reserves[1]);let reserveUSDT,reserveMYK;if(token0.toLowerCase()===USDT.toLowerCase()){reserveUSDT=r0;reserveMYK=r1;}else{reserveUSDT=r1;reserveMYK=r0;}const sellRate=Number((reserveUSDT*BigInt(10**18))/reserveMYK)/1e18;const buyRate=Number((reserveMYK*BigInt(10**18))/reserveUSDT)/1e18;$('buyRateDisplay').textContent=buyRate.toFixed(4);$('sellRateDisplay').textContent=sellRate.toFixed(6);$('buyPriceDisplay').textContent='$'+sellRate.toFixed(6);$('sellPriceDisplay').textContent='$'+sellRate.toFixed(6);}catch(e){}}
     function updateTransferUI(){$('holderCount').textContent=holderSet.size;$('newHolderCount').textContent=newHolderSet.size;$('transfer24hCount').textContent=transfer24hCount;$('transfer24hVolume').textContent=transfer24hVolume.toFixed(2);const le=$('transferList');if(!transferRecords.length){le.innerHTML='<div style="text-align:center;color:#888;padding:20px;">⏳ 暂无转账数据，请点击刷新</div>';return}le.innerHTML=transferRecords.slice(0,20).map(r=>`<div class="transfer-item"><span style="display:flex;align-items:center;gap:6px;"><span class="addr">${a6(r.to)}</span><span class="${r.isNewHolder?'type-new':'type-transfer'}">${r.isNewHolder?'NEW':'转账'}</span></span><span style="display:flex;align-items:center;gap:6px;"><span class="amount">${parseFloat(r.amount).toFixed(2)} MYK</span><span style="color:#888;font-size:10px;">${new Date(r.timestamp*1000).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span></span></div>`).join('');}
     function handleTransferEvent(f,t,v,ts){const a=Web3.utils.fromWei(v,'ether'),nH=!holderSet.has(t)&&t!=='0x0000000000000000000000000000000000000000';if(nH)newHolderSet.add(t);holderSet.add(t);const n=Math.floor(Date.now()/1000);if(n-ts<86400){transfer24hCount++;transfer24hVolume+=parseFloat(a)}transferRecords.unshift({from:f,to:t,amount:a,timestamp:ts,isNewHolder:nH});if(transferRecords.length>MAX_TRANSFER_RECORDS)transferRecords=transferRecords.slice(0,MAX_TRANSFER_RECORDS);updateTransferUI();}
     async function getLogsWithRetry(fb,tb,rt=3){for(let i=0;i<rt;i++){try{return await web3.eth.getPastLogs({address:MYK,topics:[TRANSFER_TOPIC],fromBlock:fb,toBlock:tb})}catch(e){if(i===rt-1)throw e;await new Promise(r=>setTimeout(r,1000*(i+1)));}}}
@@ -325,21 +288,8 @@
     function subscribeTransferEvents(){if(!web3)return;let lb=0;return setInterval(async()=>{try{const cb=await web3.eth.getBlockNumber();if(lb===0){lb=cb;return}if(cb<=lb)return;const logs=await getLogsWithRetry(lb+1,cb,2);for(const l of logs){try{const bl=await web3.eth.getBlock(l.blockNumber);handleTransferEvent('0x'+l.topics[1].slice(26),'0x'+l.topics[2].slice(26),l.data,Number(bl.timestamp))}catch(e){}}lb=cb;}catch(e){}},5000);}
     function setupRefreshBtn(){$('refreshTransferBtn').addEventListener('click',async()=>{$('transferList').innerHTML='<div style="text-align:center;color:#888;padding:20px;">⏳ 正在刷新数据...</div>';transfer24hCount=0;transfer24hVolume=0;transferRecords=[];newHolderSet.clear();await fetchPastTransfers();});}
 
-    async function connectWallet(){if(!window.ethereum){alert('请安装MetaMask');return}const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();updateLotteryDisplay();checkActivationCredits();fetchPastTransfers();subscribeTransferEvents();}
-
-    async function fetchPrice(){
-        try{
-            if(!web3)return;
-            try{const d=encodeCall('getCurrentPrice()'),r=await web3.eth.call({to:RP,data:d}),rp=web3.eth.abi.decodeParameter('uint256',r);if(BigInt(rp)>BigInt(0))activationPrice=rp.toString();}catch(e1){if(BigInt(spotPrice)>BigInt(0))activationPrice=spotPrice;}
-            try{const pAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}],pc=new web3.eth.Contract(pAbi,PAIR),t0=await pc.methods.token0().call(),rv=await pc.methods.getReserves().call(),r0=BigInt(rv[0]),r1=BigInt(rv[1]);if(r0===BigInt(0)||r1===BigInt(0))throw new Error('0');let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1;}else{rU=r1;rM=r0;}spotPrice=((rU*BigInt(10**18))/rM).toString();}catch(e2){}
-            const sp=getSpotPrice();
-            const pcsResult = await fetchPCSChange();
-            if (pcsResult) { updatePriceDisplay(sp, pcsResult.change); }
-            else { const localResult = getLocalChange(sp); updatePriceDisplay(sp, localResult.change); }
-            updateActivateSuggestion();updateBuyQuote();updateSellQuote();updateOrderPanel();
-        }catch(e){$('tradePriceDisplay').textContent='1.00';$('tradePriceBadge').className='trade-price-badge price-change-flat';$('tradeChangeDisplay').textContent='--';updateActivateSuggestion();}
-    }
-
+    async function connectWallet(){if(!window.ethereum){alert('请安装MetaMask');return}const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();updateLotteryDisplay();checkActivationCredits();checkDailyCredits();fetchPastTransfers();subscribeTransferEvents();}
+    async function fetchPrice(){try{if(!web3)return;try{activationPrice=(await web3.eth.call({to:RP,data:encodeCall('getCurrentPrice()')})).toString();}catch(e1){if(BigInt(spotPrice)>BigInt(0))activationPrice=spotPrice;}try{const pAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}],pc=new web3.eth.Contract(pAbi,PAIR),t0=await pc.methods.token0().call(),rv=await pc.methods.getReserves().call(),r0=BigInt(rv[0]),r1=BigInt(rv[1]);if(r0===BigInt(0)||r1===BigInt(0))throw new Error('0');let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1;}else{rU=r1;rM=r0;}spotPrice=((rU*BigInt(10**18))/rM).toString();}catch(e2){}const sp=getSpotPrice();const pcs=await fetchPCSChange();if(pcs){updatePriceDisplay(sp,pcs.change);}else{const lr=getLocalChange(sp);updatePriceDisplay(sp,lr.change);}updateActivateSuggestion();updateBuyQuote();updateSellQuote();updateOrderPanel();}catch(e){$('tradePriceDisplay').textContent='1.00';$('tradePriceBadge').className='trade-price-badge price-change-flat';$('tradeChangeDisplay').textContent='--';updateActivateSuggestion();}}
     function startPriceAutoRefresh(){fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});priceRefreshInterval=setInterval(()=>{const s=localStorage.getItem(STORAGE_KEY);if(s){try{const d=JSON.parse(s);if(d.date!==getTodayKey())localStorage.removeItem(STORAGE_KEY);}catch(e){}}fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});},30000);}
 
     async function getSwapQuote(ai,p){try{const rAbi=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}],rc=new web3.eth.Contract(rAbi,ROUTER),ams=await rc.methods.getAmountsOut(ai,p).call();return ams[1];}catch(e){const pr=getSpotPrice();if(isNaN(pr)||pr<=0)return'0';const an=parseFloat(Web3.utils.fromWei(ai,'ether'));return p[0].toLowerCase()===USDT.toLowerCase()?Web3.utils.toWei(String(an/pr),'ether'):Web3.utils.toWei(String(an*pr),'ether');}}
@@ -347,7 +297,7 @@
     async function updateSellQuote(){const ma=parseFloat($('sellMYKAmount').value)||0;if(ma<=0){$('expectedUSDT').textContent='--';return}try{const mw=Web3.utils.toWei(String(ma),'ether'),uo=await getSwapQuote(mw,[MYK,USDT]),us=parseFloat(Web3.utils.fromWei(uo,'ether'))*(1-sellSlippage);$('expectedUSDT').textContent=us.toFixed(6);}catch(e){$('expectedUSDT').textContent='--';}}
 
     async function buyMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('buyMYKBtn'),el=$('buyResult'),ua=parseFloat($('buyUSDTAmount').value);if(!ua||ua<=0){alert('请输入有效的USDT数量');return}el.style.display='block';b.disabled=!0;try{const uw=Web3.utils.toWei(String(ua),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const mo=await getSwapQuote(uw,[USDT,MYK]);const mm=calcMinOutput(mo,buySlippage);el.innerHTML='⏳ 检查余额...';const balR=await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',balR))<BigInt(uw))throw new Error('USDT余额不足');el.innerHTML='⏳ 授权 USDT...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,uw]);const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 买入 MYK...';const sd=encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)]);const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);if(ua>=1){grantTradeCredits(ua);el.innerHTML='✅ 买入成功！获得3次抽奖机会';}else{el.innerHTML='✅ 买入成功！';}setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);if(m.includes('User denied')||m.includes('rejected'))el.innerHTML='⚠️ 交易已取消';else if(m.includes('insufficient'))el.innerHTML='⚠️ 余额不足';else el.innerHTML='❌ '+m;}finally{b.disabled=!1;unlock();}}
-    async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const uo=await getSwapQuote(mw,[MYK,USDT]);const mu=calcMinOutput(uo,sellSlippage);const usdtValue=parseFloat(Web3.utils.fromWei(uo,'ether'));el.innerHTML='⏳ 检查余额...';const balR=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',balR))<BigInt(mw))throw new Error('MYK余额不足');el.innerHTML='⏳ 授权 MYK...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw]);const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:ad}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 卖出 MYK...';const sd=encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);if(usdtValue>=1){grantTradeCredits(usdtValue);el.innerHTML='✅ 卖出成功！获得3次抽奖机会';}else{el.innerHTML='✅ 卖出成功！';}setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);if(m.includes('User denied')||m.includes('rejected'))el.innerHTML='⚠️ 交易已取消';else if(m.includes('insufficient'))el.innerHTML='⚠️ 余额不足';else el.innerHTML='❌ '+m;}finally{b.disabled=!1;unlock();}}
+    async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const uo=await getSwapQuote(mw,[MYK,USDT]);const mu=calcMinOutput(uo,sellSlippage);el.innerHTML='⏳ 检查余额...';const balR=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',balR))<BigInt(mw))throw new Error('MYK余额不足');el.innerHTML='⏳ 授权 MYK...';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw]);const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:ad}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 卖出 MYK...';const sd=encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);if(m.includes('User denied')||m.includes('rejected'))el.innerHTML='⚠️ 交易已取消';else if(m.includes('insufficient'))el.innerHTML='⚠️ 余额不足';else el.innerHTML='❌ '+m;}finally{b.disabled=!1;unlock();}}
 
     async function fetchAirdrop(){try{if(!web3)return;const d=encodeCall('getActivityPoolBalance()'),r=await web3.eth.call({to:RP,data:d}),rm=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',r),'ether')),pd=AIRDROP_TOTAL-rm,pc=Math.min(100,Math.max(0,(pd/AIRDROP_TOTAL)*100));$('airdropPaid').textContent=pd.toFixed(0);$('airdropRemaining').textContent=rm.toFixed(0);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%';}catch(e){$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--';}}
     async function fetchUserStats(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]),ur=await web3.eth.call({to:RP,data:ud}),u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);$('invitedCount').textContent=Number(u[1]);$('inviteProgress').style.width=Math.min(100,(Number(u[1])/25)*100).toFixed(1)+'%';if(u[7]>=3){$('firstCommunityCard').classList.remove('locked');$('firstCommunityStatus').textContent='🔓 已解锁';$('firstCommunityStatus').style.color='#4ecca3';}try{$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])}));}catch(e){$('streakDays').textContent='0';}}catch(e){$('invitedCount').textContent='--';$('streakDays').textContent='--';}}
@@ -363,7 +313,7 @@
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote();}else{sellSlippage=s;updateSellQuote();}});});}
     function setupTabs(){document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion();});});document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell');});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote();});});}
 
-    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupRefreshBtn();if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();updateLotteryDisplay();checkActivationCredits();fetchPastTransfers();subscribeTransferEvents();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);$('lotteryBtn').addEventListener('click',doLottery);});
+    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupRefreshBtn();if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();updateLotteryDisplay();checkActivationCredits();checkDailyCredits();fetchPastTransfers();subscribeTransferEvents();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);$('lotteryBtn').addEventListener('click',doLottery);});
 })();
 </script>
 </body>
