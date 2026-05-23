@@ -299,68 +299,49 @@
         try { const d=encodeCall('balanceOf(address)',['address'],[FM]),r=await web3.eth.call({to:MYK,data:d});$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('fundAsset').textContent='--'; }
     }
 
-    // ========== Router 价格查询（与 TP 钱包一致） ==========
-    async function getRouterPrice(amountIn, path) {
-        const routerAbi = [{
-            "constant": true,
-            "inputs": [
-                { "internalType": "uint256", "name": "amountIn", "type": "uint256" },
-                { "internalType": "address[]", "name": "path", "type": "address[]" }
-            ],
-            "name": "getAmountsOut",
-            "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }],
-            "type": "function"
-        }];
-        const rc = new web3.eth.Contract(routerAbi, ROUTER);
-        const amounts = await rc.methods.getAmountsOut(amountIn, path).call();
-        return amounts[1];
-    }
-
-    // ========== 实时订单面板（使用 Router 价格） ==========
+    // ========== 实时订单面板（BigInt高精度修复） ==========
     async function updateOrderPanel() {
         try {
             if (!web3) return;
+            const pairAbi = [
+                {"constant":true,"inputs":[],"name":"getReserves","outputs":[
+                    {"internalType":"uint112","name":"_reserve0","type":"uint112"},
+                    {"internalType":"uint112","name":"_reserve1","type":"uint112"},
+                    {"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}
+                ],"type":"function"},
+                {"constant":true,"inputs":[],"name":"token0","outputs":[
+                    {"internalType":"address","name":"","type":"address"}
+                ],"type":"function"}
+            ];
+            const pc = new web3.eth.Contract(pairAbi, PAIR);
+            const token0 = await pc.methods.token0().call();
+            const reserves = await pc.methods.getReserves().call();
             
-            const oneUSDT = Web3.utils.toWei('1', 'ether');
-            const oneMYK = Web3.utils.toWei('1', 'ether');
+            // 🔧 使用 BigInt 高精度计算
+            const r0 = BigInt(reserves[0]);
+            const r1 = BigInt(reserves[1]);
             
-            // 买入：1 USDT 能买多少 MYK
-            const mykOut = await getRouterPrice(oneUSDT, [USDT, MYK]);
-            const buyRate = parseFloat(Web3.utils.fromWei(mykOut, 'ether'));
+            let reserveUSDT, reserveMYK;
+            if (token0.toLowerCase() === USDT.toLowerCase()) { reserveUSDT = r0; reserveMYK = r1; }
+            else { reserveUSDT = r1; reserveMYK = r0; }
             
-            // 卖出：1 MYK 能卖多少 USDT
-            const usdtOut = await getRouterPrice(oneMYK, [MYK, USDT]);
-            const sellRate = parseFloat(Web3.utils.fromWei(usdtOut, 'ether'));
+            // sellRate = 1 MYK 能卖多少 USDT = reserveUSDT / reserveMYK
+            const sellRateBigInt = (reserveUSDT * BigInt(10**18)) / reserveMYK;
+            const sellRate = Number(sellRateBigInt) / 1e18;
+            
+            // buyRate = 1 USDT 能买多少 MYK = reserveMYK / reserveUSDT
+            const buyRateBigInt = (reserveMYK * BigInt(10**18)) / reserveUSDT;
+            const buyRate = Number(buyRateBigInt) / 1e18;
             
             $('buyRateDisplay').textContent = buyRate.toFixed(4);
             $('sellRateDisplay').textContent = sellRate.toFixed(6);
             $('buyPriceDisplay').textContent = '$' + sellRate.toFixed(6);
             $('sellPriceDisplay').textContent = '$' + sellRate.toFixed(6);
             
-            // 储备显示
-            try {
-                const pairAbi = [
-                    {"constant":true,"inputs":[],"name":"getReserves","outputs":[
-                        {"internalType":"uint112","name":"_reserve0","type":"uint112"},
-                        {"internalType":"uint112","name":"_reserve1","type":"uint112"},
-                        {"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}
-                    ],"type":"function"},
-                    {"constant":true,"inputs":[],"name":"token0","outputs":[
-                        {"internalType":"address","name":"","type":"address"}
-                    ],"type":"function"}
-                ];
-                const pc = new web3.eth.Contract(pairAbi, PAIR);
-                const token0 = await pc.methods.token0().call();
-                const reserves = await pc.methods.getReserves().call();
-                const r0 = BigInt(reserves[0]);
-                const r1 = BigInt(reserves[1]);
-                let reserveUSDT, reserveMYK;
-                if (token0.toLowerCase() === USDT.toLowerCase()) { reserveUSDT = r0; reserveMYK = r1; }
-                else { reserveUSDT = r1; reserveMYK = r0; }
-                const usdtDisplay = parseFloat(Web3.utils.fromWei(reserveUSDT.toString(), 'ether'));
-                const mykDisplay = parseFloat(Web3.utils.fromWei(reserveMYK.toString(), 'ether'));
-                $('poolReserve').textContent = formatM(usdtDisplay) + ' / ' + formatM(mykDisplay);
-            } catch(e) { $('poolReserve').textContent = '--'; }
+            // 储备显示（使用 parseFloat 展示即可）
+            const usdtDisplay = parseFloat(Web3.utils.fromWei(reserveUSDT.toString(), 'ether'));
+            const mykDisplay = parseFloat(Web3.utils.fromWei(reserveMYK.toString(), 'ether'));
+            $('poolReserve').textContent = formatM(usdtDisplay) + ' / ' + formatM(mykDisplay);
             
         } catch(e) {}
     }
@@ -381,7 +362,7 @@
 
     async function connectWallet(){if(!window.ethereum){alert('请安装MetaMask');return}const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();fetchPastTransfers();subscribeTransferEvents()}
 
-    async function fetchPrice(){try{if(!web3)return;try{const d=encodeCall('getCurrentPrice()'),r=await web3.eth.call({to:RP,data:d}),rp=web3.eth.abi.decodeParameter('uint256',r);if(BigInt(rp)>BigInt(0))activationPrice=rp.toString()}catch(e1){if(BigInt(spotPrice)>BigInt(0))activationPrice=spotPrice}try{const oneUSDT=Web3.utils.toWei('1','ether');const mykOut=await getRouterPrice(oneUSDT,[USDT,MYK]);const routerPrice=parseFloat(Web3.utils.fromWei(mykOut,'ether'));spotPrice=Web3.utils.toWei(String(1/routerPrice),'ether')}catch(e2){}const sp=getSpotPrice();let bp=getBaselinePrice();if(!bp){setBaselinePrice(sp);bp=sp}updatePriceDisplay(sp,calcChange(sp,bp));updateActivateSuggestion();updateBuyQuote();updateSellQuote();updateOrderPanel()}catch(e){$('tradePriceDisplay').textContent='1.00';$('tradePriceBadge').className='trade-price-badge price-change-flat';$('tradeChangeDisplay').textContent='--';updateActivateSuggestion()}}
+    async function fetchPrice(){try{if(!web3)return;try{const d=encodeCall('getCurrentPrice()'),r=await web3.eth.call({to:RP,data:d}),rp=web3.eth.abi.decodeParameter('uint256',r);if(BigInt(rp)>BigInt(0))activationPrice=rp.toString()}catch(e1){if(BigInt(spotPrice)>BigInt(0))activationPrice=spotPrice}try{const pAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}],pc=new web3.eth.Contract(pAbi,PAIR),t0=await pc.methods.token0().call(),rv=await pc.methods.getReserves().call(),r0=BigInt(rv[0]),r1=BigInt(rv[1]);if(r0===BigInt(0)||r1===BigInt(0))throw new Error('0');let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1}else{rU=r1;rM=r0}spotPrice=((rU*BigInt(10**18))/rM).toString()}catch(e2){}const sp=getSpotPrice();let bp=getBaselinePrice();if(!bp){setBaselinePrice(sp);bp=sp}updatePriceDisplay(sp,calcChange(sp,bp));updateActivateSuggestion();updateBuyQuote();updateSellQuote();updateOrderPanel()}catch(e){$('tradePriceDisplay').textContent='1.00';$('tradePriceBadge').className='trade-price-badge price-change-flat';$('tradeChangeDisplay').textContent='--';updateActivateSuggestion()}}
     function startPriceAutoRefresh(){fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});priceRefreshInterval=setInterval(()=>{const s=localStorage.getItem(STORAGE_KEY);if(s){try{const d=JSON.parse(s);if(d.date!==getTodayKey())localStorage.removeItem(STORAGE_KEY)}catch(e){}}fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()})},30000)}
 
     async function getSwapQuote(ai,p){try{const rAbi=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}],rc=new web3.eth.Contract(rAbi,ROUTER),ams=await rc.methods.getAmountsOut(ai,p).call();return ams[1]}catch(e){const pr=getSpotPrice();if(isNaN(pr)||pr<=0)return'0';const an=parseFloat(Web3.utils.fromWei(ai,'ether'));return p[0].toLowerCase()===USDT.toLowerCase()?Web3.utils.toWei(String(an/pr),'ether'):Web3.utils.toWei(String(an*pr),'ether')}}
