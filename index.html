@@ -165,26 +165,7 @@
         <div class="stat-row" style="margin-top:4px;"><span style="color:#888;">总量: 1,000,000 MYK</span><span style="color:#888;" id="airdropPercent">0%</span></div>
     </div>
 
-    <!-- 5. 个人身份 -->
-    <div class="glass-card">
-        <h2>👤 个人身份</h2>
-        <div class="stat-row"><span>🏷️ 角色：<span class="stat-value" id="cardRole">--</span></span><span id="cardActiveBadge" style="font-size:12px;">--</span></div>
-        <div class="stat-row"><span>👥 推荐人：<span class="stat-value" id="cardReferrer">--</span></span></div>
-        <div class="stat-row"><span>📅 激活时间：<span class="stat-value" id="cardActivated">--</span></span></div>
-        <div class="stat-row"><span>🤝 直推人数：<span class="stat-value" id="cardInvited">--</span></span><span>📋 连续领取：<span class="stat-value" id="cardStreak">--</span> 天</span></div>
-        <div style="display:flex; gap:12px; margin-top:14px;">
-            <div class="asset-box" style="flex:1;">
-                <div class="asset-label">💰 MYK</div>
-                <div class="stat-value asset-value" id="cardMYK">--</div>
-            </div>
-            <div class="asset-box" style="flex:1;">
-                <div class="asset-label">💵 USDT</div>
-                <div class="stat-value asset-value" id="cardUSDT">--</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 6. 激活初级 -->
+    <!-- 5. 激活初级（移至身份前面） -->
     <div class="glass-card">
         <h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2>
         <div class="tab-container" id="activateTabSwitch">
@@ -203,6 +184,25 @@
             <input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="2.2" step="0.1" min="0">
             <button class="btn" id="activateMYKBtn">💸 支付MYK激活</button>
             <div class="info-box" id="activateMYKResult" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- 6. 个人身份 -->
+    <div class="glass-card">
+        <h2>👤 个人身份</h2>
+        <div class="stat-row"><span>🏷️ 角色：<span class="stat-value" id="cardRole">--</span></span><span id="cardActiveBadge" style="font-size:12px;">--</span></div>
+        <div class="stat-row"><span>👥 推荐人：<span class="stat-value" id="cardReferrer">--</span></span></div>
+        <div class="stat-row"><span>📅 激活时间：<span class="stat-value" id="cardActivated">--</span></span></div>
+        <div class="stat-row"><span>🤝 直推人数：<span class="stat-value" id="cardInvited">--</span></span><span>📋 连续领取：<span class="stat-value" id="cardStreak">--</span> 天</span></div>
+        <div style="display:flex; gap:12px; margin-top:14px;">
+            <div class="asset-box" style="flex:1;">
+                <div class="asset-label">💰 MYK</div>
+                <div class="stat-value asset-value" id="cardMYK">--</div>
+            </div>
+            <div class="asset-box" style="flex:1;">
+                <div class="asset-label">💵 USDT</div>
+                <div class="stat-value asset-value" id="cardUSDT">--</div>
+            </div>
         </div>
     </div>
 
