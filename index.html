@@ -91,6 +91,10 @@
         .contract-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
         .order-panel { display:flex; gap:8px; margin-bottom:10px; padding:10px; background:rgba(15,20,34,0.8); border-radius:14px; border:1px solid #2a2f52; }
         .order-divider { width:1px; background:#2a2f52; }
+        .rate-box { flex:1; background:#0f1422; border-radius:16px; padding:14px; text-align:center; border:1px solid #2a2f52; }
+        .rate-value { font-size:18px; color:#4ef0a8; font-weight:700; }
+        .rate-label { font-size:10px; color:#888; margin-top:4px; }
+        .rate-condition { font-size:10px; color:#666; margin-top:4px; }
     </style>
 </head>
 <body>
@@ -98,11 +102,13 @@
     <div class="lang-bar"><div class="lang-toggle" id="langToggle"><span>🌐</span> <span id="langText">EN</span></div></div>
     <h1>🌐 MYK 生态面板</h1>
 
+    <!-- 1. 钱包 -->
     <div class="glass-card" style="padding:14px;">
         <div class="wallet-row"><span style="color:#b0b8d0;">🔗 钱包</span><span class="wallet-addr" id="walletDisplay">未连接</span></div>
         <button class="btn btn-outline" id="connectWalletBtn" style="margin-top:8px;">🔓 连接钱包</button>
     </div>
 
+    <!-- 2. 个人身份 -->
     <div class="glass-card">
         <h2>👤 个人身份</h2>
         <div class="stat-row"><span>🏷️ 角色：<span class="stat-value" id="cardRole">--</span></span><span id="cardActiveBadge" style="font-size:12px;">--</span></div>
@@ -115,6 +121,7 @@
         </div>
     </div>
 
+    <!-- 3. MYK买卖 -->
     <div class="glass-card">
         <h2 style="justify-content:space-between;">
             <span>📈 买卖 MYK</span>
@@ -147,6 +154,7 @@
         </div>
     </div>
 
+    <!-- 4. 每日奖励 -->
     <div class="glass-card">
         <h2>🎁 每日奖励</h2>
         <div class="desc">持币即可领奖，<span class="highlight">一键领取</span></div>
@@ -157,14 +165,16 @@
         <div class="info-box" id="claimRewardResult" style="display:none;"></div>
     </div>
 
+    <!-- 5. 新人空投 -->
     <div class="glass-card">
-        <h2>🎁 活动赠送</h2>
+        <h2>🎁 新人空投进度</h2>
         <div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK</div>
         <div class="stat-row"><span>已发放: <span class="stat-value" id="airdropPaid">--</span> MYK</span><span>剩余: <span class="stat-value" id="airdropRemaining">--</span> MYK</span></div>
         <div class="progress-bar-container"><div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div></div>
         <div class="stat-row" style="margin-top:4px;"><span style="color:#888;">总量: 1,000,000 MYK</span><span style="color:#888;" id="airdropPercent">0%</span></div>
     </div>
 
+    <!-- 6. 激活初级 -->
     <div class="glass-card">
         <h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2>
         <div class="tab-container" id="activateTabSwitch">
@@ -186,6 +196,7 @@
         </div>
     </div>
 
+    <!-- 7. 第一社区权益 -->
     <div class="glass-card unlock-card locked" id="firstCommunityCard">
         <h2>🔓 第一社区权益 <span class="badge badge-gold">权益卡</span></h2>
         <div class="desc" id="firstCommunityStatus">🔒 未解锁</div>
@@ -195,6 +206,31 @@
         <div class="progress-bar-container"><div class="progress-bar-fill" id="inviteProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
     </div>
 
+    <!-- 🆕 8. 角色费率卡片 -->
+    <div class="glass-card">
+        <div style="display:flex; gap:10px;">
+            <div class="rate-box">
+                <div class="asset-label">🥉 PRIMARY</div>
+                <div class="rate-value">1.2%</div>
+                <div class="rate-label">日收益率</div>
+                <div class="rate-condition">激活条件：支付2 USDT</div>
+            </div>
+            <div class="rate-box">
+                <div class="asset-label">🥈 MIDDLE</div>
+                <div class="rate-value">2.0%</div>
+                <div class="rate-label">日收益率</div>
+                <div class="rate-condition">升级条件：直推3人</div>
+            </div>
+            <div class="rate-box">
+                <div class="asset-label">👑 COMMUNITY</div>
+                <div class="rate-value">2.5%</div>
+                <div class="rate-label">日收益率</div>
+                <div class="rate-condition">升级条件：锁仓认证</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. 合约信息 -->
     <div class="glass-card">
         <div class="contract-info-grid">
             <div class="asset-box asset-box-full"><div class="asset-label">📊 MYK总发行量</div><div class="stat-value" id="totalSupply" style="font-size:16px;">--</div></div>
@@ -205,6 +241,7 @@
         </div>
     </div>
 
+    <!-- 10. 链上监控 -->
     <div class="glass-card">
         <h2>📊 链上监控 <span class="live-dot"></span><span style="font-size:11px;color:#4ecca3;">实时</span></h2>
         <div class="stat-row"><span>持币地址数：<span class="stat-value" id="holderCount">0</span></span><span>新增持币：<span class="stat-value" id="newHolderCount">0</span></span></div>
@@ -221,8 +258,6 @@
     const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',GOV='0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72',FM='0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
     const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
-
-    // 🔧 使用支持转账费的 swap 函数签名
     const SWAP_SIG = 'swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
 
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
@@ -250,13 +285,8 @@
 
     async function waitForTransaction(txHash, maxAttempts = 30) {
         for (let i = 0; i < maxAttempts; i++) {
-            try {
-                const receipt = await web3.eth.getTransactionReceipt(txHash);
-                if (receipt) {
-                    if (receipt.status) return receipt;
-                    else throw new Error('交易失败：链上 revert');
-                }
-            } catch (e) { if (i === maxAttempts - 1) throw e; }
+            try { const receipt = await web3.eth.getTransactionReceipt(txHash); if (receipt) { if (receipt.status) return receipt; else throw new Error('交易失败：链上 revert'); } }
+            catch (e) { if (i === maxAttempts - 1) throw e; }
             await new Promise(r => setTimeout(r, 2000));
         }
         throw new Error('交易确认超时');
@@ -320,75 +350,8 @@
     async function updateBuyQuote(){const ua=parseFloat($('buyUSDTAmount').value)||0;if(ua<=0){$('expectedMYK').textContent='--';return}try{const uw=Web3.utils.toWei(String(ua),'ether'),mo=await getSwapQuote(uw,[USDT,MYK]),ms=parseFloat(Web3.utils.fromWei(mo,'ether'))*(1-buySlippage);$('expectedMYK').textContent=ms.toFixed(4)}catch(e){$('expectedMYK').textContent='--'}}
     async function updateSellQuote(){const ma=parseFloat($('sellMYKAmount').value)||0;if(ma<=0){$('expectedUSDT').textContent='--';return}try{const mw=Web3.utils.toWei(String(ma),'ether'),uo=await getSwapQuote(mw,[MYK,USDT]),us=parseFloat(Web3.utils.fromWei(uo,'ether'))*(1-sellSlippage);$('expectedUSDT').textContent=us.toFixed(6)}catch(e){$('expectedUSDT').textContent='--'}}
 
-    // 🔧 修复：买入 MYK（使用支持转账费的 swap 函数）
-    async function buyMYK(){
-        if(!userAddress){alert('请先连接钱包');return}
-        if(!lock())return;
-        const b=$('buyMYKBtn'),el=$('buyResult'),ua=parseFloat($('buyUSDTAmount').value);
-        if(!ua||ua<=0){alert('请输入有效的USDT数量');return}
-        el.style.display='block';b.disabled=!0;
-        try{
-            const uw=Web3.utils.toWei(String(ua),'ether'),dl=Math.floor(Date.now()/1000)+300;
-            el.innerHTML='⏳ 查询报价...';
-            const mo=await getSwapQuote(uw,[USDT,MYK]);
-            const mm=calcMinOutput(mo, buySlippage);
-            el.innerHTML='⏳ 检查余额...';
-            const balR=await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])});
-            if(BigInt(web3.eth.abi.decodeParameter('uint256',balR))<BigInt(uw))throw new Error('USDT余额不足');
-            el.innerHTML='⏳ 授权 USDT...请确认交易';
-            const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,uw]);
-            const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});
-            el.innerHTML='⏳ 等待授权确认...';
-            await waitForTransaction(aTx);
-            el.innerHTML='⏳ 买入 MYK...请确认交易';
-            const sd=encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)]);
-            const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});
-            el.innerHTML='⏳ 等待交易确认...';
-            await waitForTransaction(sTx);
-            el.innerHTML='✅ 买入成功！';
-            setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000);
-        }catch(e){
-            const m=parseError(e);
-            if(m.includes('User denied')||m.includes('rejected'))el.innerHTML='⚠️ 交易已取消';
-            else if(m.includes('insufficient'))el.innerHTML='⚠️ 余额不足';
-            else el.innerHTML='❌ '+m;
-        }finally{b.disabled=!1;unlock()}
-    }
-
-    // 🔧 修复：卖出 MYK（使用支持转账费的 swap 函数）
-    async function sellMYK(){
-        if(!userAddress){alert('请先连接钱包');return}
-        if(!lock())return;
-        const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);
-        if(!ma||ma<=0){alert('请输入有效的MYK数量');return}
-        el.style.display='block';b.disabled=!0;
-        try{
-            const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300;
-            el.innerHTML='⏳ 查询报价...';
-            const uo=await getSwapQuote(mw,[MYK,USDT]);
-            const mu=calcMinOutput(uo, sellSlippage);
-            el.innerHTML='⏳ 检查余额...';
-            const balR=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});
-            if(BigInt(web3.eth.abi.decodeParameter('uint256',balR))<BigInt(mw))throw new Error('MYK余额不足');
-            el.innerHTML='⏳ 授权 MYK...请确认交易';
-            const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw]);
-            const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:ad}]});
-            el.innerHTML='⏳ 等待授权确认...';
-            await waitForTransaction(aTx);
-            el.innerHTML='⏳ 卖出 MYK...请确认交易';
-            const sd=encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);
-            const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});
-            el.innerHTML='⏳ 等待交易确认...';
-            await waitForTransaction(sTx);
-            el.innerHTML='✅ 卖出成功！';
-            setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000);
-        }catch(e){
-            const m=parseError(e);
-            if(m.includes('User denied')||m.includes('rejected'))el.innerHTML='⚠️ 交易已取消';
-            else if(m.includes('insufficient'))el.innerHTML='⚠️ 余额不足';
-            else el.innerHTML='❌ '+m;
-        }finally{b.disabled=!1;unlock()}
-    }
+    async function buyMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('buyMYKBtn'),el=$('buyResult'),ua=parseFloat($('buyUSDTAmount').value);if(!ua||ua<=0){alert('请输入有效的USDT数量');return}el.style.display='block';b.disabled=!0;try{const uw=Web3.utils.toWei(String(ua),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const mo=await getSwapQuote(uw,[USDT,MYK]);const mm=calcMinOutput(mo,buySlippage);el.innerHTML='⏳ 检查余额...';const balR=await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',balR))<BigInt(uw))throw new Error('USDT余额不足');el.innerHTML='⏳ 授权 USDT...请确认交易';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,uw]);const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 买入 MYK...请确认交易';const sd=encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)]);const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);el.innerHTML='✅ 买入成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000)}catch(e){const m=parseError(e);if(m.includes('User denied')||m.includes('rejected'))el.innerHTML='⚠️ 交易已取消';else if(m.includes('insufficient'))el.innerHTML='⚠️ 余额不足';else el.innerHTML='❌ '+m}finally{b.disabled=!1;unlock()}}
+    async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const uo=await getSwapQuote(mw,[MYK,USDT]);const mu=calcMinOutput(uo,sellSlippage);el.innerHTML='⏳ 检查余额...';const balR=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',balR))<BigInt(mw))throw new Error('MYK余额不足');el.innerHTML='⏳ 授权 MYK...请确认交易';const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw]);const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:ad}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 卖出 MYK...请确认交易';const sd=encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000)}catch(e){const m=parseError(e);if(m.includes('User denied')||m.includes('rejected'))el.innerHTML='⚠️ 交易已取消';else if(m.includes('insufficient'))el.innerHTML='⚠️ 余额不足';else el.innerHTML='❌ '+m}finally{b.disabled=!1;unlock()}}
 
     async function fetchAirdrop(){try{if(!web3)return;const d=encodeCall('getActivityPoolBalance()'),r=await web3.eth.call({to:RP,data:d}),rm=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',r),'ether')),pd=AIRDROP_TOTAL-rm,pc=Math.min(100,Math.max(0,(pd/AIRDROP_TOTAL)*100));$('airdropPaid').textContent=pd.toFixed(0);$('airdropRemaining').textContent=rm.toFixed(0);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%'}catch(e){$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--'}}
     async function fetchUserStats(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]),ur=await web3.eth.call({to:RP,data:ud}),u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);$('invitedCount').textContent=Number(u[1]);$('inviteProgress').style.width=Math.min(100,(Number(u[1])/25)*100).toFixed(1)+'%';if(u[7]>=3){$('firstCommunityCard').classList.remove('locked');$('firstCommunityStatus').textContent='🔓 已解锁';$('firstCommunityStatus').style.color='#4ecca3'}try{const sd=encodeCall('getStreakLength(address)',['address'],[userAddress]);$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:sd}))}catch(e){$('streakDays').textContent='0'}}catch(e){$('invitedCount').textContent='--';$('streakDays').textContent='--'}}
