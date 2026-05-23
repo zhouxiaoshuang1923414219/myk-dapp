@@ -97,6 +97,13 @@
         .rate-condition { font-size:10px; color:#666; margin-top:2px; }
         .price-source-tag { font-size:10px; opacity:0.7; margin-left:2px; }
         .lottery-rule-box { padding:8px; text-align:center; }
+        .swipe-container { overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+        .swipe-container::-webkit-scrollbar { display:none; }
+        .swipe-track { display:flex; gap:0; }
+        .swipe-card { flex:0 0 100%; scroll-snap-align:start; }
+        .swipe-dots { display:flex; justify-content:center; gap:8px; margin-top:10px; }
+        .swipe-dot { width:8px; height:8px; border-radius:50%; background:#555; transition:background 0.3s; }
+        .swipe-dot.active { background:#f0b90b; width:20px; border-radius:4px; }
     </style>
 </head>
 <body>
@@ -125,31 +132,53 @@
     <!-- 7. 激活初级 -->
     <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.2%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(合约价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="2.2" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
 
-    <!-- 8. MIDDLE 权益（原第8位改为第7位） -->
-    <div class="glass-card unlock-card locked" id="middleCard">
-        <h2>🔓 MIDDLE 权益 <span class="badge badge-gold">权益卡</span></h2>
-        <div class="desc" id="middleStatus">🔒 未解锁</div>
-        <div class="hint-text">解锁规则：激活3个PRIMARY 解锁更多权益</div>
-        <div class="desc">权益：享受 <span class="highlight">2.0%</span> 日奖币</div>
-        <div class="stat-row">
-            <span>当前已激活PRIMARY：<span class="stat-value" id="middleInvitedCount">--</span> 人</span>
-            <span>需达目标：<span class="stat-value">3</span> 人</span>
+    <!-- 8. 权益卡片（左右滑动） -->
+    <div class="glass-card" style="padding:12px 8px;">
+        <div class="swipe-container" id="swipeContainer">
+            <div class="swipe-track">
+                <!-- MIDDLE 权益 -->
+                <div class="swipe-card" style="padding:8px 10px;">
+                    <div class="unlock-card locked" id="middleCard" style="border-radius:20px; padding:16px;">
+                        <h2 style="font-size:1.1rem;">🔓 MIDDLE 权益 <span class="badge badge-gold" style="font-size:10px;">权益卡</span></h2>
+                        <div class="desc" id="middleStatus" style="font-size:13px;">🔒 未解锁</div>
+                        <div class="hint-text" style="font-size:11px;">解锁规则：激活3个PRIMARY 解锁更多权益</div>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币</div>
+                        <div class="stat-row" style="font-size:12px;">
+                            <span>当前已激活PRIMARY：<span class="stat-value" id="middleInvitedCount">--</span> 人</span>
+                            <span>需达目标：<span class="stat-value">3</span> 人</span>
+                        </div>
+                        <div class="progress-bar-container"><div class="progress-bar-fill" id="middleProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
+                    </div>
+                </div>
+                <!-- 第一社区权益 -->
+                <div class="swipe-card" style="padding:8px 10px;">
+                    <div class="unlock-card locked" id="firstCommunityCard" style="border-radius:20px; padding:16px;">
+                        <h2 style="font-size:1.1rem;">🔓 第一社区权益 <span class="badge badge-gold" style="font-size:10px;">权益卡</span></h2>
+                        <div class="desc" id="firstCommunityStatus" style="font-size:13px;">🔒 未解锁</div>
+                        <div class="hint-text" style="font-size:11px;">解锁规则：激活25个PRIMARY 解锁更多权益</div>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.5%</span> 日奖币 + 伞下消费/收益的<span class="highlight">10%</span> + 社区分红</div>
+                        <div class="stat-row" style="font-size:12px;">
+                            <span>当前已激活PRIMARY：<span class="stat-value" id="firstCommunityCount">--</span> 人</span>
+                            <span>需达目标：<span class="stat-value">25</span> 人</span>
+                        </div>
+                        <div class="progress-bar-container"><div class="progress-bar-fill" id="firstCommunityProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #4ecca3);"></div></div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="progress-bar-container">
-            <div class="progress-bar-fill" id="middleProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div>
+        <div class="swipe-dots">
+            <div class="swipe-dot active" data-index="0"></div>
+            <div class="swipe-dot" data-index="1"></div>
         </div>
     </div>
 
-    <!-- 9. 第一社区权益 -->
-    <div class="glass-card unlock-card locked" id="firstCommunityCard"><h2>🔓 第一社区权益 <span class="badge badge-gold">权益卡</span></h2><div class="desc" id="firstCommunityStatus">🔒 未解锁</div><div class="hint-text">解锁规则：激活25个PRIMARY 解锁更多权益</div><div class="desc">权益：享受 <span class="highlight">2.5%</span> 日奖币 + 社区分红</div><div class="stat-row"><span>当前已激活PRIMARY：<span class="stat-value" id="firstCommunityCount">--</span> 人</span><span>需达目标：<span class="stat-value">25</span> 人</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="firstCommunityProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #4ecca3);"></div></div></div>
-
-    <!-- 10. 角色费率 -->
+    <!-- 9. 角色费率 -->
     <div class="glass-card"><div style="display:flex;gap:10px;"><div class="asset-box" style="flex:1;"><div class="asset-label">🥉 PRIMARY</div><div class="rate-value" style="color:#4ecca3;" id="primaryRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">支付2 USDT激活</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥈 MIDDLE</div><div class="rate-value" style="color:#4ecca3;" id="middleRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">直推3人升级</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥇 COMMUNITY</div><div class="rate-value" style="color:#f0b90b;" id="communityRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">锁仓认证获得</div></div></div></div>
 
-    <!-- 11. 合约信息 -->
+    <!-- 10. 合约信息 -->
     <div class="glass-card"><div class="contract-info-grid"><div class="asset-box asset-box-full"><div class="asset-label">📊 MYK总发行量</div><div class="stat-value" id="totalSupply" style="font-size:16px;">--</div></div><div class="asset-box"><div class="asset-label">🎁 奖金池余额</div><div class="stat-value" id="bonusPool" style="font-size:14px;">--</div></div><div class="asset-box"><div class="asset-label">🔒 社区质押持币</div><div class="stat-value" id="govLocked" style="font-size:14px;">--</div></div><div class="asset-box"><div class="asset-label">🔥 MYK永久销毁</div><div class="stat-value" id="burnedAmount" style="font-size:14px;">--</div></div><div class="asset-box"><div class="asset-label">💰 底池维护资产</div><div class="stat-value" id="fundAsset" style="font-size:14px;">--</div></div></div></div>
 
-    <!-- 12. 链上监控 -->
+    <!-- 11. 链上监控 -->
     <div class="glass-card"><h2>📊 链上监控 <span class="live-dot"></span><span style="font-size:11px;color:#4ecca3;">实时</span></h2><div class="stat-row"><span>持币地址数：<span class="stat-value" id="holderCount">0</span></span><span>新增持币：<span class="stat-value" id="newHolderCount">0</span></span></div><div class="stat-row" style="margin-top:2px;"><span>24h转账笔数：<span class="stat-value" id="transfer24hCount">0</span></span><span>24h转账量：<span class="stat-value" id="transfer24hVolume">0</span> MYK</span></div><div class="desc" style="margin-top:8px;">最近转账记录 <button id="refreshTransferBtn" style="background:none;border:none;color:#f0b90b;cursor:pointer;font-size:12px;padding:0;">🔄 刷新</button></div><div class="transfer-list" id="transferList"><div style="text-align:center;color:#888;padding:20px;">⏳ 正在加载历史数据...</div></div></div>
     <div class="footer-note">✨ MYK 生态操作面板 · 去中心化交互工具</div>
 </div>
@@ -219,6 +248,16 @@
     function subscribeTransferEvents(){if(!web3)return;let lb=0;return setInterval(async()=>{try{const cb=await web3.eth.getBlockNumber();if(lb===0){lb=cb;return}if(cb<=lb)return;const logs=await getLogsWithRetry(lb+1,cb,2);for(const l of logs){try{const bl=await web3.eth.getBlock(l.blockNumber);handleTransferEvent('0x'+l.topics[1].slice(26),'0x'+l.topics[2].slice(26),l.data,Number(bl.timestamp))}catch(e){}}lb=cb;}catch(e){}},5000);}
     function setupRefreshBtn(){$('refreshTransferBtn').addEventListener('click',async()=>{$('transferList').innerHTML='<div style="text-align:center;color:#888;padding:20px;">⏳ 正在刷新数据...</div>';transfer24hCount=0;transfer24hVolume=0;transferRecords=[];newHolderSet.clear();await fetchPastTransfers();});}
 
+    // 左右滑动点更新
+    function setupSwipeDots() {
+        const container = $('swipeContainer');
+        const dots = document.querySelectorAll('.swipe-dot');
+        container.addEventListener('scroll', function() {
+            const index = Math.round(container.scrollLeft / container.offsetWidth);
+            dots.forEach((d, i) => d.classList.toggle('active', i === index));
+        });
+    }
+
     async function connectWallet(){if(!window.ethereum){alert('请安装MetaMask');return}const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();updateLotteryDisplay();checkActivationCredits();checkDailyCredits();fetchPastTransfers();subscribeTransferEvents();}
     async function fetchPrice(){try{if(!web3)return;try{activationPrice=(await web3.eth.call({to:RP,data:encodeCall('getCurrentPrice()')})).toString();}catch(e1){if(BigInt(spotPrice)>BigInt(0))activationPrice=spotPrice;}try{const pAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}],pc=new web3.eth.Contract(pAbi,PAIR),t0=await pc.methods.token0().call(),rv=await pc.methods.getReserves().call(),r0=BigInt(rv[0]),r1=BigInt(rv[1]);if(r0===BigInt(0)||r1===BigInt(0))throw new Error('0');let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1;}else{rU=r1;rM=r0;}spotPrice=((rU*BigInt(10**18))/rM).toString();}catch(e2){}const sp=getSpotPrice();const pcs=await fetchPCSChange();if(pcs){updatePriceDisplay(sp,pcs.change);}else{const lr=getLocalChange(sp);updatePriceDisplay(sp,lr.change);}updateActivateSuggestion();updateBuyQuote();updateSellQuote();updateOrderPanel();}catch(e){$('tradePriceDisplay').textContent='1.00';$('tradePriceBadge').className='trade-price-badge price-change-flat';$('tradeChangeDisplay').textContent='--';updateActivateSuggestion();}}
     function startPriceAutoRefresh(){fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});priceRefreshInterval=setInterval(()=>{const s=localStorage.getItem(STORAGE_KEY);if(s){try{const d=JSON.parse(s);if(d.date!==getTodayKey())localStorage.removeItem(STORAGE_KEY);}catch(e){}}fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});},30000);}
@@ -244,7 +283,7 @@
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote();}else{sellSlippage=s;updateSellQuote();}});});}
     function setupTabs(){document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion();});});document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell');});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote();});});}
 
-    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupRefreshBtn();if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();updateLotteryDisplay();checkActivationCredits();checkDailyCredits();fetchPastTransfers();subscribeTransferEvents();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);$('lotteryBtn').addEventListener('click',doLottery);});
+    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupRefreshBtn();setupSwipeDots();if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();updateLotteryDisplay();checkActivationCredits();checkDailyCredits();fetchPastTransfers();subscribeTransferEvents();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);$('lotteryBtn').addEventListener('click',doLottery);});
 })();
 </script>
 </body>
