@@ -222,6 +222,9 @@
     const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
     const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 
+    // 🔧 使用支持转账费的 swap 函数签名
+    const SWAP_SIG = 'swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
+
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
     let holderSet = new Set(), newHolderSet = new Set(), transferRecords = [], transfer24hCount = 0, transfer24hVolume = 0;
     const MAX_TRANSFER_RECORDS = 50, STORAGE_KEY = 'myk_baseline_price';
@@ -245,25 +248,13 @@
     function unlock(){isProcessing=!1}
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
 
-    // 等待交易确认（带详细revert信息）
     async function waitForTransaction(txHash, maxAttempts = 30) {
         for (let i = 0; i < maxAttempts; i++) {
             try {
                 const receipt = await web3.eth.getTransactionReceipt(txHash);
                 if (receipt) {
                     if (receipt.status) return receipt;
-                    else {
-                        // 获取失败原因
-                        try {
-                            const tx = await web3.eth.getTransaction(txHash);
-                            await web3.eth.call({to: tx.to, data: tx.input, from: tx.from, value: tx.value, gas: tx.gas});
-                        } catch (callError) {
-                            const reason = parseError(callError);
-                            console.error('🔴 Revert原因:', reason);
-                            throw new Error('链上 revert: ' + reason);
-                        }
-                        throw new Error('交易失败：链上 revert');
-                    }
+                    else throw new Error('交易失败：链上 revert');
                 }
             } catch (e) { if (i === maxAttempts - 1) throw e; }
             await new Promise(r => setTimeout(r, 2000));
@@ -271,7 +262,6 @@
         throw new Error('交易确认超时');
     }
 
-    // 高精度最小输出计算
     function calcMinOutput(amountOut, slippage) {
         const amountBigInt = BigInt(amountOut);
         const numerator = BigInt(Math.round((1 - slippage) * 10000));
@@ -330,7 +320,7 @@
     async function updateBuyQuote(){const ua=parseFloat($('buyUSDTAmount').value)||0;if(ua<=0){$('expectedMYK').textContent='--';return}try{const uw=Web3.utils.toWei(String(ua),'ether'),mo=await getSwapQuote(uw,[USDT,MYK]),ms=parseFloat(Web3.utils.fromWei(mo,'ether'))*(1-buySlippage);$('expectedMYK').textContent=ms.toFixed(4)}catch(e){$('expectedMYK').textContent='--'}}
     async function updateSellQuote(){const ma=parseFloat($('sellMYKAmount').value)||0;if(ma<=0){$('expectedUSDT').textContent='--';return}try{const mw=Web3.utils.toWei(String(ma),'ether'),uo=await getSwapQuote(mw,[MYK,USDT]),us=parseFloat(Web3.utils.fromWei(uo,'ether'))*(1-sellSlippage);$('expectedUSDT').textContent=us.toFixed(6)}catch(e){$('expectedUSDT').textContent='--'}}
 
-    // 🔧 买入 MYK（带详细调试日志）
+    // 🔧 修复：买入 MYK（使用支持转账费的 swap 函数）
     async function buyMYK(){
         if(!userAddress){alert('请先连接钱包');return}
         if(!lock())return;
@@ -342,7 +332,6 @@
             el.innerHTML='⏳ 查询报价...';
             const mo=await getSwapQuote(uw,[USDT,MYK]);
             const mm=calcMinOutput(mo, buySlippage);
-            console.log('🟢 买入参数:',{输入USDT:ua,Router输出:mo,最小输出:mm,滑点:buySlippage,deadline:dl});
             el.innerHTML='⏳ 检查余额...';
             const balR=await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])});
             if(BigInt(web3.eth.abi.decodeParameter('uint256',balR))<BigInt(uw))throw new Error('USDT余额不足');
@@ -352,7 +341,7 @@
             el.innerHTML='⏳ 等待授权确认...';
             await waitForTransaction(aTx);
             el.innerHTML='⏳ 买入 MYK...请确认交易';
-            const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)]);
+            const sd=encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)]);
             const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});
             el.innerHTML='⏳ 等待交易确认...';
             await waitForTransaction(sTx);
@@ -360,15 +349,13 @@
             setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000);
         }catch(e){
             const m=parseError(e);
-            console.error('🔴 买入失败:', m);
             if(m.includes('User denied')||m.includes('rejected'))el.innerHTML='⚠️ 交易已取消';
             else if(m.includes('insufficient'))el.innerHTML='⚠️ 余额不足';
-            else if(m.includes('INSUFFICIENT_OUTPUT_AMOUNT'))el.innerHTML='⚠️ 滑点过高，请调大滑点后重试';
             else el.innerHTML='❌ '+m;
         }finally{b.disabled=!1;unlock()}
     }
 
-    // 🔧 卖出 MYK（带详细调试日志）
+    // 🔧 修复：卖出 MYK（使用支持转账费的 swap 函数）
     async function sellMYK(){
         if(!userAddress){alert('请先连接钱包');return}
         if(!lock())return;
@@ -380,23 +367,16 @@
             el.innerHTML='⏳ 查询报价...';
             const uo=await getSwapQuote(mw,[MYK,USDT]);
             const mu=calcMinOutput(uo, sellSlippage);
-            console.log('🟢 卖出参数:',{输入MYK:ma,Router输出:uo,Router输出ether:Web3.utils.fromWei(uo,'ether'),最小输出:mu,最小输出ether:Web3.utils.fromWei(mu,'ether'),滑点:sellSlippage,deadline:dl});
             el.innerHTML='⏳ 检查余额...';
             const balR=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});
-            const bal=web3.eth.abi.decodeParameter('uint256',balR);
-            console.log('🟢 MYK余额:', Web3.utils.fromWei(bal,'ether'));
-            if(BigInt(bal)<BigInt(mw))throw new Error('MYK余额不足');
-            el.innerHTML='⏳ 检查授权...';
-            const allowR=await web3.eth.call({to:MYK,data:encodeCall('allowance(address,address)',['address','address'],[userAddress,ROUTER])});
-            console.log('🟢 Router授权额度:', Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',allowR),'ether'),'MYK');
+            if(BigInt(web3.eth.abi.decodeParameter('uint256',balR))<BigInt(mw))throw new Error('MYK余额不足');
             el.innerHTML='⏳ 授权 MYK...请确认交易';
             const ad=encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw]);
             const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:ad}]});
             el.innerHTML='⏳ 等待授权确认...';
             await waitForTransaction(aTx);
             el.innerHTML='⏳ 卖出 MYK...请确认交易';
-            const sd=encodeCall('swapExactTokensForTokens(uint256,uint256,address[],address,uint256)',['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);
-            console.log('🟢 swap calldata:', sd.slice(0,50)+'...');
+            const sd=encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)]);
             const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:sd}]});
             el.innerHTML='⏳ 等待交易确认...';
             await waitForTransaction(sTx);
@@ -404,10 +384,8 @@
             setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote()});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo()},3000);
         }catch(e){
             const m=parseError(e);
-            console.error('🔴 卖出失败:', m);
             if(m.includes('User denied')||m.includes('rejected'))el.innerHTML='⚠️ 交易已取消';
             else if(m.includes('insufficient'))el.innerHTML='⚠️ 余额不足';
-            else if(m.includes('INSUFFICIENT_OUTPUT_AMOUNT'))el.innerHTML='⚠️ 滑点过高，请调大滑点后重试';
             else el.innerHTML='❌ '+m;
         }finally{b.disabled=!1;unlock()}
     }
