@@ -162,7 +162,7 @@
             <span>📈 买卖 MYK</span>
             <span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span></span>
         </h2>
-        <!-- 实时订单面板 -->
+        <!-- 实时订单面板（已移除当前池） -->
         <div class="order-panel">
             <div style="flex:1; text-align:center;">
                 <div style="font-size:10px; color:#888; margin-bottom:2px;">买入价</div>
@@ -174,11 +174,6 @@
                 <div style="font-size:10px; color:#888; margin-bottom:2px;">卖出价</div>
                 <div style="font-size:13px; color:#e94560; font-weight:700;" id="sellPriceDisplay">--</div>
                 <div style="font-size:10px; color:#666;">1 MYK = <span id="sellRateDisplay">--</span> USDT</div>
-            </div>
-            <div class="order-divider"></div>
-            <div style="flex:1; text-align:center;">
-                <div style="font-size:10px; color:#888; margin-bottom:2px;">当前池</div>
-                <div style="font-size:11px; color:#f0b90b;" id="poolReserve">--</div>
             </div>
         </div>
         <div class="tab-container" id="tradeTabSwitch">
@@ -299,7 +294,7 @@
         try { const d=encodeCall('balanceOf(address)',['address'],[FM]),r=await web3.eth.call({to:MYK,data:d});$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',r))); } catch(e) { $('fundAsset').textContent='--'; }
     }
 
-    // ========== 实时订单面板（BigInt高精度修复） ==========
+    // ========== 实时订单面板（已移除当前池） ==========
     async function updateOrderPanel() {
         try {
             if (!web3) return;
@@ -317,7 +312,6 @@
             const token0 = await pc.methods.token0().call();
             const reserves = await pc.methods.getReserves().call();
             
-            // 🔧 使用 BigInt 高精度计算
             const r0 = BigInt(reserves[0]);
             const r1 = BigInt(reserves[1]);
             
@@ -325,11 +319,9 @@
             if (token0.toLowerCase() === USDT.toLowerCase()) { reserveUSDT = r0; reserveMYK = r1; }
             else { reserveUSDT = r1; reserveMYK = r0; }
             
-            // sellRate = 1 MYK 能卖多少 USDT = reserveUSDT / reserveMYK
             const sellRateBigInt = (reserveUSDT * BigInt(10**18)) / reserveMYK;
             const sellRate = Number(sellRateBigInt) / 1e18;
             
-            // buyRate = 1 USDT 能买多少 MYK = reserveMYK / reserveUSDT
             const buyRateBigInt = (reserveMYK * BigInt(10**18)) / reserveUSDT;
             const buyRate = Number(buyRateBigInt) / 1e18;
             
@@ -337,11 +329,6 @@
             $('sellRateDisplay').textContent = sellRate.toFixed(6);
             $('buyPriceDisplay').textContent = '$' + sellRate.toFixed(6);
             $('sellPriceDisplay').textContent = '$' + sellRate.toFixed(6);
-            
-            // 储备显示（使用 parseFloat 展示即可）
-            const usdtDisplay = parseFloat(Web3.utils.fromWei(reserveUSDT.toString(), 'ether'));
-            const mykDisplay = parseFloat(Web3.utils.fromWei(reserveMYK.toString(), 'ether'));
-            $('poolReserve').textContent = formatM(usdtDisplay) + ' / ' + formatM(mykDisplay);
             
         } catch(e) {}
     }
