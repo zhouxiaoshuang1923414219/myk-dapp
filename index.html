@@ -229,6 +229,7 @@
     const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB',RP='0x757d3A3F94Da4f98fDC32e6f71BA2f82854Fa6E0',GOV='0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72',FM='0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027',USDT='0x55d398326f99059fF775485246999027B3197955',ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E',PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D',AIRDROP_TOTAL=1000000,MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
     const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
+    const DEAD_ADDR = '0x000000000000000000000000000000000000dEaD';
     const SWAP_SIG = 'swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
     const PCS_API = 'https://api.pancakeswap.info/api/v2/tokens/0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const STORAGE_KEY = 'myk_baseline_price';
@@ -297,83 +298,52 @@
 
     async function fetchRoleRates() { if(!web3)return; try{$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.2%';} try{$('middleRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('middleRate').textContent='2.0%';} try{$('communityRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('communityRate').textContent='2.5%';} }
     
-    // 🔥 修复：总发行量 - 已知持币 = 销毁量
+    // 🔥 修复：直接查询黑洞地址(dEaD)余额作为销毁量
     async function fetchContractInfo() { 
         if(!web3)return; 
         
         try {
-            // 1. 获取总发行量
+            // 总发行量
             const totalSupplyWei = await web3.eth.call({
                 to: MYK, 
                 data: encodeCall('totalSupply()')
             });
             const totalSupplyDecoded = web3.eth.abi.decodeParameter('uint256', totalSupplyWei);
-            const totalSupply = n(totalSupplyDecoded);
-            $('totalSupply').textContent = formatM(totalSupply);
+            $('totalSupply').textContent = formatM(n(totalSupplyDecoded));
             
-            // 2. 获取所有已知持币地址的余额
-            const addresses = [
-                { name: 'Pair', addr: PAIR },
-                { name: 'RewardPool', addr: RP },
-                { name: 'CommunityGovernance', addr: GOV },
-                { name: 'FundManager', addr: FM },
-                { name: 'ZeroAddr', addr: ZERO_ADDR }
-            ];
+            // 🔥 同时查询零地址和黑洞地址的余额
+            let burnedAmount = 0;
             
-            // 批量查询余额
-            const balancePromises = addresses.map(async (item) => {
-                try {
-                    const balanceWei = await web3.eth.call({
-                        to: MYK,
-                        data: encodeCall('balanceOf(address)', ['address'], [item.addr])
-                    });
-                    const balance = BigInt(web3.eth.abi.decodeParameter('uint256', balanceWei));
-                    console.log(`${item.name} (${item.addr}): ${n(balance.toString())} MYK`);
-                    return balance;
-                } catch(e) {
-                    console.warn(`查询 ${item.name} 余额失败:`, e.message);
-                    return BigInt(0);
-                }
-            });
-            
-            const balances = await Promise.all(balancePromises);
-            
-            // 计算已知持币总和
-            let knownBalanceSum = BigInt(0);
-            balances.forEach(b => { knownBalanceSum = knownBalanceSum + b; });
-            
-            // 如果用户已连接，加入用户余额
-            if (userAddress) {
-                try {
-                    const userBalanceWei = await web3.eth.call({
-                        to: MYK,
-                        data: encodeCall('balanceOf(address)', ['address'], [userAddress])
-                    });
-                    const userBalance = BigInt(web3.eth.abi.decodeParameter('uint256', userBalanceWei));
-                    knownBalanceSum = knownBalanceSum + userBalance;
-                    console.log(`User (${userAddress}): ${n(userBalance.toString())} MYK`);
-                } catch(e) {
-                    console.warn('查询用户余额失败:', e.message);
-                }
+            // 查询黑洞地址 (0x...dEaD) 余额
+            try {
+                const deadBalanceWei = await web3.eth.call({
+                    to: MYK,
+                    data: encodeCall('balanceOf(address)', ['address'], [DEAD_ADDR])
+                });
+                const deadBalance = web3.eth.abi.decodeParameter('uint256', deadBalanceWei);
+                burnedAmount += parseFloat(Web3.utils.fromWei(deadBalance, 'ether'));
+                console.log('🔥 黑洞地址(0xdEaD)余额:', n(deadBalance), 'MYK');
+            } catch(e) {
+                console.warn('查询黑洞地址余额失败:', e.message);
             }
             
-            // 3. 计算销毁量 = 总发行量 - 已知持币总和
-            const totalSupplyBigInt = BigInt(totalSupplyDecoded);
-            let burnedWei;
-            
-            if (knownBalanceSum <= totalSupplyBigInt) {
-                burnedWei = (totalSupplyBigInt - knownBalanceSum).toString();
-            } else {
-                // 如果已知持币大于总供应量（不应该发生），显示0
-                console.warn('已知持币总和超过总供应量，数据异常');
-                burnedWei = '0';
+            // 查询零地址 (0x...0000) 余额
+            try {
+                const zeroBalanceWei = await web3.eth.call({
+                    to: MYK,
+                    data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR])
+                });
+                const zeroBalance = web3.eth.abi.decodeParameter('uint256', zeroBalanceWei);
+                burnedAmount += parseFloat(Web3.utils.fromWei(zeroBalance, 'ether'));
+                console.log('🔥 零地址(0x0)余额:', n(zeroBalance), 'MYK');
+            } catch(e) {
+                console.warn('查询零地址余额失败:', e.message);
             }
             
-            const burnedAmount = n(burnedWei);
+            // 显示销毁量
             $('burnedAmount').textContent = formatM(burnedAmount);
-            console.log('🔥 总发行量:', totalSupply, '已知持币:', n(knownBalanceSum.toString()), '销毁量:', burnedAmount);
+            console.log('🔥 总销毁量:', burnedAmount, 'MYK');
             
-            // 4. 其他合约数据
             // 奖金池余额
             try {
                 const bpWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [RP])});
