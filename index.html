@@ -148,8 +148,8 @@
                     <div class="unlock-card locked" id="firstCommunityCard" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第一社区权益 <span class="badge badge-gold" style="font-size:10px;">权益卡</span></h2>
                         <div class="desc" id="firstCommunityStatus" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-text" style="font-size:11px;">解锁规则：参与社区治理，享受无限代消费或收益的<span class="highlight">10%</span>奖励+分红</div>
-                        <div class="desc" style="font-size:13px;">支付<span class="highlight">50U</span>升级第一社区成功</div>
+                        <div class="hint-text" style="font-size:11px;">解锁规则：参与社区治理 解锁更多权益</div>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.5%</span> 日奖币，享受无限代消费或收益的<span class="highlight">10%</span>奖励+分红</div>
                         <button class="btn btn-gold" id="upgradeCommunityBtn" style="margin-top:10px; font-size:14px;">💳 支付50U升级</button>
                         <div class="info-box" id="upgradeCommunityResult" style="display:none;"></div>
                     </div>
@@ -207,22 +207,18 @@
     async function waitForTransaction(txHash, maxAttempts = 30) {for(let i=0;i<maxAttempts;i++){try{const receipt=await web3.eth.getTransactionReceipt(txHash);if(receipt){if(receipt.status)return receipt;else throw new Error('交易失败：链上 revert');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('交易确认超时');}
     function calcMinOutput(amountOut, slippage) {const amountBigInt=BigInt(amountOut);const numerator=BigInt(Math.round((1-slippage)*10000));const denominator=BigInt(10000);return (amountBigInt*numerator/denominator).toString();}
 
-    // ========== 第一社区升级 ==========
     async function upgradeToCommunity() {
         if (!userAddress) { alert('请先连接钱包'); return; }
         if (!lock()) return;
-        const btn = $('upgradeCommunityBtn');
-        const el = $('upgradeCommunityResult');
+        const btn = $('upgradeCommunityBtn'); const el = $('upgradeCommunityResult');
         btn.disabled = true; btn.textContent = '升级中...';
         el.style.display = 'block'; el.innerHTML = '⏳ 正在支付50 USDT...';
         try {
             const fee = web3.utils.toWei('50', 'ether');
-            // 1. 授权 USDT
             const approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, fee]);
             const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: approveData }] });
             el.innerHTML = '⏳ 等待授权确认...';
             await waitForTransaction(aTx);
-            // 2. 调用升级函数
             el.innerHTML = '⏳ 升级中...';
             const upgradeData = encodeCall('lockLP(uint256,uint256)', ['uint256', 'uint256'], [fee, fee]);
             const uTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, data: upgradeData }] });
@@ -231,16 +227,11 @@
             el.innerHTML = '✅ 升级成功！已获得第一社区权益';
             el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
             $('firstCommunityCard').classList.remove('locked');
-            $('firstCommunityStatus').textContent = '🔓 已解锁';
-            $('firstCommunityStatus').style.color = '#4ecca3';
+            $('firstCommunityStatus').textContent = '🔓 已解锁'; $('firstCommunityStatus').style.color = '#4ecca3';
             btn.style.display = 'none';
             setTimeout(() => { fetchUserStats(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000);
-        } catch(e) {
-            const m = parseError(e);
-            if (m.includes('User denied') || m.includes('rejected')) el.innerHTML = '⚠️ 交易已取消';
-            else if (m.includes('insufficient')) el.innerHTML = '⚠️ 余额不足';
-            else el.innerHTML = '❌ ' + m;
-        } finally { btn.disabled = false; btn.textContent = '💳 支付50U升级'; unlock(); }
+        } catch(e) { const m = parseError(e); if (m.includes('User denied') || m.includes('rejected')) el.innerHTML = '⚠️ 交易已取消'; else if (m.includes('insufficient')) el.innerHTML = '⚠️ 余额不足'; else el.innerHTML = '❌ ' + m; }
+        finally { btn.disabled = false; btn.textContent = '💳 支付50U升级'; unlock(); }
     }
 
     async function fetchRoleRates() { if(!web3)return; try{$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.2%';} try{$('middleRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('middleRate').textContent='2.0%';} try{$('communityRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('communityRate').textContent='2.5%';} }
