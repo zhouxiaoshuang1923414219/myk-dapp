@@ -44,7 +44,7 @@
         .btn-sm { padding:10px 14px; font-size:13px; width:auto; }
         .btn-green { background:linear-gradient(135deg, #4ecca3, #2e8b6a); box-shadow:0 8px 18px rgba(78,204,163,0.3); }
         .btn-red { background:linear-gradient(135deg, #e94560, #ff6b6b); box-shadow:0 8px 18px rgba(233,69,96,0.3); }
-        .btn-gold { background:linear-gradient(135deg, #f0b90b, #e8a000); box-shadow:0 8px 18px rgba(240,185,11,0.3); }
+        .btn-unlock { background:linear-gradient(135deg, #4ecca3, #2e8b6a); box-shadow:0 8px 18px rgba(78,204,163,0.3); }
         .tab-container { display:flex; background:#0c0f1c; border-radius:16px; padding:4px; margin:12px 0; border:1px solid #2d3355; }
         .tab { flex:1; text-align:center; padding:10px; border-radius:14px; font-weight:600; color:#9aa0c0; cursor:pointer; transition:0.2s; }
         .tab.active { background:#e94560; color:white; }
@@ -60,7 +60,6 @@
         h2 { font-size:1.2rem; color:#f0b90b; display:flex; align-items:center; gap:6px; margin-bottom:6px; }
         .desc { color:#a3adc9; font-size:14px; margin-bottom:8px; }
         .highlight { color:#4ef0a8; font-weight:700; }
-        .highlight-gold { color:#f0b90b; font-weight:700; }
         .footer-note { text-align:center; font-size:12px; color:#7b85a6; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1); }
         .hint-text { color:#f0b90b; font-size:12px; margin:4px 0 8px; }
         .price-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; color:#a3adc9; }
@@ -127,7 +126,7 @@
     <div class="glass-card"><h2>🎁 百万MYK生态福利</h2><div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量100万MYK赠完即止</div><div class="stat-row"><span>已赠送: <span class="stat-value" id="airdropPaid">--</span> MYK</span><span>剩余: <span class="stat-value" id="airdropRemaining">--</span> MYK</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div></div><div class="stat-row" style="margin-top:4px;"><span style="color:#888;">总量: 1,000,000 MYK</span><span style="color:#888;" id="airdropPercent">0%</span></div></div>
 
     <!-- 6. 激活初级 -->
-    <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.2%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.2%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(合约价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="2.2" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
+    <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(合约价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="2.2" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
 
     <!-- 7. 权益卡片（七张左右滑动） -->
     <div class="glass-card" style="padding:12px 8px;">
@@ -139,7 +138,7 @@
                         <h2 style="font-size:1.1rem;">🔓 MIDDLE 权益 <span class="badge badge-gold" style="font-size:10px;">权益卡</span></h2>
                         <div class="desc" id="middleStatus" style="font-size:13px;">🔒 未解锁</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：激活3个PRIMARY 解锁更多权益</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币</div>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.5%</span> 日奖币</div>
                         <div class="stat-row" style="font-size:12px;"><span>当前已激活PRIMARY：<span class="stat-value" id="middleInvitedCount">--</span> 人</span><span>需达目标：<span class="stat-value">3</span> 人</span></div>
                         <div class="progress-bar-container"><div class="progress-bar-fill" id="middleProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
                     </div>
@@ -162,8 +161,8 @@
                         <div class="desc" id="community1Status" style="font-size:13px;">🔒 未解锁</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：参与社区治理 解锁更多权益</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">资产用途：进入去中心化基金合约配MYK自动参与lp维护底池</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，享受无限代消费或收益的<span class="highlight-gold">10%</span>奖励+分红</div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="50" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，<span class="highlight">无限代消费或收益的10%</span></div>
+                        <button class="btn btn-unlock upgrade-btn" data-amount="50" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
@@ -174,8 +173,8 @@
                         <div class="desc" id="community2Status" style="font-size:13px;">🔒 未解锁</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：参与社区治理 解锁更多权益</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">资产用途：进入去中心化基金合约配MYK自动参与lp维护底池</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，享受第一社区权益+<span class="highlight-gold">二层</span>社区收益的<span class="highlight-gold">50%</span>+分红</div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="100" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，<span class="highlight">二层 + 50%</span>+分红</div>
+                        <button class="btn btn-unlock upgrade-btn" data-amount="100" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
@@ -186,8 +185,8 @@
                         <div class="desc" id="community3Status" style="font-size:13px;">🔒 未解锁</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：参与社区治理 解锁更多权益</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">资产用途：进入去中心化基金合约配MYK自动参与lp维护底池</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，享受第一社区权益+<span class="highlight-gold">三层</span>社区收益的<span class="highlight-gold">50%</span>+分红</div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="200" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，<span class="highlight">三层 + 50%</span>+分红</div>
+                        <button class="btn btn-unlock upgrade-btn" data-amount="200" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
@@ -198,8 +197,8 @@
                         <div class="desc" id="community4Status" style="font-size:13px;">🔒 未解锁</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：参与社区治理 解锁更多权益</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">资产用途：进入去中心化基金合约配MYK自动参与lp维护底池</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，享受第一社区权益+<span class="highlight-gold">四层</span>社区收益的<span class="highlight-gold">50%</span>+分红</div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="500" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，<span class="highlight">四层 + 50%</span>+分红</div>
+                        <button class="btn btn-unlock upgrade-btn" data-amount="500" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
@@ -210,8 +209,8 @@
                         <div class="desc" id="community5Status" style="font-size:13px;">🔒 未解锁</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：参与社区治理 解锁更多权益</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">资产用途：进入去中心化基金合约配MYK自动参与lp维护底池</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，享受第一社区权益+<span class="highlight-gold">五层</span>社区收益的<span class="highlight-gold">50%</span>+分红</div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="1000" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">2.0%</span> 日奖币，<span class="highlight">五层 + 50%</span>+分红</div>
+                        <button class="btn btn-unlock upgrade-btn" data-amount="1000" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
@@ -225,7 +224,7 @@
     </div>
 
     <!-- 8. 角色费率 -->
-    <div class="glass-card"><div style="display:flex;gap:10px;"><div class="asset-box" style="flex:1;"><div class="asset-label">🥉 PRIMARY</div><div class="rate-value" style="color:#4ecca3;" id="primaryRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">支付2 USDT激活</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥈 MIDDLE</div><div class="rate-value" style="color:#4ecca3;" id="middleRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">直推3人升级</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥇 COMMUNITY</div><div class="rate-value" style="color:#f0b90b;" id="communityRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">锁仓认证获得</div></div></div></div>
+    <div class="glass-card"><div style="display:flex;gap:10px;"><div class="asset-box" style="flex:1;"><div class="asset-label">🥉 PRIMARY</div><div class="rate-value" style="color:#4ecca3;">1%</div><div class="rate-label">日费率</div><div class="rate-condition">支付2 USDT激活</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥈 MIDDLE</div><div class="rate-value" style="color:#4ecca3;">1.5%</div><div class="rate-label">日费率</div><div class="rate-condition">直推3人升级</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥇 COMMUNITY</div><div class="rate-value" style="color:#f0b90b;">2%</div><div class="rate-label">日费率</div><div class="rate-condition">锁仓认证获得</div></div></div></div>
 
     <!-- 9. 合约信息 -->
     <div class="glass-card"><div class="contract-info-grid"><div class="asset-box asset-box-full"><div class="asset-label">📊 MYK总发行量</div><div class="stat-value" id="totalSupply" style="font-size:16px;">--</div></div><div class="asset-box"><div class="asset-label">🎁 奖金池余额</div><div class="stat-value" id="bonusPool" style="font-size:14px;">--</div></div><div class="asset-box"><div class="asset-label">🔒 社区质押持币</div><div class="stat-value" id="govLocked" style="font-size:14px;">--</div></div><div class="asset-box"><div class="asset-label">🔥 MYK永久销毁</div><div class="stat-value" id="burnedAmount" style="font-size:14px;">--</div></div><div class="asset-box"><div class="asset-label">💰 底池维护资产</div><div class="stat-value" id="fundAsset" style="font-size:14px;">--</div></div></div></div>
@@ -279,7 +278,7 @@
         const el = btn ? btn.nextElementSibling : null;
         if (!btn || !el) return;
         btn.disabled = true; btn.textContent = '解锁中...';
-        el.style.display = 'block'; el.innerHTML = `⏳ 正在支付${amount} USDT...`;
+        el.style.display = 'block'; el.innerHTML = `⏳ 正在解锁...`;
         try {
             const fee = web3.utils.toWei(String(amount), 'ether');
             const approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, fee]);
@@ -291,8 +290,8 @@
             const uTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, data: upgradeData }] });
             el.innerHTML = '⏳ 等待解锁确认...';
             await waitForTransaction(uTx);
-            el.innerHTML = `✅ 权益已解锁！`;
-            el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
+            el.innerHTML = '✅ 解锁成功！已获得社区权益';
+            el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
             btn.style.display = 'none';
             const cardMap = {50:'community1Card',100:'community2Card',200:'community3Card',500:'community4Card',1000:'community5Card'};
             const statusMap = {50:'community1Status',100:'community2Status',200:'community3Status',500:'community4Status',1000:'community5Status'};
@@ -304,10 +303,16 @@
         finally { btn.disabled = false; btn.textContent = '🔓 立即解锁权益'; unlock(); }
     }
 
-    function setupUpgradeButtons() { document.querySelectorAll('.upgrade-btn').forEach(btn => { btn.addEventListener('click', function() { const amount = parseInt(this.dataset.amount); upgradeCommunity(amount); }); }); }
+    function setupUpgradeButtons() {
+        document.querySelectorAll('.upgrade-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const amount = parseInt(this.dataset.amount);
+                upgradeCommunity(amount);
+            });
+        });
+    }
 
-    async function fetchRoleRates() { if(!web3)return; try{$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.2%';} try{$('middleRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('middleRate').textContent='2.0%';} try{$('communityRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('communityRate').textContent='2.5%';} }
-    async function fetchContractInfo() { if(!web3)return; try{$('totalSupply').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('totalSupply()')}))));}catch(e){$('totalSupply').textContent='--';} try{$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[RP])}))));}catch(e){$('bonusPool').textContent='--';} try{$('burnedAmount').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[ZERO_ADDR])}))));}catch(e){$('burnedAmount').textContent='--';} try{$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:GOV,data:encodeCall('totalLockedAmount()')}))));}catch(e){$('govLocked').textContent='--';} try{$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[FM])}))));}catch(e){$('fundAsset').textContent='--';} fetchRoleRates(); }
+    async function fetchContractInfo() { if(!web3)return; try{$('totalSupply').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('totalSupply()')}))));}catch(e){$('totalSupply').textContent='--';} try{$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[RP])}))));}catch(e){$('bonusPool').textContent='--';} try{$('burnedAmount').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[ZERO_ADDR])}))));}catch(e){$('burnedAmount').textContent='--';} try{$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:GOV,data:encodeCall('totalLockedAmount()')}))));}catch(e){$('govLocked').textContent='--';} try{$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[FM])}))));}catch(e){$('fundAsset').textContent='--';} }
     async function updateOrderPanel() { try{if(!web3)return;const pairAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];const pc=new web3.eth.Contract(pairAbi,PAIR);const token0=await pc.methods.token0().call();const reserves=await pc.methods.getReserves().call();const r0=BigInt(reserves[0]),r1=BigInt(reserves[1]);let reserveUSDT,reserveMYK;if(token0.toLowerCase()===USDT.toLowerCase()){reserveUSDT=r0;reserveMYK=r1;}else{reserveUSDT=r1;reserveMYK=r0;}const sellRate=Number((reserveUSDT*BigInt(10**18))/reserveMYK)/1e18;const buyRate=Number((reserveMYK*BigInt(10**18))/reserveUSDT)/1e18;$('buyRateDisplay').textContent=buyRate.toFixed(4);$('sellRateDisplay').textContent=sellRate.toFixed(6);$('buyPriceDisplay').textContent='$'+sellRate.toFixed(6);$('sellPriceDisplay').textContent='$'+sellRate.toFixed(6);}catch(e){}}
     function updateTransferUI(){$('holderCount').textContent=holderSet.size;$('newHolderCount').textContent=newHolderSet.size;$('transfer24hCount').textContent=transfer24hCount;$('transfer24hVolume').textContent=transfer24hVolume.toFixed(2);const le=$('transferList');if(!transferRecords.length){le.innerHTML='<div style="text-align:center;color:#888;padding:20px;">⏳ 暂无转账数据，请点击刷新</div>';return}le.innerHTML=transferRecords.slice(0,20).map(r=>`<div class="transfer-item"><span style="display:flex;align-items:center;gap:6px;"><span class="addr">${a6(r.to)}</span><span class="${r.isNewHolder?'type-new':'type-transfer'}">${r.isNewHolder?'NEW':'转账'}</span></span><span style="display:flex;align-items:center;gap:6px;"><span class="amount">${parseFloat(r.amount).toFixed(2)} MYK</span><span style="color:#888;font-size:10px;">${new Date(r.timestamp*1000).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span></span></div>`).join('');}
     function handleTransferEvent(f,t,v,ts){const a=Web3.utils.fromWei(v,'ether'),nH=!holderSet.has(t)&&t!=='0x0000000000000000000000000000000000000000';if(nH)newHolderSet.add(t);holderSet.add(t);const n=Math.floor(Date.now()/1000);if(n-ts<86400){transfer24hCount++;transfer24hVolume+=parseFloat(a)}transferRecords.unshift({from:f,to:t,amount:a,timestamp:ts,isNewHolder:nH});if(transferRecords.length>MAX_TRANSFER_RECORDS)transferRecords=transferRecords.slice(0,MAX_TRANSFER_RECORDS);updateTransferUI();}
