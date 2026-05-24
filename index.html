@@ -239,10 +239,8 @@
     const SWAP_SIG = 'swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
     const PCS_API = 'https://api.pancakeswap.info/api/v2/tokens/0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const STORAGE_KEY = 'myk_baseline_price';
+    const BURNED_STORAGE_KEY = 'myk_burned_amount';
     
-    // 缓存初始发行量，避免重复查询
-    let cachedInitialSupply = null;
-
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
     let holderSet = new Set(), newHolderSet = new Set(), transferRecords = [], transfer24hCount = 0, transfer24hVolume = 0;
     const MAX_TRANSFER_RECORDS = 50;
@@ -307,105 +305,6 @@
 
     async function fetchRoleRates() { if(!web3)return; try{$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.2%';} try{$('middleRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('middleRate').textContent='2.0%';} try{$('communityRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('communityRate').textContent='2.5%';} }
     
-    // 🔥 新增：从合约获取实际初始发行量
-    async function getInitialSupply() {
-        if (cachedInitialSupply) return cachedInitialSupply;
-        
-        if (!web3) return null;
-        
-        try {
-            // 方法1：查询部署区块的totalSupply（推荐）
-            // 先尝试获取合约创建时的区块号
-            const deployBlock = await getContractDeployBlock();
-            if (deployBlock) {
-                // 在部署区块查询totalSupply
-                const supplyAtDeploy = await web3.eth.call({
-                    to: MYK,
-                    data: encodeCall('totalSupply()')
-                }, deployBlock);
-                
-                cachedInitialSupply = supplyAtDeploy;
-                return cachedInitialSupply;
-            }
-        } catch (e) {
-            console.warn('无法通过部署区块获取初始发行量，尝试其他方法:', e.message);
-        }
-        
-        try {
-            // 方法2：通过Mint事件计算（如果有Mint事件）
-            // 这里使用一个近似方法：查询合约创建后不久的区块
-            const currentBlock = await web3.eth.getBlockNumber();
-            // 尝试从较早的区块查询（比如合约部署后1000个区块）
-            const earlyBlock = Math.max(1, currentBlock - 10000000); // 保守估计
-            
-            const supplyEarly = await web3.eth.call({
-                to: MYK,
-                data: encodeCall('totalSupply()')
-            }, earlyBlock);
-            
-            // 如果早期区块的供应量不为0，使用该值
-            const earlySupply = BigInt(supplyEarly);
-            if (earlySupply > BigInt(0)) {
-                cachedInitialSupply = supplyEarly;
-                return cachedInitialSupply;
-            }
-        } catch (e) {
-            console.warn('查询早期区块失败:', e.message);
-        }
-        
-        try {
-            // 方法3：查询零区块的totalSupply（可能返回0或合约部署时的值）
-            const supply = await web3.eth.call({
-                to: MYK,
-                data: encodeCall('totalSupply()')
-            }, 0);
-            
-            if (supply && BigInt(supply) > BigInt(0)) {
-                cachedInitialSupply = supply;
-                return cachedInitialSupply;
-            }
-        } catch (e) {
-            console.warn('查询创世区块失败:', e.message);
-        }
-        
-        // 如果所有方法都失败，返回null
-        return null;
-    }
-    
-    // 获取合约部署区块
-    async function getContractDeployBlock() {
-        try {
-            // 通过查询合约代码所在的区块来推断部署区块
-            const code = await web3.eth.getCode(MYK);
-            if (code === '0x' || code === '0x0') return null;
-            
-            // 二分查找合约部署区块
-            let low = 1;
-            let high = await web3.eth.getBlockNumber();
-            let deployBlock = null;
-            
-            while (low <= high) {
-                const mid = Math.floor((low + high) / 2);
-                try {
-                    const codeAtMid = await web3.eth.getCode(MYK, mid);
-                    if (codeAtMid === '0x' || codeAtMid === '0x0') {
-                        low = mid + 1;
-                    } else {
-                        deployBlock = mid;
-                        high = mid - 1;
-                    }
-                } catch (e) {
-                    low = mid + 1;
-                }
-            }
-            
-            return deployBlock;
-        } catch (e) {
-            console.warn('查找部署区块失败:', e.message);
-            return null;
-        }
-    }
-
     // 🔥 修复后的合约信息获取
     async function fetchContractInfo() { 
         if(!web3)return; 
@@ -417,41 +316,46 @@
                 data: encodeCall('totalSupply()')
             });
             const currentSupplyDecoded = web3.eth.abi.decodeParameter('uint256', currentSupplyWei);
-            $('totalSupply').textContent = formatM(n(currentSupplyDecoded));
+            const currentSupply = n(currentSupplyDecoded);
+            $('totalSupply').textContent = formatM(currentSupply);
             
-            // 🔥 动态获取初始发行量并计算销毁量
+            // 🔥 新逻辑：首次连接时缓存当前总供应量，后续差值即为销毁量
             try {
-                const initialSupplyWei = await getInitialSupply();
-                if (initialSupplyWei) {
-                    const currentSupply = BigInt(currentSupplyDecoded);
-                    const initialSupply = BigInt(initialSupplyWei);
+                // 从localStorage获取首次记录的总供应量
+                let initialSupplyRecord = localStorage.getItem('myk_initial_supply_' + MYK);
+                
+                if (!initialSupplyRecord) {
+                    // 首次记录：保存当前总供应量为初始值
+                    localStorage.setItem('myk_initial_supply_' + MYK, currentSupplyDecoded);
+                    initialSupplyRecord = currentSupplyDecoded;
+                    console.log('📝 首次记录MYK总供应量:', currentSupply);
+                }
+                
+                const initialSupply = BigInt(initialSupplyRecord);
+                const currentSupplyBigInt = BigInt(currentSupplyDecoded);
+                
+                if (currentSupplyBigInt <= initialSupply) {
+                    const burnedWei = (initialSupply - currentSupplyBigInt).toString();
+                    const burnedAmount = n(burnedWei);
+                    $('burnedAmount').textContent = formatM(burnedAmount);
                     
-                    if (currentSupply <= initialSupply) {
-                        const burnedWei = (initialSupply - currentSupply).toString();
-                        const burnedAmount = n(burnedWei);
-                        $('burnedAmount').textContent = formatM(burnedAmount);
-                    } else {
-                        // 如果当前供应量超过初始发行量（可能有增发机制）
-                        console.warn('当前供应量超过初始发行量，可能存在增发');
-                        $('burnedAmount').textContent = '0.00';
-                    }
+                    // 同时存储到localStorage用于离线显示
+                    localStorage.setItem(BURNED_STORAGE_KEY, burnedAmount.toString());
                 } else {
-                    // 如果无法获取初始发行量，显示零地址余额作为备用方案
-                    console.warn('无法获取初始发行量，使用零地址余额作为参考');
-                    try {
-                        const zeroBalanceWei = await web3.eth.call({
-                            to: MYK, 
-                            data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR])
-                        });
-                        const zeroBalance = web3.eth.abi.decodeParameter('uint256', zeroBalanceWei);
-                        $('burnedAmount').textContent = formatM(n(zeroBalance));
-                    } catch (e2) {
-                        $('burnedAmount').textContent = '--';
-                    }
+                    // 如果当前供应量大于记录值（增发），更新记录并显示0
+                    console.warn('检测到供应量增加，可能发生了增发');
+                    localStorage.setItem('myk_initial_supply_' + MYK, currentSupplyDecoded);
+                    $('burnedAmount').textContent = '0.00';
                 }
             } catch(e) {
                 console.error('计算销毁量失败:', e);
-                $('burnedAmount').textContent = '--';
+                // 尝试从localStorage读取上次的销毁量
+                const lastBurned = localStorage.getItem(BURNED_STORAGE_KEY);
+                if (lastBurned) {
+                    $('burnedAmount').textContent = formatM(parseFloat(lastBurned));
+                } else {
+                    $('burnedAmount').textContent = '--';
+                }
             }
         } catch(e) {
             $('totalSupply').textContent = '--';
@@ -522,7 +426,7 @@
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote();}else{sellSlippage=s;updateSellQuote();}});});}
     function setupTabs(){document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion();});});document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell');});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote();});});}
 
-    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupRefreshBtn();setupSwipeDots();setupUpgradeButtons();if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();fetchPastTransfers();subscribeTransferEvents();}}catch(e){}window.ethereum.on('accountsChanged',()=>{cachedInitialSupply = null;fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
+    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupRefreshBtn();setupSwipeDots();setupUpgradeButtons();if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();fetchPastTransfers();subscribeTransferEvents();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
 })();
 </script>
 </body>
