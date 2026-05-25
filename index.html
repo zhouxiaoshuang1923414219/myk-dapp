@@ -61,8 +61,11 @@
         .desc { color:#a3adc9; font-size:14px; margin-bottom:8px; }
         .highlight { color:#4ef0a8; font-weight:700; }
         .highlight-green { color:#4ecca3; font-weight:700; }
+        .highlight-cyan { color:#4ef0a8; font-weight:700; }
         .footer-note { text-align:center; font-size:12px; color:#7b85a6; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1); }
         .hint-text { color:#f0b90b; font-size:12px; margin:4px 0 8px; }
+        .hint-rank { color:#a3adc9; font-size:11px; margin:2px 0 6px; }
+        .hint-rank span { color:#4ef0a8; font-weight:600; }
         .price-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; color:#a3adc9; }
         .price-value { color:#4ef0a8; font-weight:700; }
         .progress-bar-container { width:100%; height:20px; background:#1a1f35; border-radius:10px; margin:8px 0; overflow:hidden; }
@@ -111,7 +114,6 @@
         }
         .contract-addr-copy:active { background:#e94560; color:white; }
         .contract-addr-copy.copied { background:#4ecca3; border-color:#4ecca3; color:white; }
-        .rank-quota { font-size:10px; color:#f0b90b; margin-top:2px; }
     </style>
 </head>
 <body>
@@ -145,7 +147,7 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="middleCard" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 MIDDLE 权益 <span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
-                        <div class="desc" id="middleStatus" style="font-size:13px;">🔒 未解锁 <span class="rank-quota">| 无限名额</span></div>
+                        <div class="desc" id="middleStatus" style="font-size:13px;">🔒 未解锁</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：PRIMARY+曾锁仓 解锁更多权益</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.3%</span> 日奖币</div>
                         <div class="stat-row" style="font-size:12px;"><span>当前已激活PRIMARY：<span class="stat-value" id="middleInvitedCount">--</span> 人</span><span>需达目标：<span class="stat-value">3</span> 人</span></div>
@@ -156,7 +158,8 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community1Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第一社区权益 <span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2>
-                        <div class="desc" id="community1Status" style="font-size:13px;">🔒 未解锁 <span class="rank-quota">| 总排位名额：无限制</span></div>
+                        <div class="desc" id="community1Status" style="font-size:13px;">🔒 未解锁</div>
+                        <div class="hint-rank" id="community1Rank">📊 合约排位剩余名额：<span>--</span></div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：支付50 USDT 获取FIRST身份(100天)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C1分红池<span class="highlight">15%</span></div>
@@ -169,11 +172,12 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community2Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第二社区权益 <span class="badge badge-gold" style="font-size:10px;">SECOND</span></h2>
-                        <div class="desc" id="community2Status" style="font-size:13px;">🔒 未解锁 <span class="rank-quota">| 总排位名额：无限制</span></div>
+                        <div class="desc" id="community2Status" style="font-size:13px;">🔒 未解锁</div>
+                        <div class="hint-rank" id="community2Rank">📊 合约排位剩余名额：<span>--</span></div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：支付100 USDT 获取SECOND身份(100天)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C2分红池<span class="highlight-green">20%</span></div>
-                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿第二层社区收益的<span class="highlight-green">50%</span>奖励</div>
+                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第二层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
                         <button class="btn btn-gold upgrade-btn" data-amount="100" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
@@ -182,11 +186,12 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community3Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第三社区权益 <span class="badge badge-gold" style="font-size:10px;">THIRD</span></h2>
-                        <div class="desc" id="community3Status" style="font-size:13px;">🔒 未解锁 <span class="rank-quota">| 总排位名额：无限制</span></div>
+                        <div class="desc" id="community3Status" style="font-size:13px;">🔒 未解锁</div>
+                        <div class="hint-rank" id="community3Rank">📊 合约排位剩余名额：<span>--</span></div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：支付200 USDT 获取THIRD身份(100天)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C3分红池<span class="highlight-green">30%</span></div>
-                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿第三层社区收益的<span class="highlight-green">50%</span>奖励</div>
+                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第三层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
                         <button class="btn btn-gold upgrade-btn" data-amount="200" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
@@ -195,11 +200,12 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community4Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第四社区权益 <span class="badge badge-gold" style="font-size:10px;">FOURTH</span></h2>
-                        <div class="desc" id="community4Status" style="font-size:13px;">🔒 未解锁 <span class="rank-quota">| 总排位名额：970个名额</span></div>
+                        <div class="desc" id="community4Status" style="font-size:13px;">🔒 未解锁</div>
+                        <div class="hint-rank" id="community4Rank">📊 合约排位剩余名额：<span>--</span></div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：支付500 USDT 获取FOURTH身份(100天)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C4分红池<span class="highlight-green">35%</span></div>
-                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿第四层社区收益的<span class="highlight-green">50%</span>奖励</div>
+                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第四层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
                         <button class="btn btn-gold upgrade-btn" data-amount="500" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
@@ -208,11 +214,12 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community5Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第五社区权益 <span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2>
-                        <div class="desc" id="community5Status" style="font-size:13px;">🔒 未解锁 <span class="rank-quota">| 总排位名额：FIFTH 27个 | SIXTH 3个</span></div>
+                        <div class="desc" id="community5Status" style="font-size:13px;">🔒 未解锁</div>
+                        <div class="hint-rank" id="community5Rank">📊 合约排位剩余名额：<span>--</span></div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：销毁≥1000U等值MYK 获取FIFTH(永久)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C5分红+<span class="highlight-green">永久有效</span></div>
-                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿第五层社区收益的<span class="highlight-green">50%</span>奖励</div>
+                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第五层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
                         <div class="hint-text" style="font-size:10px; color:#f0b90b;">SIXTH: 销毁≥2000U等值MYK</div>
                         <div class="price-row" style="margin-top:8px;"><span>当前等值MYK: <span class="price-value" id="fifthMykAmount">--</span> MYK</span></div>
                         <button class="btn btn-gold upgrade-btn" data-amount="1000" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
@@ -280,6 +287,22 @@
     const SWAP_SIG = 'swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
     const PCS_API = 'https://api.pancakeswap.info/api/v2/tokens/0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const STORAGE_KEY = 'myk_baseline_price';
+
+    // 🔥 排位区间配置
+    const RANK_BUCKETS = [
+        { name: '第六社区', maxRank: 3, pool: '15%', bucket: 1, remaining: 3 },
+        { name: '第五社区', maxRank: 30, pool: '20%', bucket: 2, remaining: 27 },
+        { name: '第四社区', maxRank: 1000, pool: '30%', bucket: 3, remaining: 970 },
+        { name: '第三社区及以下', maxRank: Infinity, pool: '35%', bucket: 4, remaining: Infinity }
+    ];
+    // 卡片与排位区间映射：community1->Bucket4, community2->Bucket4, community3->Bucket4, community4->Bucket3, community5->Bucket2
+    const CARD_RANK_MAP = {
+        community1: 3, // FIRST  -> Bucket 4 (1001+)
+        community2: 3, // SECOND -> Bucket 4 (1001+)
+        community3: 3, // THIRD  -> Bucket 4 (1001+)
+        community4: 2, // FOURTH -> Bucket 3 (31-1000)
+        community5: 1  // FIFTH  -> Bucket 2 (4-30)
+    };
     
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
 
@@ -304,6 +327,56 @@
     function unlock(){isProcessing=!1}
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
     function updateFifthMykSuggestion(){const p=getSpotPrice();if(p>0){const mykAmt=(1000/p*1.05).toFixed(4);$('fifthMykAmount').textContent=mykAmt;}}
+
+    // 🔥 获取排位剩余名额
+    async function fetchRankRemaining() {
+        if (!web3) return;
+        try {
+            // 尝试获取总社区数
+            const totalCommunities = await web3.eth.call({to: GOV, data: encodeCall('getTotalCommunities()')});
+            const total = parseInt(web3.eth.abi.decodeParameter('uint256', totalCommunities));
+            console.log('📊 总社区数:', total);
+            
+            // 更新各卡片的排位剩余名额
+            for (const [cardId, bucketIdx] of Object.entries(CARD_RANK_MAP)) {
+                const bucket = RANK_BUCKETS[bucketIdx];
+                const el = $(cardId + 'Rank');
+                if (!el) continue;
+                
+                let remaining;
+                if (bucket.bucket === 1) {
+                    // 第六社区: rank 1~3
+                    remaining = Math.max(0, 3 - total);
+                } else if (bucket.bucket === 2) {
+                    // 第五社区: rank 4~30
+                    remaining = Math.max(0, 30 - total);
+                } else if (bucket.bucket === 3) {
+                    // 第四社区: rank 31~1000
+                    remaining = Math.max(0, 1000 - total);
+                } else {
+                    // 第三社区及以下: rank 1001+
+                    remaining = Math.max(0, 999999 - total);
+                }
+                
+                const span = el.querySelector('span');
+                if (span) {
+                    span.textContent = remaining === Infinity ? '无限' : remaining;
+                }
+            }
+        } catch(e) {
+            console.warn('获取排位名额失败:', e.message);
+            // 使用缓存数据
+            for (const [cardId, bucketIdx] of Object.entries(CARD_RANK_MAP)) {
+                const bucket = RANK_BUCKETS[bucketIdx];
+                const el = $(cardId + 'Rank');
+                if (!el) continue;
+                const span = el.querySelector('span');
+                if (span) {
+                    span.textContent = bucket.remaining === Infinity ? '无限' : bucket.remaining;
+                }
+            }
+        }
+    }
 
     function setupCopyButtons() {
         document.querySelectorAll('.contract-addr-copy').forEach(btn => {
@@ -377,7 +450,7 @@
             const card = $(cardMap[amount]); const status = $(statusMap[amount]);
             if(card){card.classList.remove('locked');}
             if(status){status.textContent='🔓 已解锁';status.style.color='#4ecca3';}
-            setTimeout(() => { fetchUserStats(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000);
+            setTimeout(() => { fetchUserStats(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); fetchRankRemaining(); }, 3000);
         } catch(e) { const m = parseError(e); if (m.includes('User denied') || m.includes('rejected')) el.innerHTML = '⚠️ 交易已取消'; else if (m.includes('insufficient')) el.innerHTML = '⚠️ 余额不足'; else el.innerHTML = '❌ ' + m; }
         finally { btn.disabled = false; btn.textContent = '🔓 立即解锁权益'; unlock(); }
     }
@@ -427,6 +500,7 @@
             $('totalSupply').textContent = '--'; $('burnedAmount').textContent = '--';
         }
         fetchRoleRates(); 
+        fetchRankRemaining();
     }
     
     async function updateOrderPanel() { try{if(!web3)return;const pairAbi=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];const pc=new web3.eth.Contract(pairAbi,PAIR);const token0=await pc.methods.token0().call();const reserves=await pc.methods.getReserves().call();const r0=BigInt(reserves[0]),r1=BigInt(reserves[1]);let reserveUSDT,reserveMYK;if(token0.toLowerCase()===USDT.toLowerCase()){reserveUSDT=r0;reserveMYK=r1;}else{reserveUSDT=r1;reserveMYK=r0;}const sellRate=Number((reserveUSDT*BigInt(10**18))/reserveMYK)/1e18;const buyRate=Number((reserveMYK*BigInt(10**18))/reserveUSDT)/1e18;$('buyRateDisplay').textContent=buyRate.toFixed(4);$('sellRateDisplay').textContent=sellRate.toFixed(6);$('buyPriceDisplay').textContent='$'+sellRate.toFixed(6);$('sellPriceDisplay').textContent='$'+sellRate.toFixed(6);}catch(e){}}
