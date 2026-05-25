@@ -59,13 +59,13 @@
         .row-buttons { display:flex; gap:10px; flex-wrap:wrap; }
         h2 { font-size:1.2rem; color:#f0b90b; display:flex; align-items:center; gap:6px; margin-bottom:6px; }
         .desc { color:#a3adc9; font-size:14px; margin-bottom:8px; }
+        .desc-status { color:#a3adc9; font-size:13px; margin-bottom:4px; }
+        .desc-status span { color:#4ef0a8; font-weight:600; }
         .highlight { color:#4ef0a8; font-weight:700; }
         .highlight-green { color:#4ecca3; font-weight:700; }
         .highlight-cyan { color:#4ef0a8; font-weight:700; }
         .footer-note { text-align:center; font-size:12px; color:#7b85a6; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1); }
         .hint-text { color:#f0b90b; font-size:12px; margin:4px 0 8px; }
-        .hint-rank { color:#a3adc9; font-size:11px; margin:2px 0 6px; }
-        .hint-rank span { color:#4ef0a8; font-weight:600; }
         .price-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; color:#a3adc9; }
         .price-value { color:#4ef0a8; font-weight:700; }
         .progress-bar-container { width:100%; height:20px; background:#1a1f35; border-radius:10px; margin:8px 0; overflow:hidden; }
@@ -158,8 +158,7 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community1Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第一社区权益 <span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2>
-                        <div class="desc" id="community1Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-rank" id="community1Rank">📊 合约排位剩余名额：<span>--</span></div>
+                        <div class="desc-status" id="community1Status">🔒 未解锁 · 排位剩余：<span>--</span> 名额</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：支付50 USDT 获取FIRST身份(100天)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C1分红池<span class="highlight">15%</span></div>
@@ -172,8 +171,7 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community2Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第二社区权益 <span class="badge badge-gold" style="font-size:10px;">SECOND</span></h2>
-                        <div class="desc" id="community2Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-rank" id="community2Rank">📊 合约排位剩余名额：<span>--</span></div>
+                        <div class="desc-status" id="community2Status">🔒 未解锁 · 排位剩余：<span>--</span> 名额</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：支付100 USDT 获取SECOND身份(100天)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C2分红池<span class="highlight-green">20%</span></div>
@@ -186,8 +184,7 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community3Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第三社区权益 <span class="badge badge-gold" style="font-size:10px;">THIRD</span></h2>
-                        <div class="desc" id="community3Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-rank" id="community3Rank">📊 合约排位剩余名额：<span>--</span></div>
+                        <div class="desc-status" id="community3Status">🔒 未解锁 · 排位剩余：<span>--</span> 名额</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：支付200 USDT 获取THIRD身份(100天)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C3分红池<span class="highlight-green">30%</span></div>
@@ -200,8 +197,7 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community4Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第四社区权益 <span class="badge badge-gold" style="font-size:10px;">FOURTH</span></h2>
-                        <div class="desc" id="community4Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-rank" id="community4Rank">📊 合约排位剩余名额：<span>--</span></div>
+                        <div class="desc-status" id="community4Status">🔒 未解锁 · 排位剩余：<span>--</span> 名额</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：支付500 USDT 获取FOURTH身份(100天)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C4分红池<span class="highlight-green">35%</span></div>
@@ -214,8 +210,7 @@
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community5Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第五社区权益 <span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2>
-                        <div class="desc" id="community5Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-rank" id="community5Rank">📊 合约排位剩余名额：<span>--</span></div>
+                        <div class="desc-status" id="community5Status">🔒 未解锁 · 排位剩余：<span>--</span> 名额</div>
                         <div class="hint-text" style="font-size:11px;">解锁规则：销毁≥1000U等值MYK 获取FIFTH(永久)</div>
                         <div class="hint-text" style="font-size:10px; color:#888;">社区建设＋去中心化基金合约自动建设去中心化添加LP维持市值</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C5分红+<span class="highlight-green">永久有效</span></div>
@@ -288,20 +283,15 @@
     const PCS_API = 'https://api.pancakeswap.info/api/v2/tokens/0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const STORAGE_KEY = 'myk_baseline_price';
 
-    // 🔥 排位区间配置
     const RANK_BUCKETS = [
-        { name: '第六社区', maxRank: 3, pool: '15%', bucket: 1, remaining: 3 },
-        { name: '第五社区', maxRank: 30, pool: '20%', bucket: 2, remaining: 27 },
-        { name: '第四社区', maxRank: 1000, pool: '30%', bucket: 3, remaining: 970 },
-        { name: '第三社区及以下', maxRank: Infinity, pool: '35%', bucket: 4, remaining: Infinity }
+        { name: '第六社区', maxRank: 3, pool: '15%', bucket: 1 },
+        { name: '第五社区', maxRank: 30, pool: '20%', bucket: 2 },
+        { name: '第四社区', maxRank: 1000, pool: '30%', bucket: 3 },
+        { name: '第三社区及以下', maxRank: Infinity, pool: '35%', bucket: 4 }
     ];
-    // 卡片与排位区间映射：community1->Bucket4, community2->Bucket4, community3->Bucket4, community4->Bucket3, community5->Bucket2
     const CARD_RANK_MAP = {
-        community1: 3, // FIRST  -> Bucket 4 (1001+)
-        community2: 3, // SECOND -> Bucket 4 (1001+)
-        community3: 3, // THIRD  -> Bucket 4 (1001+)
-        community4: 2, // FOURTH -> Bucket 3 (31-1000)
-        community5: 1  // FIFTH  -> Bucket 2 (4-30)
+        community1: 3, community2: 3, community3: 3,
+        community4: 2, community5: 1
     };
     
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
@@ -328,52 +318,30 @@
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
     function updateFifthMykSuggestion(){const p=getSpotPrice();if(p>0){const mykAmt=(1000/p*1.05).toFixed(4);$('fifthMykAmount').textContent=mykAmt;}}
 
-    // 🔥 获取排位剩余名额
     async function fetchRankRemaining() {
         if (!web3) return;
         try {
-            // 尝试获取总社区数
             const totalCommunities = await web3.eth.call({to: GOV, data: encodeCall('getTotalCommunities()')});
             const total = parseInt(web3.eth.abi.decodeParameter('uint256', totalCommunities));
-            console.log('📊 总社区数:', total);
-            
-            // 更新各卡片的排位剩余名额
             for (const [cardId, bucketIdx] of Object.entries(CARD_RANK_MAP)) {
                 const bucket = RANK_BUCKETS[bucketIdx];
-                const el = $(cardId + 'Rank');
+                const el = $(cardId + 'Status');
                 if (!el) continue;
-                
                 let remaining;
-                if (bucket.bucket === 1) {
-                    // 第六社区: rank 1~3
-                    remaining = Math.max(0, 3 - total);
-                } else if (bucket.bucket === 2) {
-                    // 第五社区: rank 4~30
-                    remaining = Math.max(0, 30 - total);
-                } else if (bucket.bucket === 3) {
-                    // 第四社区: rank 31~1000
-                    remaining = Math.max(0, 1000 - total);
-                } else {
-                    // 第三社区及以下: rank 1001+
-                    remaining = Math.max(0, 999999 - total);
-                }
-                
+                if (bucket.bucket === 1) remaining = Math.max(0, 3 - total);
+                else if (bucket.bucket === 2) remaining = Math.max(0, 30 - total);
+                else if (bucket.bucket === 3) remaining = Math.max(0, 1000 - total);
+                else remaining = Math.max(0, 999999 - total);
                 const span = el.querySelector('span');
-                if (span) {
-                    span.textContent = remaining === Infinity ? '无限' : remaining;
-                }
+                if (span) span.textContent = remaining === Infinity ? '无限' : remaining;
             }
         } catch(e) {
-            console.warn('获取排位名额失败:', e.message);
-            // 使用缓存数据
             for (const [cardId, bucketIdx] of Object.entries(CARD_RANK_MAP)) {
                 const bucket = RANK_BUCKETS[bucketIdx];
-                const el = $(cardId + 'Rank');
+                const el = $(cardId + 'Status');
                 if (!el) continue;
                 const span = el.querySelector('span');
-                if (span) {
-                    span.textContent = bucket.remaining === Infinity ? '无限' : bucket.remaining;
-                }
+                if (span) span.textContent = bucket.maxRank === Infinity ? '无限' : bucket.maxRank;
             }
         }
     }
@@ -386,23 +354,13 @@
                     await navigator.clipboard.writeText(addr);
                     this.textContent = '✅ 已复制';
                     this.classList.add('copied');
-                    setTimeout(() => {
-                        this.textContent = '复制';
-                        this.classList.remove('copied');
-                    }, 2000);
+                    setTimeout(() => { this.textContent = '复制'; this.classList.remove('copied'); }, 2000);
                 } catch(e) {
                     const textArea = document.createElement('textarea');
-                    textArea.value = addr;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    this.textContent = '✅ 已复制';
-                    this.classList.add('copied');
-                    setTimeout(() => {
-                        this.textContent = '复制';
-                        this.classList.remove('copied');
-                    }, 2000);
+                    textArea.value = addr; document.body.appendChild(textArea);
+                    textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea);
+                    this.textContent = '✅ 已复制'; this.classList.add('copied');
+                    setTimeout(() => { this.textContent = '复制'; this.classList.remove('copied'); }, 2000);
                 }
             });
         });
@@ -449,8 +407,13 @@
             const statusMap = {50:'community1Status',100:'community2Status',200:'community3Status',500:'community4Status',1000:'community5Status'};
             const card = $(cardMap[amount]); const status = $(statusMap[amount]);
             if(card){card.classList.remove('locked');}
-            if(status){status.textContent='🔓 已解锁';status.style.color='#4ecca3';}
-            setTimeout(() => { fetchUserStats(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); fetchRankRemaining(); }, 3000);
+            if(status){
+                const span = status.querySelector('span');
+                const remainingText = span ? span.textContent : '--';
+                status.textContent = '🔓 已解锁 · 排位剩余：' + remainingText + ' 名额';
+                status.style.color = '#4ecca3';
+            }
+            setTimeout(() => { fetchUserStats(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000);
         } catch(e) { const m = parseError(e); if (m.includes('User denied') || m.includes('rejected')) el.innerHTML = '⚠️ 交易已取消'; else if (m.includes('insufficient')) el.innerHTML = '⚠️ 余额不足'; else el.innerHTML = '❌ ' + m; }
         finally { btn.disabled = false; btn.textContent = '🔓 立即解锁权益'; unlock(); }
     }
@@ -470,35 +433,14 @@
             const totalSupplyWei = await web3.eth.call({to: MYK, data: encodeCall('totalSupply()')});
             const totalSupplyDecoded = web3.eth.abi.decodeParameter('uint256', totalSupplyWei);
             $('totalSupply').textContent = formatM(n(totalSupplyDecoded));
-            
             let burnedAmount = 0;
-            try {
-                const deadBalanceWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [DEAD_ADDR])});
-                burnedAmount = parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', deadBalanceWei), 'ether'));
-            } catch(e) {}
-            try {
-                const zeroBalanceWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR])});
-                burnedAmount += parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', zeroBalanceWei), 'ether'));
-            } catch(e) {}
+            try { const deadBalanceWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [DEAD_ADDR])}); burnedAmount = parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', deadBalanceWei), 'ether')); } catch(e) {}
+            try { const zeroBalanceWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR])}); burnedAmount += parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', zeroBalanceWei), 'ether')); } catch(e) {}
             $('burnedAmount').textContent = formatM(burnedAmount);
-            
-            try {
-                const bpWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [RP])});
-                $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', bpWei)));
-            } catch(e) { $('bonusPool').textContent = '--'; }
-            
-            try {
-                const govMykWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV])});
-                $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', govMykWei)));
-            } catch(e) { $('govLocked').textContent = '--'; }
-            
-            try {
-                const fmWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [FM])});
-                $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', fmWei)));
-            } catch(e) { $('fundAsset').textContent = '--'; }
-        } catch(e) {
-            $('totalSupply').textContent = '--'; $('burnedAmount').textContent = '--';
-        }
+            try { const bpWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [RP])}); $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', bpWei))); } catch(e) { $('bonusPool').textContent = '--'; }
+            try { const govMykWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV])}); $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', govMykWei))); } catch(e) { $('govLocked').textContent = '--'; }
+            try { const fmWei = await web3.eth.call({to: MYK, data: encodeCall('balanceOf(address)', ['address'], [FM])}); $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', fmWei))); } catch(e) { $('fundAsset').textContent = '--'; }
+        } catch(e) { $('totalSupply').textContent = '--'; $('burnedAmount').textContent = '--'; }
         fetchRoleRates(); 
         fetchRankRemaining();
     }
