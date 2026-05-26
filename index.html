@@ -216,7 +216,7 @@
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C5分红+<span class="highlight-green">永久有效</span></div>
                         <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第五层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
                         <div class="hint-text" style="font-size:10px; color:#f0b90b;">SIXTH: 销毁≥2000U等值MYK</div>
-                        <div class="price-row" style="margin-top:8px;"><span>当前等值MYK: <span class="price-value" id="fifthMykAmount">--</span> MYK</span></div>
+                        <div class="price-row" style="margin-top:8px;"><span>当前等值MYK(含0.5%手续费): <span class="price-value" id="fifthMykAmount">--</span> MYK</span></div>
                         <button class="btn btn-gold upgrade-btn" data-amount="1000" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
@@ -316,7 +316,8 @@
     function lock(){if(isProcessing){alert('请等待当前操作完成');return!1}isProcessing=!0;return!0}
     function unlock(){isProcessing=!1}
     function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
-    function updateFifthMykSuggestion(){const p=getSpotPrice();if(p>0){const mykAmt=(1000/p*1.05).toFixed(4);$('fifthMykAmount').textContent=mykAmt;}}
+    // 🔥 加上0.5%手续费
+    function updateFifthMykSuggestion(){const p=getSpotPrice();if(p>0){const mykAmt=(1000/p*1.055).toFixed(4);$('fifthMykAmount').textContent=mykAmt;}}
 
     async function fetchRankRemaining() {
         if (!web3) return;
@@ -369,6 +370,7 @@
     async function waitForTransaction(txHash, maxAttempts = 30) {for(let i=0;i<maxAttempts;i++){try{const receipt=await web3.eth.getTransactionReceipt(txHash);if(receipt){if(receipt.status)return receipt;else throw new Error('交易失败：链上 revert');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('交易确认超时');}
     function calcMinOutput(amountOut, slippage) {const amountBigInt=BigInt(amountOut);const numerator=BigInt(Math.round((1-slippage)*10000));const denominator=BigInt(10000);return (amountBigInt*numerator/denominator).toString();}
 
+    // 🔥 修复：FIFTH加上0.5%手续费
     async function upgradeCommunity(amount) {
         if (!userAddress) { alert('请先连接钱包'); return; }
         if (!lock()) return;
@@ -381,8 +383,9 @@
             if (amount >= 1000) {
                 const spotP = getSpotPrice();
                 if (spotP <= 0) { alert('无法获取现货价格，请稍后重试'); return; }
-                const mykAmount = web3.utils.toWei(String((amount / spotP) * 1.05), 'ether');
-                el.innerHTML = `⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U，现货价)`;
+                // 🔥 加上0.5%手续费：1.05 → 1.055
+                const mykAmount = web3.utils.toWei(String((amount / spotP) * 1.055), 'ether');
+                el.innerHTML = `⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费)`;
                 const burnData = encodeCall('transfer(address,uint256)', ['address', 'uint256'], [GOV, mykAmount]);
                 const bTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: burnData }] });
                 el.innerHTML = '⏳ 等待销毁确认...';
