@@ -137,7 +137,7 @@
     <div class="glass-card"><h2>🎁 百万MYK生态福利</h2><div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量100万MYK赠完即止</div><div class="stat-row"><span>已赠送: <span class="stat-value" id="airdropPaid">--</span> MYK</span><span>剩余: <span class="stat-value" id="airdropRemaining">--</span> MYK</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div></div><div class="stat-row" style="margin-top:4px;"><span style="color:#888;">总量: 1,000,000 MYK</span><span style="color:#888;" id="airdropPercent">0%</span></div></div>
 
     <!-- 6. 激活初级 -->
-    <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.0%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.0%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(合约价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="2.2" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
+    <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.0%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.0%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(现货价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="150" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
 
     <!-- 7. 权益卡片（六张左右滑动） -->
     <div class="glass-card" style="padding:12px 8px;">
@@ -315,8 +315,15 @@
     function parseError(e){const m=e?.message||'',mc=m.match(/execution reverted:\s*(.+?)(?:"|$)/);if(mc)return mc[1].trim();const m2=m.match(/reason="([^"]+)"/);if(m2)return m2[1];return m.slice(0,200)}
     function lock(){if(isProcessing){alert('请等待当前操作完成');return!1}isProcessing=!0;return!0}
     function unlock(){isProcessing=!1}
-    function updateActivateSuggestion(){const p=getActivationPrice();if(p>0){$('suggestedMYK').textContent=(2/p*1.1).toFixed(4);$('mykAmount').value=(2/p*1.1).toFixed(4)}}
-    // 🔥 加上0.5%手续费
+    // 🔥 修复：用现货价格计算MYK激活建议数量
+    function updateActivateSuggestion(){
+        const p = getSpotPrice();  // 用Pair现货价格
+        if(p > 0){
+            const suggested = (2 / p * 1.1).toFixed(4);
+            $('suggestedMYK').textContent = suggested;
+            $('mykAmount').value = suggested;
+        }
+    }
     function updateFifthMykSuggestion(){const p=getSpotPrice();if(p>0){const mykAmt=(1000/p*1.055).toFixed(4);$('fifthMykAmount').textContent=mykAmt;}}
 
     async function fetchRankRemaining() {
@@ -370,7 +377,6 @@
     async function waitForTransaction(txHash, maxAttempts = 30) {for(let i=0;i<maxAttempts;i++){try{const receipt=await web3.eth.getTransactionReceipt(txHash);if(receipt){if(receipt.status)return receipt;else throw new Error('交易失败：链上 revert');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('交易确认超时');}
     function calcMinOutput(amountOut, slippage) {const amountBigInt=BigInt(amountOut);const numerator=BigInt(Math.round((1-slippage)*10000));const denominator=BigInt(10000);return (amountBigInt*numerator/denominator).toString();}
 
-    // 🔥 修复：FIFTH加上0.5%手续费
     async function upgradeCommunity(amount) {
         if (!userAddress) { alert('请先连接钱包'); return; }
         if (!lock()) return;
@@ -383,7 +389,6 @@
             if (amount >= 1000) {
                 const spotP = getSpotPrice();
                 if (spotP <= 0) { alert('无法获取现货价格，请稍后重试'); return; }
-                // 🔥 加上0.5%手续费：1.05 → 1.055
                 const mykAmount = web3.utils.toWei(String((amount / spotP) * 1.055), 'ether');
                 el.innerHTML = `⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费)`;
                 const burnData = encodeCall('transfer(address,uint256)', ['address', 'uint256'], [GOV, mykAmount]);
