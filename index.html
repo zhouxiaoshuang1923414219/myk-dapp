@@ -60,7 +60,6 @@
         h2 { font-size:1.2rem; color:#f0b90b; display:flex; align-items:center; gap:6px; margin-bottom:6px; }
         .desc { color:#a3adc9; font-size:14px; margin-bottom:8px; }
         .desc-status { color:#a3adc9; font-size:13px; margin-bottom:4px; }
-        .desc-status span { color:#4ef0a8; font-weight:600; }
         .highlight { color:#4ef0a8; font-weight:700; }
         .highlight-green { color:#4ecca3; font-weight:700; }
         .highlight-cyan { color:#4ef0a8; font-weight:700; }
@@ -127,8 +126,8 @@
     <!-- 1. 钱包 -->
     <div class="glass-card" style="padding:14px;"><div class="wallet-row"><span style="color:#b0b8d0;">🔗 钱包</span><span class="wallet-addr" id="walletDisplay">未连接</span></div><button class="btn btn-outline" id="connectWalletBtn" style="margin-top:8px;">🔓 连接钱包</button></div>
 
-    <!-- 2. 个人身份 -->
-    <div class="glass-card"><h2>👤 个人身份</h2><div class="stat-row"><span>🏷️ 角色：<span class="stat-value" id="cardRole">--</span></span><span id="cardActiveBadge" style="font-size:12px;">--</span></div><div class="stat-row"><span>👥 推荐人：<span class="stat-value" id="cardReferrer">--</span></span></div><div class="stat-row"><span>📅 激活时间：<span class="stat-value" id="cardActivated">--</span></span></div><div class="stat-row"><span>🤝 直推人数：<span class="stat-value" id="cardInvited">--</span></span><span>📋 连续领取：<span class="stat-value" id="cardStreak">--</span> 天</span></div><div style="display:flex; gap:12px; margin-top:14px;"><div class="asset-box" style="flex:1;"><div class="asset-label">💰 MYK</div><div class="stat-value asset-value" id="cardMYK">--</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">💵 USDT</div><div class="stat-value asset-value" id="cardUSDT">--</div></div></div></div>
+    <!-- 2. 节点信息 -->
+    <div class="glass-card"><h2>📡 节点信息</h2><div class="stat-row"><span>🏷️ 等级：<span class="stat-value" id="cardRole">--</span></span><span id="cardActiveBadge" style="font-size:12px;">--</span></div><div class="stat-row"><span>👥 推荐人：<span class="stat-value" id="cardReferrer">--</span></span></div><div class="stat-row"><span>📅 激活时间：<span class="stat-value" id="cardActivated">--</span></span></div><div class="stat-row"><span>🤝 直推人数：<span class="stat-value" id="cardInvited">--</span></span><span>📋 连续领取：<span class="stat-value" id="cardStreak">--</span> 天</span></div><div style="display:flex; gap:12px; margin-top:14px;"><div class="asset-box" style="flex:1;"><div class="asset-label">💰 MYK</div><div class="stat-value asset-value" id="cardMYK">--</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">💵 USDT</div><div class="stat-value asset-value" id="cardUSDT">--</div></div></div></div>
 
     <!-- 3. MYK买卖 -->
     <div class="glass-card"><h2 style="justify-content:space-between;"><span>📈 买卖 MYK</span><span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span></span></h2><div class="order-panel"><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div><div style="font-size:13px;color:#4ecca3;font-weight:700;" id="buyPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 USDT = <span id="buyRateDisplay">--</span> MYK</div></div><div class="order-divider"></div><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">卖出价</div><div style="font-size:13px;color:#e94560;font-weight:700;" id="sellPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 MYK = <span id="sellRateDisplay">--</span> USDT</div></div></div><div class="tab-container" id="tradeTabSwitch"><div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div><div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div></div><div id="panelBuy"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button><div class="info-box" id="buyResult" style="display:none;"></div></div><div id="panelSell" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span></div><button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button><div class="info-box" id="sellResult" style="display:none;"></div></div></div>
@@ -273,11 +272,6 @@
     const PCS_API='https://api.pancakeswap.info/api/v2/tokens/0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const STORAGE_KEY='myk_baseline_price';
 
-    const RANK_BUCKETS=[
-        {name:'第六社区',maxRank:3,pool:'15%',bucket:1},
-        {name:'第五社区',maxRank:25,pool:'25%',bucket:2},
-        {name:'第四社区',maxRank:Infinity,pool:'60%',bucket:3}
-    ];
     const CARD_EXPIRY_MAP={community1:'community1Unlock',community2:'community2Unlock',community3:'community3Unlock',community4:'community4Unlock',community5:'community5Unlock'};
     
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
@@ -320,9 +314,7 @@
         if(!web3||!userAddress)return;
         try{
             const userTier=await fetchUserGovTier();
-            const burnedValue=await fetchUserBurnedValue();
             for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;span.textContent='永久';}
-            if(burnedValue>0){const el4=$(CARD_EXPIRY_MAP.community4);if(el4){const span=el4.querySelector('span');if(span)span.textContent='永久 (累计'+burnedValue.toFixed(0)+'U)';}const el5=$(CARD_EXPIRY_MAP.community5);if(el5){const span=el5.querySelector('span');if(span)span.textContent='永久 (累计'+burnedValue.toFixed(0)+'U)';}}
             if(userTier>=1){$('community1Card').classList.remove('locked');$('community1Status').textContent='🔓 已解锁';$('community1Status').style.color='#4ecca3';}
             if(userTier>=2){$('community2Card').classList.remove('locked');$('community2Status').textContent='🔓 已解锁';$('community2Status').style.color='#4ecca3';}
             if(userTier>=3){$('community3Card').classList.remove('locked');$('community3Status').textContent='🔓 已解锁';$('community3Status').style.color='#4ecca3';}
