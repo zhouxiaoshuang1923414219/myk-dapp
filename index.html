@@ -30,6 +30,10 @@
             box-shadow:0 15px 30px rgba(0,0,0,0.5); transition:border 0.2s;
         }
         .glass-card:hover { border-color:rgba(233,69,96,0.5); }
+        .glass-card-active {
+            border:1px solid rgba(233,69,96,0.5) !important;
+            box-shadow:0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(233,69,96,0.15);
+        }
         .wallet-row { display:flex; align-items:center; justify-content:space-between; background:#0f1221; border-radius:20px; padding:12px 16px; margin-bottom:5px; }
         .wallet-addr { font-family:'Fira Code',monospace; color:#4ef0a8; font-weight:600; font-size:15px; }
         .btn {
@@ -76,6 +80,7 @@
         .stat-value { color:#4ef0a8; font-weight:700; }
         .unlock-card { border:2px solid #f0b90b; }
         .unlock-card.locked { border:2px solid #555; opacity:0.7; }
+        .unlock-card.unlocked { border:2px solid #4ecca3; opacity:1; }
         .slippage-row { display:flex; align-items:center; gap:8px; margin:8px 0; }
         .slippage-btn { padding:6px 12px; border-radius:12px; background:#2d325a; border:1px solid #394056; color:#aaa; cursor:pointer; font-size:12px; font-weight:600; transition:0.2s; }
         .slippage-btn.active { background:#e94560; color:white; border-color:#e94560; }
@@ -101,6 +106,16 @@
         .swipe-dots { display:flex; justify-content:center; gap:6px; margin-top:10px; flex-wrap:wrap; }
         .swipe-dot { width:6px; height:6px; border-radius:50%; background:#555; transition:background 0.3s; }
         .swipe-dot.active { background:#f0b90b; width:16px; border-radius:3px; }
+        .live-dot {
+            display:inline-block; width:10px; height:10px; border-radius:50%;
+            animation:livePulse 1.5s infinite;
+        }
+        @keyframes livePulse {
+            0%{background:#e94560;box-shadow:0 0 6px #e94560;}
+            33%{background:#f0b90b;box-shadow:0 0 6px #f0b90b;}
+            66%{background:#4ecca3;box-shadow:0 0 6px #4ecca3;}
+            100%{background:#e94560;box-shadow:0 0 6px #e94560;}
+        }
         .contract-addr-row {
             display:flex; align-items:center; justify-content:space-between;
             padding:10px 12px; margin-bottom:6px;
@@ -127,7 +142,7 @@
     <div class="glass-card" style="padding:14px;"><div class="wallet-row"><span style="color:#b0b8d0;">🔗 钱包</span><span class="wallet-addr" id="walletDisplay">未连接</span></div><button class="btn btn-outline" id="connectWalletBtn" style="margin-top:8px;">🔓 连接钱包</button></div>
 
     <!-- 2. 节点信息 -->
-    <div class="glass-card"><h2>📡 节点信息</h2><div class="stat-row"><span>🏷️ 等级：<span class="stat-value" id="cardRole">--</span></span><span id="cardActiveBadge" style="font-size:12px;">--</span></div><div class="stat-row"><span>👥 推荐人：<span class="stat-value" id="cardReferrer">--</span></span></div><div class="stat-row"><span>📅 激活时间：<span class="stat-value" id="cardActivated">--</span></span></div><div class="stat-row"><span>🤝 直推人数：<span class="stat-value" id="cardInvited">--</span></span><span>📋 连续领取：<span class="stat-value" id="cardStreak">--</span> 天</span></div><div style="display:flex; gap:12px; margin-top:14px;"><div class="asset-box" style="flex:1;"><div class="asset-label">💰 MYK</div><div class="stat-value asset-value" id="cardMYK">--</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">💵 USDT</div><div class="stat-value asset-value" id="cardUSDT">--</div></div></div></div>
+    <div class="glass-card"><h2><span class="live-dot"></span> 节点信息</h2><div class="stat-row"><span>🏷️ 等级：<span class="stat-value" id="cardRole">--</span></span><span id="cardActiveBadge" style="font-size:12px;">--</span></div><div class="stat-row"><span>👥 推荐人：<span class="stat-value" id="cardReferrer">--</span></span></div><div class="stat-row"><span>📅 激活时间：<span class="stat-value" id="cardActivated">--</span></span></div><div class="stat-row"><span>🤝 直推人数：<span class="stat-value" id="cardInvited">--</span></span><span>📋 连续领取：<span class="stat-value" id="cardStreak">--</span> 天</span></div><div style="display:flex; gap:12px; margin-top:14px;"><div class="asset-box" style="flex:1;"><div class="asset-label">💰 MYK</div><div class="stat-value asset-value" id="cardMYK">--</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">💵 USDT</div><div class="stat-value asset-value" id="cardUSDT">--</div></div></div></div>
 
     <!-- 3. MYK买卖 -->
     <div class="glass-card"><h2 style="justify-content:space-between;"><span>📈 买卖 MYK</span><span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span></span></h2><div class="order-panel"><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div><div style="font-size:13px;color:#4ecca3;font-weight:700;" id="buyPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 USDT = <span id="buyRateDisplay">--</span> MYK</div></div><div class="order-divider"></div><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">卖出价</div><div style="font-size:13px;color:#e94560;font-weight:700;" id="sellPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 MYK = <span id="sellRateDisplay">--</span> USDT</div></div></div><div class="tab-container" id="tradeTabSwitch"><div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div><div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div></div><div id="panelBuy"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button><div class="info-box" id="buyResult" style="display:none;"></div></div><div id="panelSell" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span></div><button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button><div class="info-box" id="sellResult" style="display:none;"></div></div></div>
@@ -144,8 +159,8 @@
     <!-- 7. 每日升级奖励 1.6%/天 × 90天 -->
     <div class="glass-card"><h2>📈 每日升级奖励</h2><div class="desc">USDT升级用户享 <span class="highlight">1.6%/天</span> × <span class="highlight-green">90天</span></div><div class="stat-row"><span>升级本金：<span class="stat-value" id="bonusPrincipal">--</span> USDT</span><span>每日可得：<span class="stat-value" id="bonusDaily">--</span> MYK</span></div><div class="stat-row" style="margin-top:8px;"><span>已领取：<span class="stat-value" id="bonusClaimed">--</span> 天</span><span>剩余：<span class="stat-value" id="bonusRemaining">--</span> 天</span></div><button class="btn btn-gold" id="claimBonusBtn">📈 领取今日升级奖励</button><div class="info-box" id="claimBonusResult" style="display:none;"></div></div>
 
-    <!-- 8. 权益卡片（六张左右滑动） -->
-    <div class="glass-card" style="padding:12px 8px;">
+    <!-- 8. 权益卡片（六张左右滑动）边框参考激活初级 -->
+    <div class="glass-card" id="rightsCardOuter" style="padding:12px 8px;">
         <div class="swipe-container" id="swipeContainer">
             <div class="swipe-track">
                 <!-- 第1张：MIDDLE 权益 -->
@@ -298,8 +313,6 @@
     function updateActivateSuggestion(){const p=getSpotPrice();if(p>0){const s=(2/p*1.1).toFixed(4);$('suggestedMYK').textContent=s;$('mykAmount').value=s;}}
     function updateFifthMykSuggestion(){const p=getSpotPrice();if(p>0){const m=(1000/p*1.055).toFixed(4);$('fifthMykAmount').textContent=m;}}
 
-    async function fetchUserBurnedValue(){if(!web3||!userAddress)return 0;try{const data=encodeCall('totalBurnedValueByUser(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',result),'ether'));}catch(e){return 0;}}
-
     async function fetchUserGovTier(){
         if(!web3||!userAddress)return 0;
         try{const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseInt(web3.eth.abi.decodeParameter('uint8',result));}
@@ -310,24 +323,91 @@
     async function fetchDailyBonusInfo(){if(!web3||!userAddress)return;try{const data=encodeCall('getBonusInfo(address)',['address'],[userAddress]);const result=await web3.eth.call({to:RP,data:data});const info=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','bool'],result);const principal=parseFloat(Web3.utils.fromWei(info[0],'ether'));const dailyAmount=parseFloat(Web3.utils.fromWei(info[1],'ether'));const claimedDays=parseInt(info[2]);const totalDays=parseInt(info[3])||90;const isActive=info[4];$('bonusPrincipal').textContent=principal.toFixed(0);$('bonusDaily').textContent=dailyAmount.toFixed(6);$('bonusClaimed').textContent=claimedDays;$('bonusRemaining').textContent=Math.max(0,totalDays-claimedDays);$('claimBonusBtn').disabled=!isActive||claimedDays>=totalDays;if(!isActive){$('claimBonusBtn').textContent='📈 暂无升级奖励';}else if(claimedDays>=totalDays){$('claimBonusBtn').textContent='✅ 已全部领取';}else{$('claimBonusBtn').textContent='📈 领取今日升级奖励';}}catch(e){$('bonusPrincipal').textContent='--';$('bonusDaily').textContent='--';$('bonusClaimed').textContent='--';$('bonusRemaining').textContent='--';$('claimBonusBtn').disabled=true;$('claimBonusBtn').textContent='📈 暂无升级奖励';}}
     async function claimDailyBonus(){if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;const b=$('claimBonusBtn'),el=$('claimBonusResult');el.style.display='block';el.innerHTML='⏳ 领取中...';b.disabled=true;try{const tx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('claimDailyBonus()')}]});el.innerHTML='⏳ 等待确认...';await waitForTransaction(tx);el.innerHTML='✅ 领取成功！';el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';setTimeout(()=>{fetchDailyBonusInfo();fetchHoldingInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('already claimed')?'⚠️ 今日已领取':m.includes('not active')?'⚠️ 暂无升级奖励':'❌ '+m;}finally{b.disabled=false;unlock();}}
 
+    // 🔥 更新社区卡片状态：高级解锁，低级保持未触发
     async function fetchCommunityExpiry(){
         if(!web3||!userAddress)return;
         try{
             const userTier=await fetchUserGovTier();
-            for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;span.textContent='永久';}
-            if(userTier>=1){$('community1Card').classList.remove('locked');$('community1Status').textContent='🔓 已解锁';$('community1Status').style.color='#4ecca3';}
-            if(userTier>=2){$('community2Card').classList.remove('locked');$('community2Status').textContent='🔓 已解锁';$('community2Status').style.color='#4ecca3';}
-            if(userTier>=3){$('community3Card').classList.remove('locked');$('community3Status').textContent='🔓 已解锁';$('community3Status').style.color='#4ecca3';}
-            if(userTier>=4){$('community4Card').classList.remove('locked');$('community4Status').textContent='🔓 已解锁';$('community4Status').style.color='#4ecca3';}
-            if(userTier>=5){$('community5Card').classList.remove('locked');$('community5Status').textContent='🔓 已解锁';$('community5Status').style.color='#4ecca3';}
-        }catch(e){for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;span.textContent='永久';}}
+            console.log('📊 用户社区等级:',userTier);
+            
+            // 更新所有卡片有效期
+            for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){
+                const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;
+                span.textContent='永久';
+            }
+            
+            // 根据等级逐个解锁：高级解锁时低级保持未触发状态
+            // 只解锁用户当前等级的卡片，不自动解锁低级卡片
+            const tierCards={
+                1:['community1Card','community1Status'],
+                2:['community2Card','community2Status'],
+                3:['community3Card','community3Status'],
+                4:['community4Card','community4Status'],
+                5:['community5Card','community5Status'],
+                6:['community5Card','community5Status'] // SIXTH也显示在第五社区卡片
+            };
+            
+            // 先全部重置为锁定
+            for(let t=1;t<=6;t++){
+                const[cardId,statusId]=tierCards[t]||[];
+                if(cardId&&statusId){
+                    $(cardId).classList.add('locked');
+                    $(cardId).classList.remove('unlocked');
+                    $(statusId).textContent='🔒 未解锁';
+                    $(statusId).style.color='#a3adc9';
+                }
+            }
+            
+            // 只解锁当前等级对应的卡片
+            if(userTier>=1){
+                const[cardId,statusId]=tierCards[1];
+                $(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');
+                $(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';
+            }
+            if(userTier>=2){
+                const[cardId,statusId]=tierCards[2];
+                $(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');
+                $(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';
+            }
+            if(userTier>=3){
+                const[cardId,statusId]=tierCards[3];
+                $(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');
+                $(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';
+            }
+            if(userTier>=4){
+                const[cardId,statusId]=tierCards[4];
+                $(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');
+                $(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';
+            }
+            if(userTier>=5){
+                const[cardId,statusId]=tierCards[5];
+                $(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');
+                $(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';
+            }
+            
+            // 更新外框样式：有解锁卡片时高亮
+            updateRightsCardBorder(userTier);
+        }catch(e){
+            console.warn('获取社区状态失败:',e.message);
+        }
+    }
+    
+    // 🔥 更新第八板块外框样式
+    function updateRightsCardBorder(userTier){
+        const outer=$('rightsCardOuter');
+        if(!outer)return;
+        if(userTier>=1){
+            outer.classList.add('glass-card-active');
+        }else{
+            outer.classList.remove('glass-card-active');
+        }
     }
 
     function setupCopyButtons(){document.querySelectorAll('.contract-addr-copy').forEach(btn=>{btn.addEventListener('click',async function(){const addr=this.dataset.addr;try{await navigator.clipboard.writeText(addr);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}catch(e){const ta=document.createElement('textarea');ta.value=addr;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}});});}
     async function waitForTransaction(txHash,maxAttempts=30){for(let i=0;i<maxAttempts;i++){try{const r=await web3.eth.getTransactionReceipt(txHash);if(r){if(r.status)return r;else throw new Error('交易失败');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('超时');}
     function calcMinOutput(amountOut,slippage){const a=BigInt(amountOut);const n=BigInt(Math.round((1-slippage)*10000));return(a*n/BigInt(10000)).toString();}
 
-    async function upgradeCommunity(amount){if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;const btn=document.querySelector(`.upgrade-btn[data-amount="${amount}"]`);const el=btn?btn.nextElementSibling:null;if(!btn||!el)return;btn.disabled=true;btn.textContent='处理中...';el.style.display='block';try{if(amount>=500){const sp=getSpotPrice();if(sp<=0){alert('无法获取现货价格');return;}const ma=web3.utils.toWei(String((amount/sp)*1.055),'ether');el.innerHTML=`⏳ 将销毁 ${n(ma).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`;const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('transfer(address,uint256)',['address','uint256'],[GOV,ma])}]});el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);}else{const fee=web3.utils.toWei(String(amount),'ether');el.innerHTML=`⏳ 正在支付${amount} USDT...`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 解锁中...';const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee])}]});el.innerHTML='⏳ 等待解锁确认...';await waitForTransaction(uTx);}el.innerHTML='✅ 解锁成功！';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';btn.style.display='none';const cm={50:'community1Card',100:'community2Card',200:'community3Card',500:'community4Card',1000:'community5Card'};const sm={50:'community1Status',100:'community2Status',200:'community3Status',500:'community4Status',1000:'community5Status'};const c=$(cm[amount]),s=$(sm[amount]);if(c)c.classList.remove('locked');if(s){s.textContent='🔓 已解锁';s.style.color='#4ecca3';}setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{btn.disabled=false;btn.textContent=amount>=500?'🔥 销毁MYK解锁':'🔓 立即解锁权益';unlock();}}
+    async function upgradeCommunity(amount){if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;const btn=document.querySelector(`.upgrade-btn[data-amount="${amount}"]`);const el=btn?btn.nextElementSibling:null;if(!btn||!el)return;btn.disabled=true;btn.textContent='处理中...';el.style.display='block';try{if(amount>=500){const sp=getSpotPrice();if(sp<=0){alert('无法获取现货价格');return;}const ma=web3.utils.toWei(String((amount/sp)*1.055),'ether');el.innerHTML=`⏳ 将销毁 ${n(ma).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`;const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('transfer(address,uint256)',['address','uint256'],[GOV,ma])}]});el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);}else{const fee=web3.utils.toWei(String(amount),'ether');el.innerHTML=`⏳ 正在支付${amount} USDT...`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 解锁中...';const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee])}]});el.innerHTML='⏳ 等待解锁确认...';await waitForTransaction(uTx);}el.innerHTML='✅ 解锁成功！';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';btn.style.display='none';setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{btn.disabled=false;btn.textContent=amount>=500?'🔥 销毁MYK解锁':'🔓 立即解锁权益';unlock();}}
     function setupUpgradeButtons(){document.querySelectorAll('.upgrade-btn').forEach(b=>{b.addEventListener('click',function(){upgradeCommunity(parseInt(this.dataset.amount));});});}
 
     async function fetchRoleRates(){if(!web3)return;try{$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.0%';}try{$('middleRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('middleRate').textContent='1.3%';}try{$('communityRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('communityRate').textContent='1.6%';}}
@@ -347,7 +427,7 @@
     async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const uo=await getSwapQuote(mw,[MYK,USDT]);const mu=calcMinOutput(uo,sellSlippage);el.innerHTML='⏳ 检查余额...';const br=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',br))<BigInt(mw))throw new Error('MYK余额不足');el.innerHTML='⏳ 授权 MYK...';const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 卖出 MYK...';const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)])}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{b.disabled=!1;unlock();}}
 
     async function fetchAirdrop(){try{if(!web3)return;const d=encodeCall('getActivityPoolBalance()'),r=await web3.eth.call({to:RP,data:d}),rm=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',r),'ether')),pd=AIRDROP_TOTAL-rm,pc=Math.min(100,Math.max(0,(pd/AIRDROP_TOTAL)*100));$('airdropPaid').textContent=pd.toFixed(0);$('airdropRemaining').textContent=rm.toFixed(0);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%';}catch(e){$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--';}}
-    async function fetchUserStats(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]);const ur=await web3.eth.call({to:RP,data:ud});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);const activeInvited=Number(u[1]);$('middleInvitedCount').textContent=activeInvited;const progress=Math.min(100,(activeInvited/3)*100);$('middleProgress').style.width=progress.toFixed(1)+'%';const userRole=Number(u[7]);if(userRole>=2){$('middleCard').classList.remove('locked');$('middleStatus').textContent='🔓 已解锁';$('middleStatus').style.color='#4ecca3';}else if(activeInvited>=3&&userRole===1){$('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';$('middleStatus').style.color='#f0b90b';}try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('streakDays').textContent='0';}}catch(e){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';}}
+    async function fetchUserStats(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]);const ur=await web3.eth.call({to:RP,data:ud});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);const activeInvited=Number(u[1]);$('middleInvitedCount').textContent=activeInvited;const progress=Math.min(100,(activeInvited/3)*100);$('middleProgress').style.width=progress.toFixed(1)+'%';const userRole=Number(u[7]);if(userRole>=2){$('middleCard').classList.remove('locked');$('middleCard').classList.add('unlocked');$('middleStatus').textContent='🔓 已解锁';$('middleStatus').style.color='#4ecca3';}else if(activeInvited>=3&&userRole===1){$('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';$('middleStatus').style.color='#f0b90b';}try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('streakDays').textContent='0';}}catch(e){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';}}
     
     async function refreshIdentityCard(){
         if(!userAddress||!web3)return;
