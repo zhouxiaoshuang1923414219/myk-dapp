@@ -247,7 +247,7 @@
     </div>
 
     <!-- 9. 角色费率 -->
-    <div class="glass-card"><div style="display:flex;gap:10px;"><div class="asset-box" style="flex:1;"><div class="asset-label">🥉 PRIMARY</div><div class="rate-value" style="color:#4ecca3;" id="primaryRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">支付2 USDT激活</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥈 MIDDLE</div><div class="rate-value" style="color:#4ecca3;" id="middleRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">推荐≥3个PRIMARY</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥇 COMMUNITY</div><div class="rate-value" style="color:#f0b90b;" id="communityRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">持有社区身份</div></div></div></div>
+    <div class="glass-card"><div style="display:flex;gap:10px;"><div class="asset-box" style="flex:1;"><div class="asset-label">🥉 PRIMARY</div><div class="rate-value" style="color:#4ecca3;" id="primaryRate">--</div><div class="rate-label">日领币</div><div class="rate-condition">已激活节点</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥈 MIDDLE</div><div class="rate-value" style="color:#4ecca3;" id="middleRate">--</div><div class="rate-label">日领币</div><div class="rate-condition">推荐≥3个PRIMARY</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥇 COMMUNITY</div><div class="rate-value" style="color:#f0b90b;" id="communityRate">--</div><div class="rate-label">日领币</div><div class="rate-condition">持有社区身份</div></div></div></div>
 
     <!-- 10. 合约信息 -->
     <div class="glass-card">
@@ -339,11 +339,7 @@
         }catch(e){}
     }
     
-    function updateRightsCardBorder(userTier){
-        const outer=$('rightsCardOuter');
-        if(!outer)return;
-        if(userTier>=1){outer.classList.add('glass-card-active');}else{outer.classList.remove('glass-card-active');}
-    }
+    function updateRightsCardBorder(userTier){const outer=$('rightsCardOuter');if(!outer)return;if(userTier>=1){outer.classList.add('glass-card-active');}else{outer.classList.remove('glass-card-active');}}
 
     function setupCopyButtons(){document.querySelectorAll('.contract-addr-copy').forEach(btn=>{btn.addEventListener('click',async function(){const addr=this.dataset.addr;try{await navigator.clipboard.writeText(addr);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}catch(e){const ta=document.createElement('textarea');ta.value=addr;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}});});}
     async function waitForTransaction(txHash,maxAttempts=30){for(let i=0;i<maxAttempts;i++){try{const r=await web3.eth.getTransactionReceipt(txHash);if(r){if(r.status)return r;else throw new Error('交易失败');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('超时');}
