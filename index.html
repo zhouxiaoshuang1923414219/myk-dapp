@@ -142,7 +142,10 @@
     <!-- 6. 激活初级 -->
     <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.0%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.0%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(现货价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="150" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
 
-    <!-- 7. 权益卡片（六张左右滑动） -->
+    <!-- 7. 每日升级奖励 1.6%/天 × 90天 -->
+    <div class="glass-card"><h2>📈 每日升级奖励</h2><div class="desc">USDT升级用户享 <span class="highlight">1.6%/天</span> × <span class="highlight-green">90天</span></div><div class="stat-row"><span>升级本金：<span class="stat-value" id="bonusPrincipal">--</span> USDT</span><span>每日可得：<span class="stat-value" id="bonusDaily">--</span> MYK</span></div><div class="stat-row" style="margin-top:8px;"><span>已领取：<span class="stat-value" id="bonusClaimed">--</span> 天</span><span>剩余：<span class="stat-value" id="bonusRemaining">--</span> 天</span></div><button class="btn btn-gold" id="claimBonusBtn">📈 领取今日升级奖励</button><div class="info-box" id="claimBonusResult" style="display:none;"></div></div>
+
+    <!-- 8. 权益卡片（六张左右滑动） -->
     <div class="glass-card" style="padding:12px 8px;">
         <div class="swipe-container" id="swipeContainer">
             <div class="swipe-track">
@@ -151,9 +154,9 @@
                     <div class="unlock-card locked" id="middleCard" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 MIDDLE 权益 <span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
                         <div class="desc" id="middleStatus" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-text" style="font-size:11px;">解锁规则：PRIMARY+曾锁仓 解锁更多权益</div>
+                        <div class="hint-text" style="font-size:11px;">解锁规则：推荐 ≥3 个 PRIMARY 解锁更多权益</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.3%</span> 日奖币</div>
-                        <div class="stat-row" style="font-size:12px;"><span>当前已激活PRIMARY：<span class="stat-value" id="middleInvitedCount">--</span> 人</span><span>需达目标：<span class="stat-value">3</span> 人</span></div>
+                        <div class="stat-row" style="font-size:12px;"><span>当前已推荐PRIMARY：<span class="stat-value" id="middleInvitedCount">--</span> 人</span><span>需达目标：<span class="stat-value">3</span> 人</span></div>
                         <div class="progress-bar-container"><div class="progress-bar-fill" id="middleProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
                     </div>
                 </div>
@@ -164,7 +167,7 @@
                         <div class="desc-status" id="community1Status">🔒 未解锁 · 排位剩余：<span>--</span> 名额</div>
                         <div class="hint-unlock" id="community1Unlock">解锁规则：支付50 USDT 获取FIRST身份(<span>永久</span>)</div>
                         <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C1分红池<span class="highlight">15%</span></div>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币+<span class="highlight-green">1.6%/天×90天</span></div>
                         <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：伞下无限代业绩10%奖励</div>
                         <button class="btn btn-gold upgrade-btn" data-amount="50" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
@@ -177,7 +180,7 @@
                         <div class="desc-status" id="community2Status">🔒 未解锁 · 排位剩余：<span>--</span> 名额</div>
                         <div class="hint-unlock" id="community2Unlock">解锁规则：支付100 USDT 获取SECOND身份(<span>永久</span>)</div>
                         <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C2分红池<span class="highlight-green">20%</span></div>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币+<span class="highlight-green">1.6%/天×90天</span></div>
                         <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第二层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
                         <button class="btn btn-gold upgrade-btn" data-amount="100" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
@@ -190,7 +193,7 @@
                         <div class="desc-status" id="community3Status">🔒 未解锁 · 排位剩余：<span>--</span> 名额</div>
                         <div class="hint-unlock" id="community3Unlock">解锁规则：支付200 USDT 获取THIRD身份(<span>永久</span>)</div>
                         <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C3分红池<span class="highlight-green">30%</span></div>
+                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币+<span class="highlight-green">1.6%/天×90天</span></div>
                         <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第三层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
                         <button class="btn btn-gold upgrade-btn" data-amount="200" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
                         <div class="info-box upgrade-result" style="display:none;"></div>
@@ -229,10 +232,10 @@
         <div class="swipe-dots"><div class="swipe-dot active" data-index="0"></div><div class="swipe-dot" data-index="1"></div><div class="swipe-dot" data-index="2"></div><div class="swipe-dot" data-index="3"></div><div class="swipe-dot" data-index="4"></div><div class="swipe-dot" data-index="5"></div></div>
     </div>
 
-    <!-- 8. 角色费率 -->
-    <div class="glass-card"><div style="display:flex;gap:10px;"><div class="asset-box" style="flex:1;"><div class="asset-label">🥉 PRIMARY</div><div class="rate-value" style="color:#4ecca3;" id="primaryRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">支付2 USDT激活</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥈 MIDDLE</div><div class="rate-value" style="color:#4ecca3;" id="middleRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">PRIMARY+曾锁仓</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥇 COMMUNITY</div><div class="rate-value" style="color:#f0b90b;" id="communityRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">持有社区身份</div></div></div></div>
+    <!-- 9. 角色费率 -->
+    <div class="glass-card"><div style="display:flex;gap:10px;"><div class="asset-box" style="flex:1;"><div class="asset-label">🥉 PRIMARY</div><div class="rate-value" style="color:#4ecca3;" id="primaryRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">支付2 USDT激活</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥈 MIDDLE</div><div class="rate-value" style="color:#4ecca3;" id="middleRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">推荐≥3个PRIMARY</div></div><div class="asset-box" style="flex:1;"><div class="asset-label">🥇 COMMUNITY</div><div class="rate-value" style="color:#f0b90b;" id="communityRate">--</div><div class="rate-label">日费率</div><div class="rate-condition">持有社区身份</div></div></div></div>
 
-    <!-- 9. 合约信息 -->
+    <!-- 10. 合约信息 -->
     <div class="glass-card">
         <div class="contract-info-grid">
             <div class="asset-box asset-box-full"><div class="asset-label">📊 MYK总发行量 (2100万)</div><div class="stat-value" id="totalSupply" style="font-size:16px;">--</div></div>
@@ -270,20 +273,13 @@
     const PCS_API='https://api.pancakeswap.info/api/v2/tokens/0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const STORAGE_KEY='myk_baseline_price';
 
-    // 🔥 新排名区间（基于新合约规则）
     const RANK_BUCKETS=[
         {name:'第六社区',maxRank:3,pool:'15%',bucket:1},
         {name:'第五社区',maxRank:25,pool:'25%',bucket:2},
         {name:'第四社区',maxRank:Infinity,pool:'60%',bucket:3}
     ];
-    // 卡片与排名区间映射（基于新合约）
-    // community1=FIRST, community2=SECOND, community3=THIRD → 第四社区
-    // community4=FOURTH → 第五社区
-    // community5=FIFTH → 第六社区
     const CARD_RANK_MAP={community1:2,community2:2,community3:2,community4:1,community5:0};
     const CARD_EXPIRY_MAP={community1:'community1Unlock',community2:'community2Unlock',community3:'community3Unlock',community4:'community4Unlock',community5:'community5Unlock'};
-    // 🔥 新身份门槛（USDT支付：FIRST~THIRD，MYK销毁：FOURTH~SIXTH）
-    const TIER_CONFIG={50:1,100:2,200:3,500:4,1000:5};
     
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
 
@@ -309,94 +305,100 @@
     function updateActivateSuggestion(){const p=getSpotPrice();if(p>0){const s=(2/p*1.1).toFixed(4);$('suggestedMYK').textContent=s;$('mykAmount').value=s;}}
     function updateFifthMykSuggestion(){const p=getSpotPrice();if(p>0){const m=(1000/p*1.055).toFixed(4);$('fifthMykAmount').textContent=m;}}
 
-    // 🔥 获取用户累计MYK销毁价值（从链上获取）
+    // 🔥 获取用户累计MYK销毁价值
     async function fetchUserBurnedValue(){
         if(!web3||!userAddress)return 0;
         try{
             const data=encodeCall('totalBurnedValueByUser(address)',['address'],[userAddress]);
             const result=await web3.eth.call({to:GOV,data:data});
-            const burnedValue=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',result),'ether'));
-            console.log('📊 用户累计MYK销毁价值:',burnedValue,'USDT');
-            return burnedValue;
+            return parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',result),'ether'));
+        }catch(e){return 0;}
+    }
+
+    // 🔥 获取每日升级奖励信息
+    async function fetchDailyBonusInfo(){
+        if(!web3||!userAddress)return;
+        try{
+            // 获取用户升级奖励信息
+            const data=encodeCall('getBonusInfo(address)',['address'],[userAddress]);
+            const result=await web3.eth.call({to:RP,data:data});
+            const info=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','bool'],result);
+            const principal=parseFloat(Web3.utils.fromWei(info[0],'ether'));
+            const dailyAmount=parseFloat(Web3.utils.fromWei(info[1],'ether'));
+            const claimedDays=parseInt(info[2]);
+            const totalDays=parseInt(info[3])||90;
+            const isActive=info[4];
+            
+            $('bonusPrincipal').textContent=principal.toFixed(0);
+            $('bonusDaily').textContent=dailyAmount.toFixed(6);
+            $('bonusClaimed').textContent=claimedDays;
+            $('bonusRemaining').textContent=Math.max(0,totalDays-claimedDays);
+            $('claimBonusBtn').disabled=!isActive||claimedDays>=totalDays;
+            if(!isActive){$('claimBonusBtn').textContent='📈 暂无升级奖励';}
+            else if(claimedDays>=totalDays){$('claimBonusBtn').textContent='✅ 已全部领取';}
+            else{$('claimBonusBtn').textContent='📈 领取今日升级奖励';}
+            console.log('📊 升级奖励: 本金',principal,'每日',dailyAmount,'已领',claimedDays,'/90天');
         }catch(e){
-            console.warn('获取累计销毁价值失败:',e.message);
-            return 0;
+            console.warn('获取升级奖励信息失败:',e.message);
+            $('bonusPrincipal').textContent='--';$('bonusDaily').textContent='--';
+            $('bonusClaimed').textContent='--';$('bonusRemaining').textContent='--';
+            $('claimBonusBtn').disabled=true;$('claimBonusBtn').textContent='📈 暂无升级奖励';
         }
     }
 
-    // 🔥 更新社区卡片有效期显示（从链上获取用户身份信息）
+    // 🔥 领取每日升级奖励
+    async function claimDailyBonus(){
+        if(!userAddress){alert('请先连接钱包');return;}
+        if(!lock())return;
+        const b=$('claimBonusBtn'),el=$('claimBonusResult');
+        el.style.display='block';el.innerHTML='⏳ 领取中...';b.disabled=true;
+        try{
+            const data=encodeCall('claimDailyBonus()');
+            const tx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:data}]});
+            el.innerHTML='⏳ 等待确认...';await waitForTransaction(tx);
+            el.innerHTML='✅ 领取成功！';el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
+            setTimeout(()=>{fetchDailyBonusInfo();fetchHoldingInfo();},3000);
+        }catch(e){const m=parseError(e);el.innerHTML=m.includes('already claimed')?'⚠️ 今日已领取':m.includes('not active')?'⚠️ 暂无升级奖励':'❌ '+m;}
+        finally{b.disabled=false;unlock();}
+    }
+
+    // 🔥 更新社区卡片有效期显示
     async function fetchCommunityExpiry(){
         if(!web3||!userAddress)return;
         try{
-            // 获取用户社区身份等级
             const tierData=encodeCall('getUserTier(address)',['address'],[userAddress]);
             const tierResult=await web3.eth.call({to:GOV,data:tierData});
             const userTier=parseInt(web3.eth.abi.decodeParameter('uint256',tierResult));
-            console.log('📊 用户社区身份等级:',userTier);
-            
-            // 获取累计销毁价值
             const burnedValue=await fetchUserBurnedValue();
-            
-            // 更新所有社区卡片的有效期显示（新合约全部永久）
             for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){
                 const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;
-                // 新合约所有身份都是永久的
                 span.textContent='永久';
             }
-            
-            // 更新FOURTH/FIFTH卡片显示累计进度
             if(burnedValue>0){
-                const el4=$(CARD_EXPIRY_MAP.community4);
-                if(el4){const span=el4.querySelector('span');if(span)span.textContent='永久 (累计'+burnedValue.toFixed(0)+'U)';}
-                const el5=$(CARD_EXPIRY_MAP.community5);
-                if(el5){const span=el5.querySelector('span');if(span)span.textContent='永久 (累计'+burnedValue.toFixed(0)+'U)';}
+                const el4=$(CARD_EXPIRY_MAP.community4);if(el4){const span=el4.querySelector('span');if(span)span.textContent='永久 (累计'+burnedValue.toFixed(0)+'U)';}
+                const el5=$(CARD_EXPIRY_MAP.community5);if(el5){const span=el5.querySelector('span');if(span)span.textContent='永久 (累计'+burnedValue.toFixed(0)+'U)';}
             }
-            
-            // 根据链上身份自动解锁对应卡片
             if(userTier>=1){$('community1Card').classList.remove('locked');$('community1Status').textContent='🔓 已解锁';$('community1Status').style.color='#4ecca3';}
             if(userTier>=2){$('community2Card').classList.remove('locked');$('community2Status').textContent='🔓 已解锁';$('community2Status').style.color='#4ecca3';}
             if(userTier>=3){$('community3Card').classList.remove('locked');$('community3Status').textContent='🔓 已解锁';$('community3Status').style.color='#4ecca3';}
             if(userTier>=4){$('community4Card').classList.remove('locked');$('community4Status').textContent='🔓 已解锁';$('community4Status').style.color='#4ecca3';}
             if(userTier>=5){$('community5Card').classList.remove('locked');$('community5Status').textContent='🔓 已解锁';$('community5Status').style.color='#4ecca3';}
-        }catch(e){
-            console.warn('获取社区身份失败:',e.message);
-            for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){
-                const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;
-                span.textContent='永久';
-            }
-        }
+        }catch(e){for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;span.textContent='永久';}}
     }
 
-    // 🔥 获取排名剩余名额（新3档规则）
     async function fetchRankRemaining(){
         if(!web3)return;
         try{
-            // 获取总社区数
             const tc=await web3.eth.call({to:GOV,data:encodeCall('getTotalCommunities()')});
             const total=parseInt(web3.eth.abi.decodeParameter('uint256',tc));
-            // 获取PRIMARY总数（用于动态扩容第四社区）
             let primaryCount=total;
-            try{
-                const pc=await web3.eth.call({to:GOV,data:encodeCall('getPrimaryCount()')});
-                primaryCount=parseInt(web3.eth.abi.decodeParameter('uint256',pc));
-            }catch(e){}
-            console.log('📊 总社区数:',total,'PRIMARY数:',primaryCount);
-            
+            try{const pc=await web3.eth.call({to:GOV,data:encodeCall('getPrimaryCount()')});primaryCount=parseInt(web3.eth.abi.decodeParameter('uint256',pc));}catch(e){}
             for(const[cid,bi]of Object.entries(CARD_RANK_MAP)){
                 const b=RANK_BUCKETS[bi];const el=$(cid+'Status');if(!el)continue;
-                let r;
-                if(b.bucket===0)r=Math.max(0,3-total);           // 第六社区: rank 1~3
-                else if(b.bucket===1)r=Math.max(0,25-total);     // 第五社区: rank 4~25
-                else r=Math.max(0,(125+Math.floor(primaryCount/100))-total); // 第四社区: 动态扩容
+                let r;if(b.bucket===0)r=Math.max(0,3-total);else if(b.bucket===1)r=Math.max(0,25-total);else r=Math.max(0,(125+Math.floor(primaryCount/100))-total);
                 const sp=el.querySelector('span');if(sp)sp.textContent=r<=0?'0':r;
             }
-        }catch(e){
-            console.warn('获取排名失败:',e.message);
-            for(const[cid,bi]of Object.entries(CARD_RANK_MAP)){
-                const b=RANK_BUCKETS[bi];const el=$(cid+'Status');if(!el)continue;
-                const sp=el.querySelector('span');if(sp)sp.textContent='--';
-            }
-        }
+        }catch(e){for(const[cid,bi]of Object.entries(CARD_RANK_MAP)){const b=RANK_BUCKETS[bi];const el=$(cid+'Status');if(!el)continue;const sp=el.querySelector('span');if(sp)sp.textContent='--';}}
     }
 
     function setupCopyButtons(){
@@ -412,7 +414,6 @@
     async function waitForTransaction(txHash,maxAttempts=30){for(let i=0;i<maxAttempts;i++){try{const r=await web3.eth.getTransactionReceipt(txHash);if(r){if(r.status)return r;else throw new Error('交易失败');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('超时');}
     function calcMinOutput(amountOut,slippage){const a=BigInt(amountOut);const n=BigInt(Math.round((1-slippage)*10000));return(a*n/BigInt(10000)).toString();}
 
-    // 🔥 更新升级逻辑：FIRST~THIRD用USDT，FOURTH~SIXTH用MYK销毁
     async function upgradeCommunity(amount){
         if(!userAddress){alert('请先连接钱包');return;}
         if(!lock())return;
@@ -421,7 +422,6 @@
         if(!btn||!el)return;
         btn.disabled=true;btn.textContent='处理中...';el.style.display='block';
         try{
-            // FOURTH(500)和FIFTH+(1000)使用MYK销毁方式
             if(amount>=500){
                 const sp=getSpotPrice();if(sp<=0){alert('无法获取现货价格');return;}
                 const ma=web3.utils.toWei(String((amount/sp)*1.055),'ether');
@@ -429,7 +429,6 @@
                 const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('transfer(address,uint256)',['address','uint256'],[GOV,ma])}]});
                 el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);
             }else{
-                // FIRST(50)/SECOND(100)/THIRD(200)使用USDT支付
                 const fee=web3.utils.toWei(String(amount),'ether');
                 el.innerHTML=`⏳ 正在支付${amount} USDT...`;
                 const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});
@@ -443,7 +442,7 @@
             const sm={50:'community1Status',100:'community2Status',200:'community3Status',500:'community4Status',1000:'community5Status'};
             const c=$(cm[amount]),s=$(sm[amount]);if(c)c.classList.remove('locked');
             if(s){const sp=s.querySelector('span');const rt=sp?sp.textContent:'--';s.textContent='🔓 已解锁 · 排位剩余：'+rt+' 名额';s.style.color='#4ecca3';}
-            setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);
+            setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();fetchDailyBonusInfo();},3000);
         }catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}
         finally{btn.disabled=false;btn.textContent=amount>=500?'🔥 销毁MYK解锁':'🔓 立即解锁权益';unlock();}
     }
@@ -466,7 +465,7 @@
             try{const gb=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[GOV])});$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',gb)));}catch(e){$('govLocked').textContent='--';}
             try{const fb=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[FM])});$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',fb)));}catch(e){$('fundAsset').textContent='--';}
         }catch(e){$('totalSupply').textContent='--';$('burnedAmount').textContent='--';}
-        fetchRoleRates();fetchRankRemaining();fetchCommunityExpiry();
+        fetchRoleRates();fetchRankRemaining();fetchCommunityExpiry();fetchDailyBonusInfo();
     }
     
     async function updateOrderPanel(){try{if(!web3)return;const pa=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];const pc=new web3.eth.Contract(pa,PAIR);const t0=await pc.methods.token0().call();const rv=await pc.methods.getReserves().call();const r0=BigInt(rv[0]),r1=BigInt(rv[1]);let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1;}else{rU=r1;rM=r0;}const sr=Number((rU*BigInt(10**18))/rM)/1e18;const br=Number((rM*BigInt(10**18))/rU)/1e18;$('buyRateDisplay').textContent=br.toFixed(4);$('sellRateDisplay').textContent=sr.toFixed(6);$('buyPriceDisplay').textContent='$'+sr.toFixed(6);$('sellPriceDisplay').textContent='$'+sr.toFixed(6);}catch(e){}}
@@ -485,14 +484,19 @@
 
     async function fetchAirdrop(){try{if(!web3)return;const d=encodeCall('getActivityPoolBalance()'),r=await web3.eth.call({to:RP,data:d}),rm=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',r),'ether')),pd=AIRDROP_TOTAL-rm,pc=Math.min(100,Math.max(0,(pd/AIRDROP_TOTAL)*100));$('airdropPaid').textContent=pd.toFixed(0);$('airdropRemaining').textContent=rm.toFixed(0);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%';}catch(e){$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--';}}
     
+    // 🔥 MIDDLE卡片：获取合约推荐PRIMARY人数
     async function fetchUserStats(){
         if(!userAddress||!web3)return;
         try{
             const ud=encodeCall('users(address)',['address'],[userAddress]);
             const ur=await web3.eth.call({to:RP,data:ud});
             const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);
-            const activeInvited=Number(u[1]);$('middleInvitedCount').textContent=activeInvited;
-            const progress=Math.min(100,(activeInvited/3)*100);$('middleProgress').style.width=progress.toFixed(1)+'%';
+            // u[1] = invitedCount：推荐且已激活PRIMARY的人数
+            const activeInvited=Number(u[1]);
+            console.log('📊 推荐PRIMARY人数:',activeInvited);
+            $('middleInvitedCount').textContent=activeInvited;
+            const progress=Math.min(100,(activeInvited/3)*100);
+            $('middleProgress').style.width=progress.toFixed(1)+'%';
             const userRole=Number(u[7]);
             if(userRole>=2){$('middleCard').classList.remove('locked');$('middleStatus').textContent='🔓 已解锁';$('middleStatus').style.color='#4ecca3';}
             else if(activeInvited>=3&&userRole===1){$('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';$('middleStatus').style.color='#f0b90b';}
@@ -512,7 +516,7 @@
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote();}else{sellSlippage=s;updateSellQuote();}});});}
     function setupTabs(){document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion();});});document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell');});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote();});});}
 
-    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupSwipeDots();setupUpgradeButtons();setupCopyButtons();if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
+    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupSwipeDots();setupUpgradeButtons();setupCopyButtons();$('claimBonusBtn').addEventListener('click',claimDailyBonus);if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
 })();
 </script>
 </body>
