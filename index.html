@@ -149,7 +149,6 @@
     <div class="glass-card" style="padding:12px 8px;">
         <div class="swipe-container" id="swipeContainer">
             <div class="swipe-track">
-                <!-- 第1张：MIDDLE 权益 -->
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="middleCard" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 MIDDLE 权益 <span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
@@ -160,7 +159,6 @@
                         <div class="progress-bar-container"><div class="progress-bar-fill" id="middleProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
                     </div>
                 </div>
-                <!-- 第2张：第一社区权益 FIRST (50U USDT支付，永久) -->
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community1Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第一社区权益 <span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2>
@@ -173,7 +171,6 @@
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
-                <!-- 第3张：第二社区权益 SECOND (100U USDT支付，永久) -->
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community2Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第二社区权益 <span class="badge badge-gold" style="font-size:10px;">SECOND</span></h2>
@@ -186,7 +183,6 @@
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
-                <!-- 第4张：第三社区权益 THIRD (200U USDT支付，永久) -->
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community3Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第三社区权益 <span class="badge badge-gold" style="font-size:10px;">THIRD</span></h2>
@@ -199,7 +195,6 @@
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
-                <!-- 第5张：第四社区权益 FOURTH (≥500U等值MYK销毁累计，永久) -->
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community4Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第四社区权益 <span class="badge badge-gold" style="font-size:10px;">FOURTH</span></h2>
@@ -212,7 +207,6 @@
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
-                <!-- 第6张：第五社区权益 FIFTH/SIXTH (≥1000U/2000U等值MYK销毁累计，永久) -->
                 <div class="swipe-card" style="padding:8px 10px;">
                     <div class="unlock-card locked" id="community5Card" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 第五社区权益 <span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2>
@@ -307,68 +301,26 @@
 
     async function fetchUserBurnedValue(){if(!web3||!userAddress)return 0;try{const data=encodeCall('totalBurnedValueByUser(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',result),'ether'));}catch(e){return 0;}}
 
-    // 🔥 修复：多种函数签名尝试获取GOV合约中的用户社区等级
+    // 🔥 修复：使用正确的函数名 getCommunityTier(address) 返回 uint8
     async function fetchUserGovTier(){
         if(!web3||!userAddress)return 0;
-        console.log('📊 开始获取GOV合约用户等级...');
-        
-        // 尝试1：getUserTier(address) 返回 uint256
         try{
-            const data=encodeCall('getUserTier(address)',['address'],[userAddress]);
-            const result=await web3.eth.call({to:GOV,data:data});
-            const tier=parseInt(web3.eth.abi.decodeParameter('uint256',result));
-            console.log('📊 getUserTier(uint256)返回:',tier);
-            if(tier>=0&&tier<=6)return tier;
-        }catch(e){console.warn('getUserTier(uint256)失败:',e.message);}
-        
-        // 尝试2：getUserTier(address) 返回 uint8
-        try{
-            const data=encodeCall('getUserTier(address)',['address'],[userAddress]);
+            const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);
             const result=await web3.eth.call({to:GOV,data:data});
             const tier=parseInt(web3.eth.abi.decodeParameter('uint8',result));
-            console.log('📊 getUserTier(uint8)返回:',tier);
-            if(tier>=0&&tier<=6)return tier;
-        }catch(e){console.warn('getUserTier(uint8)失败:',e.message);}
-        
-        // 尝试3：tiers(address)
-        try{
-            const data=encodeCall('tiers(address)',['address'],[userAddress]);
-            const result=await web3.eth.call({to:GOV,data:data});
-            const tier=parseInt(web3.eth.abi.decodeParameter('uint256',result));
-            console.log('📊 tiers返回:',tier);
-            if(tier>=0&&tier<=6)return tier;
-        }catch(e){console.warn('tiers失败:',e.message);}
-        
-        // 尝试4：userTier(address)
-        try{
-            const data=encodeCall('userTier(address)',['address'],[userAddress]);
-            const result=await web3.eth.call({to:GOV,data:data});
-            const tier=parseInt(web3.eth.abi.decodeParameter('uint256',result));
-            console.log('📊 userTier返回:',tier);
-            if(tier>=0&&tier<=6)return tier;
-        }catch(e){console.warn('userTier失败:',e.message);}
-        
-        // 尝试5：getUserInfo(address) 返回结构体第一个uint
-        try{
-            const data=encodeCall('getUserInfo(address)',['address'],[userAddress]);
-            const result=await web3.eth.call({to:GOV,data:data});
-            const decoded=web3.eth.abi.decodeParameters(['uint256','uint256','uint256'],result);
-            const tier=parseInt(decoded[0]);
-            console.log('📊 getUserInfo返回[0]:',tier);
-            if(tier>=0&&tier<=6)return tier;
-        }catch(e){console.warn('getUserInfo失败:',e.message);}
-        
-        // 尝试6：直接查询users映射
-        try{
-            const data=encodeCall('users(address)',['address'],[userAddress]);
-            const result=await web3.eth.call({to:GOV,data:data});
-            const decoded=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'],result);
-            const tier=parseInt(decoded[0]||decoded[1]||decoded[2]||decoded[3]);
-            console.log('📊 GOV.users返回:',decoded);
-            if(tier>=0&&tier<=6)return tier;
-        }catch(e){console.warn('GOV.users失败:',e.message);}
-
-        console.warn('⚠️ 所有GOV等级查询方法均失败，返回0');
+            console.log('📊 getCommunityTier(uint8)返回:',tier);
+            return tier;
+        }catch(e){
+            console.warn('getCommunityTier(uint8)失败:',e.message);
+            // 备用：尝试uint256解码
+            try{
+                const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);
+                const result=await web3.eth.call({to:GOV,data:data});
+                const tier=parseInt(web3.eth.abi.decodeParameter('uint256',result));
+                console.log('📊 getCommunityTier(uint256)返回:',tier);
+                return tier;
+            }catch(e2){console.warn('getCommunityTier(uint256)也失败:',e2.message);}
+        }
         return 0;
     }
 
@@ -405,19 +357,14 @@
     async function fetchAirdrop(){try{if(!web3)return;const d=encodeCall('getActivityPoolBalance()'),r=await web3.eth.call({to:RP,data:d}),rm=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',r),'ether')),pd=AIRDROP_TOTAL-rm,pc=Math.min(100,Math.max(0,(pd/AIRDROP_TOTAL)*100));$('airdropPaid').textContent=pd.toFixed(0);$('airdropRemaining').textContent=rm.toFixed(0);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%';}catch(e){$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--';}}
     async function fetchUserStats(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]);const ur=await web3.eth.call({to:RP,data:ud});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);const activeInvited=Number(u[1]);$('middleInvitedCount').textContent=activeInvited;const progress=Math.min(100,(activeInvited/3)*100);$('middleProgress').style.width=progress.toFixed(1)+'%';const userRole=Number(u[7]);if(userRole>=2){$('middleCard').classList.remove('locked');$('middleStatus').textContent='🔓 已解锁';$('middleStatus').style.color='#4ecca3';}else if(activeInvited>=3&&userRole===1){$('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';$('middleStatus').style.color='#f0b90b';}try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('streakDays').textContent='0';}}catch(e){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';}}
     
-    // 🔥 修复：从GOV合约获取用户社区等级，正确显示身份（含调试日志）
     async function refreshIdentityCard(){
         if(!userAddress||!web3)return;
         try{
             const ud=encodeCall('users(address)',['address'],[userAddress]);
             const ur=await web3.eth.call({to:RP,data:ud});
             const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);
-            
-            // 🔥 从GOV获取用户社区等级（多种函数签名尝试）
             const govTier=await fetchUserGovTier();
             const rpRole=Number(u[7]);
-            
-            // 🔥 综合RP角色和GOV等级确定显示名称
             let roleName='无';
             if(govTier>=6) roleName='👑 SIXTH';
             else if(govTier>=5) roleName='👑 FIFTH';
@@ -428,9 +375,7 @@
             else if(rpRole>=3) roleName='🥇 COMMUNITY';
             else if(rpRole>=2) roleName='🥈 MIDDLE';
             else if(rpRole>=1) roleName='🥉 PRIMARY';
-            
             console.log('📊 身份刷新: RP角色='+rpRole+' GOV等级='+govTier+' 显示='+roleName);
-            
             $('cardRole').textContent=roleName;
             $('cardActiveBadge').innerHTML=u[8]?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';
             $('cardReferrer').textContent=u[0]==='0x0000000000000000000000000000000000000000'?'无':a6(u[0]);$('cardReferrer').style.color=u[0]==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';
