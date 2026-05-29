@@ -168,7 +168,7 @@
                     <div class="unlock-card locked" id="middleCard" style="border-radius:20px; padding:16px;">
                         <h2 style="font-size:1.1rem;">🔓 MIDDLE 权益 <span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
                         <div class="desc" id="middleStatus" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-text" style="font-size:11px;">解锁规则：推荐 ≥3 个 PRIMARY 解锁更多权益</div>
+                        <div class="hint-text" style="font-size:11px;">解锁规则：已激活直推 ≥3 解锁更多权益</div>
                         <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.3%</span> 日奖币</div>
                         <div class="stat-row" style="font-size:12px;"><span>当前已激活直推：<span class="stat-value" id="middleInvitedCount">--</span> 人</span><span>需达目标：<span class="stat-value">3</span> 人</span></div>
                         <div class="progress-bar-container"><div class="progress-bar-fill" id="middleProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
@@ -315,11 +315,50 @@
     function updateActivateSuggestion(){const p=getSpotPrice();if(p>0){const s=(2/p*1.1).toFixed(4);$('suggestedMYK').textContent=s;$('mykAmount').value=s;}}
     function updateFifthMykSuggestion(){const p=getSpotPrice();if(p>0){const m=(1000/p*1.055).toFixed(4);$('fifthMykAmount').textContent=m;}}
 
+    // 🔥 获取GOV社区等级
     async function fetchUserGovTier(){
         if(!web3||!userAddress)return 0;
         try{const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseInt(web3.eth.abi.decodeParameter('uint8',result));}
         catch(e){try{const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseInt(web3.eth.abi.decodeParameter('uint256',result));}catch(e2){}}
         return 0;
+    }
+
+    // 🔥 获取RP用户基本信息（新函数 getUserBasic）
+    async function fetchUserBasic(){
+        if(!web3||!userAddress)return null;
+        try{
+            const data=encodeCall('getUserBasic(address)',['address'],[userAddress]);
+            const result=await web3.eth.call({to:RP,data:data});
+            // referrer, invited, activatedInvited, role, activatedAt, isActive
+            const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint8','uint256','bool'],result);
+            console.log('📊 getUserBasic: invited='+u[1]+' activatedInvited='+u[2]+' role='+u[3]);
+            return {
+                referrer: u[0],
+                invited: parseInt(u[1]),
+                activatedInvited: parseInt(u[2]),
+                role: parseInt(u[3]),
+                activatedAt: parseInt(u[4]),
+                isActive: u[5]
+            };
+        }catch(e){
+            console.warn('getUserBasic失败:',e.message);
+            // 降级：尝试旧的 users(address)
+            try{
+                const data=encodeCall('users(address)',['address'],[userAddress]);
+                const result=await web3.eth.call({to:RP,data:data});
+                const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],result);
+                console.log('📊 降级users: invited='+u[1]+' role='+u[7]);
+                return {
+                    referrer: u[0],
+                    invited: parseInt(u[1]),
+                    activatedInvited: parseInt(u[1]), // 降级时用invited代替
+                    role: parseInt(u[7]),
+                    activatedAt: parseInt(u[4]),
+                    isActive: u[8]
+                };
+            }catch(e2){console.warn('users也失败:',e2.message);}
+        }
+        return null;
     }
 
     async function fetchDailyBonusInfo(){if(!web3||!userAddress)return;try{const data=encodeCall('getBonusInfo(address)',['address'],[userAddress]);const result=await web3.eth.call({to:RP,data:data});const info=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','bool'],result);const principal=parseFloat(Web3.utils.fromWei(info[0],'ether'));const dailyAmount=parseFloat(Web3.utils.fromWei(info[1],'ether'));const claimedDays=parseInt(info[2]);const totalDays=parseInt(info[3])||90;const isActive=info[4];$('bonusPrincipal').textContent=principal.toFixed(0);$('bonusDaily').textContent=dailyAmount.toFixed(6);$('bonusClaimed').textContent=claimedDays;$('bonusRemaining').textContent=Math.max(0,totalDays-claimedDays);$('claimBonusBtn').disabled=!isActive||claimedDays>=totalDays;if(!isActive){$('claimBonusBtn').textContent='📈 暂无升级奖励';}else if(claimedDays>=totalDays){$('claimBonusBtn').textContent='✅ 已全部领取';}else{$('claimBonusBtn').textContent='📈 领取今日升级奖励';}}catch(e){$('bonusPrincipal').textContent='--';$('bonusDaily').textContent='--';$('bonusClaimed').textContent='--';$('bonusRemaining').textContent='--';$('claimBonusBtn').disabled=true;$('claimBonusBtn').textContent='📈 暂无升级奖励';}}
@@ -367,34 +406,85 @@
     async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const uo=await getSwapQuote(mw,[MYK,USDT]);const mu=calcMinOutput(uo,sellSlippage);el.innerHTML='⏳ 检查余额...';const br=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',br))<BigInt(mw))throw new Error('MYK余额不足');el.innerHTML='⏳ 授权 MYK...';const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 卖出 MYK...';const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)])}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{b.disabled=!1;unlock();}}
 
     async function fetchAirdrop(){try{if(!web3)return;const d=encodeCall('getActivityPoolBalance()'),r=await web3.eth.call({to:RP,data:d}),rm=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',r),'ether')),pd=AIRDROP_TOTAL-rm,pc=Math.min(100,Math.max(0,(pd/AIRDROP_TOTAL)*100));$('airdropPaid').textContent=pd.toFixed(0);$('airdropRemaining').textContent=rm.toFixed(0);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%';}catch(e){$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--';}}
-    async function fetchUserStats(){if(!userAddress||!web3)return;try{const ud=encodeCall('users(address)',['address'],[userAddress]);const ur=await web3.eth.call({to:RP,data:ud});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);const activatedInvited=Number(u[1]);$('middleInvitedCount').textContent=activatedInvited;const progress=Math.min(100,(activatedInvited/3)*100);$('middleProgress').style.width=progress.toFixed(1)+'%';const userRole=Number(u[7]);if(userRole>=2){$('middleCard').classList.remove('locked');$('middleCard').classList.add('unlocked');$('middleStatus').textContent='🔓 已解锁';$('middleStatus').style.color='#4ecca3';}else if(activatedInvited>=3&&userRole===1){$('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';$('middleStatus').style.color='#f0b90b';}try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('streakDays').textContent='0';}}catch(e){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';}}
     
+    // 🔥 MIDDLE卡片：使用 getUserBasic 返回的 activatedInvited 判断
+    async function fetchUserStats(){
+        if(!userAddress||!web3)return;
+        try{
+            const basic=await fetchUserBasic();
+            if(!basic){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';return;}
+            
+            // 使用 activatedInvited 判断MIDDLE
+            const activatedInvited=basic.activatedInvited;
+            console.log('📊 MIDDLE判断: activatedInvited='+activatedInvited+' role='+basic.role);
+            $('middleInvitedCount').textContent=activatedInvited;
+            
+            // MIDDLE升级条件：activatedInvited ≥ 3
+            const progress=Math.min(100,(activatedInvited/3)*100);
+            $('middleProgress').style.width=progress.toFixed(1)+'%';
+            
+            // role>=2 表示MIDDLE或以上
+            if(basic.role>=2){
+                $('middleCard').classList.remove('locked');
+                $('middleCard').classList.add('unlocked');
+                $('middleStatus').textContent='🔓 已解锁';
+                $('middleStatus').style.color='#4ecca3';
+            }else if(activatedInvited>=3&&basic.role===1){
+                $('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';
+                $('middleStatus').style.color='#f0b90b';
+            }
+            
+            try{
+                const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});
+                $('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);
+            }catch(e){$('streakDays').textContent='0';}
+        }catch(e){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';}
+    }
+    
+    // 🔥 节点信息卡片：优先GOV社区身份，没有则用RP角色
     async function refreshIdentityCard(){
         if(!userAddress||!web3)return;
         try{
-            const ud=encodeCall('users(address)',['address'],[userAddress]);
-            const ur=await web3.eth.call({to:RP,data:ud});
-            const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],ur);
+            const basic=await fetchUserBasic();
+            if(!basic)return;
+            
+            // 优先读取GOV社区等级
             const govTier=await fetchUserGovTier();
-            const rpRole=Number(u[7]);
+            const rpRole=basic.role;
+            
             let roleName='无';
+            // 优先GOV社区身份
             if(govTier>=6) roleName='👑 SIXTH';
             else if(govTier>=5) roleName='👑 FIFTH';
             else if(govTier>=4) roleName='🥇 FOURTH';
             else if(govTier>=3) roleName='🥇 THIRD';
             else if(govTier>=2) roleName='🥇 SECOND';
             else if(govTier>=1) roleName='🥇 FIRST';
+            // 没有社区身份再读取RP角色
             else if(rpRole>=3) roleName='🥇 COMMUNITY';
             else if(rpRole>=2) roleName='🥈 MIDDLE';
             else if(rpRole>=1) roleName='🥉 PRIMARY';
+            
+            console.log('📊 节点信息: GOV等级='+govTier+' RP角色='+rpRole+' 显示='+roleName);
+            
             $('cardRole').textContent=roleName;
-            $('cardActiveBadge').innerHTML=u[8]?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';
-            $('cardReferrer').textContent=u[0]==='0x0000000000000000000000000000000000000000'?'无':a6(u[0]);$('cardReferrer').style.color=u[0]==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';
-            $('cardActivated').textContent=u[4]>0?new Date(Number(u[4])*1000).toLocaleDateString('zh-CN'):'未激活';$('cardInvited').textContent=u[1];
-            try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('cardStreak').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('cardStreak').textContent='0';}
-            try{$('cardMYK').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardMYK').textContent='--';}
-            try{$('cardUSDT').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardUSDT').textContent='--';}
-        }catch(e){}
+            $('cardActiveBadge').innerHTML=basic.isActive?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';
+            $('cardReferrer').textContent=basic.referrer==='0x0000000000000000000000000000000000000000'?'无':a6(basic.referrer);
+            $('cardReferrer').style.color=basic.referrer==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';
+            $('cardActivated').textContent=basic.activatedAt>0?new Date(basic.activatedAt*1000).toLocaleDateString('zh-CN'):'未激活';
+            $('cardInvited').textContent=basic.invited;
+            
+            try{
+                const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});
+                $('cardStreak').textContent=web3.eth.abi.decodeParameter('uint256',sl);
+            }catch(e){$('cardStreak').textContent='0';}
+            try{
+                $('cardMYK').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);
+            }catch(e){$('cardMYK').textContent='--';}
+            try{
+                $('cardUSDT').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);
+            }catch(e){$('cardUSDT').textContent='--';}
+        }catch(e){console.error('refreshIdentityCard失败:',e.message);}
     }
 
     async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';try{const mw=Web3.utils.toWei(am,'ether'),d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='✅ 激活成功！';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='❌ '+parseError(e);}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();}}
