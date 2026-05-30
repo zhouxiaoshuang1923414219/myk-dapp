@@ -189,8 +189,8 @@
         <div style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);">
             <div style="font-size:12px; color:#888; margin-bottom:8px;">📋 合约地址</div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔵 MYK</span><span class="contract-addr-value">0x04f41F...CBDB</span><button class="contract-addr-copy" data-addr="0x04f41F35c4A3859310249971e7A82A468607CBDB">复制</button></div>
-            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0x0502D7...22cE</span><button class="contract-addr-copy" data-addr="0x0502D7704F65640b746D03BA7Cc3702f56FD22cE">复制</button></div>
-            <div class="contract-addr-row"><span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0x11a26B...d6C5</span><button class="contract-addr-copy" data-addr="0x11a26B81d79d86A17AD98685dDB3CcbE349ed6C5">复制</button></div>
+            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0xd6223C...1bdd</span><button class="contract-addr-copy" data-addr="0xd6223C32fC47e9923504a981E8E7271f63751bdd">复制</button></div>
+            <div class="contract-addr-row"><span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0xb33016...5292</span><button class="contract-addr-copy" data-addr="0xb33016C0427C7f5AC69068B4fb75A0ee5dA85292">复制</button></div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔴 FundManager</span><span class="contract-addr-value">0xF9f6f5...960f</span><button class="contract-addr-copy" data-addr="0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f">复制</button></div>
         </div>
     </div>
@@ -200,15 +200,16 @@
 
 <script>
 (function() {
+    // ============ 🔥 合约地址 ============
     const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    const RP='0x0502D7704F65640b746D03BA7Cc3702f56FD22cE';
-    const GOV='0x11a26B81d79d86A17AD98685dDB3CcbE349ed6C5';
+    const RP='0xd6223C32fC47e9923504a981E8E7271f63751bdd';
+    const GOV='0xb33016C0427C7f5AC69068B4fb75A0ee5dA85292';
     const FM='0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
     const USDT='0x55d398326f99059fF775485246999027B3197955';
     const ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E';
     const PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
-    // 🔥 活动奖金池初始总量（根据合约实际设定）
-    const AIRDROP_INITIAL=2100000; // 210万 MYK（根据合约 getActivityPoolBalance 返回值）
+    // ============================================
+    const AIRDROP_INITIAL=2100000;
     const MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     const ZERO_ADDR='0x0000000000000000000000000000000000000000';
     const DEAD_ADDR='0x000000000000000000000000000000000000dEaD';
@@ -217,7 +218,6 @@
     const STORAGE_KEY='myk_baseline_price';
     const CARD_EXPIRY_MAP={community1:'community1Unlock',community2:'community2Unlock',community3:'community3Unlock',community4:'community4Unlock',community5:'community5Unlock'};
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
-    // 🔥 动态活动奖金池总量（首次读取后缓存）
     let airdropTotalAmount=2100000;
     function getTodayKey(){const d=new Date();return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;}
     function getBaselinePrice(){try{const s=localStorage.getItem(STORAGE_KEY);if(!s)return null;const d=JSON.parse(s);if(d.date===getTodayKey())return d.price;localStorage.removeItem(STORAGE_KEY);return null;}catch(e){return null;}}
@@ -262,47 +262,7 @@
     async function updateSellQuote(){const ma=parseFloat($('sellMYKAmount').value)||0;if(ma<=0){$('expectedUSDT').textContent='--';return}try{const mw=Web3.utils.toWei(String(ma),'ether'),uo=await getSwapQuote(mw,[MYK,USDT]),us=parseFloat(Web3.utils.fromWei(uo,'ether'))*(1-sellSlippage);$('expectedUSDT').textContent=us.toFixed(6);}catch(e){$('expectedUSDT').textContent='--';}}
     async function buyMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('buyMYKBtn'),el=$('buyResult'),ua=parseFloat($('buyUSDTAmount').value);if(!ua||ua<=0){alert('请输入有效的USDT数量');return}el.style.display='block';b.disabled=!0;try{const uw=Web3.utils.toWei(String(ua),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const mo=await getSwapQuote(uw,[USDT,MYK]);const mm=calcMinOutput(mo,buySlippage);el.innerHTML='⏳ 检查余额...';const br=await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',br))<BigInt(uw))throw new Error('USDT余额不足');el.innerHTML='⏳ 授权 USDT...';const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,uw])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 买入 MYK...';const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)])}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);el.innerHTML='✅ 买入成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{b.disabled=!1;unlock();}}
     async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const uo=await getSwapQuote(mw,[MYK,USDT]);const mu=calcMinOutput(uo,sellSlippage);el.innerHTML='⏳ 检查余额...';const br=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',br))<BigInt(mw))throw new Error('MYK余额不足');el.innerHTML='⏳ 授权 MYK...';const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 卖出 MYK...';const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)])}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{b.disabled=!1;unlock();}}
-    
-    // 🔥 修复：动态获取活动奖金池数据
-    async function fetchAirdrop(){
-        if(!web3)return;
-        try{
-            const d=encodeCall('getActivityPoolBalance()');
-            const r=await web3.eth.call({to:RP,data:d});
-            const currentBalance=n(web3.eth.abi.decodeParameter('uint256',r)); // 当前活动奖金池余额
-            
-            // 首次获取时，将当前余额作为总量基准缓存
-            const stored=localStorage.getItem('myk_airdrop_total_'+RP);
-            if(!stored){
-                airdropTotalAmount=Math.max(currentBalance,AIRDROP_INITIAL);
-                localStorage.setItem('myk_airdrop_total_'+RP,airdropTotalAmount);
-            }else{
-                airdropTotalAmount=parseFloat(stored);
-                // 如果当前余额大于缓存总量，更新总量（说明有充值）
-                if(currentBalance>airdropTotalAmount){
-                    airdropTotalAmount=currentBalance;
-                    localStorage.setItem('myk_airdrop_total_'+RP,airdropTotalAmount);
-                }
-            }
-            
-            const paid=airdropTotalAmount-currentBalance;
-            const pc=Math.min(100,Math.max(0,(paid/airdropTotalAmount)*100));
-            
-            $('airdropTotal').textContent=formatM(airdropTotalAmount);
-            $('airdropPaid').textContent=formatM(paid);
-            $('airdropRemaining').textContent=formatM(currentBalance);
-            $('airdropProgress').style.width=pc.toFixed(1)+'%';
-            $('airdropPercent').textContent=pc.toFixed(1)+'%';
-            $('airdropPoolBalance').textContent=formatM(currentBalance);
-            
-            console.log('📊 活动奖金池: 总量='+airdropTotalAmount+' 已赠送='+paid+' 剩余='+currentBalance);
-        }catch(e){
-            $('airdropTotal').textContent='--';
-            $('airdropPaid').textContent='--';
-            $('airdropRemaining').textContent='--';
-        }
-    }
-    
+    async function fetchAirdrop(){if(!web3)return;try{const d=encodeCall('getActivityPoolBalance()');const r=await web3.eth.call({to:RP,data:d});const currentBalance=n(web3.eth.abi.decodeParameter('uint256',r));const stored=localStorage.getItem('myk_airdrop_total_'+RP);if(!stored){airdropTotalAmount=Math.max(currentBalance,AIRDROP_INITIAL);localStorage.setItem('myk_airdrop_total_'+RP,airdropTotalAmount);}else{airdropTotalAmount=parseFloat(stored);if(currentBalance>airdropTotalAmount){airdropTotalAmount=currentBalance;localStorage.setItem('myk_airdrop_total_'+RP,airdropTotalAmount);}}const paid=airdropTotalAmount-currentBalance;const pc=Math.min(100,Math.max(0,(paid/airdropTotalAmount)*100));$('airdropTotal').textContent=formatM(airdropTotalAmount);$('airdropPaid').textContent=formatM(paid);$('airdropRemaining').textContent=formatM(currentBalance);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%';$('airdropPoolBalance').textContent=formatM(currentBalance);}catch(e){$('airdropTotal').textContent='--';$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--';}}
     async function fetchUserStats(){if(!userAddress||!web3)return;try{const basic=await fetchUserBasic();if(!basic){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';return;}const activatedInvited=basic.activatedInvited;$('middleInvitedCount').textContent=activatedInvited;const progress=Math.min(100,(activatedInvited/3)*100);$('middleProgress').style.width=progress.toFixed(1)+'%';if(basic.role>=2){$('middleCard').classList.remove('locked');$('middleCard').classList.add('unlocked');$('middleStatus').textContent='🔓 已解锁';$('middleStatus').style.color='#4ecca3';}else if(activatedInvited>=3&&basic.role===1){$('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';$('middleStatus').style.color='#f0b90b';}try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('streakDays').textContent='0';}}catch(e){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';}}
     async function refreshIdentityCard(){if(!userAddress||!web3)return;try{const basic=await fetchUserBasic();if(!basic)return;const govTier=await fetchUserGovTier();const rpRole=basic.role;let roleName='无';if(govTier>=6) roleName='👑 SIXTH';else if(govTier>=5) roleName='👑 FIFTH';else if(govTier>=4) roleName='🥇 FOURTH';else if(govTier>=3) roleName='🥇 THIRD';else if(govTier>=2) roleName='🥇 SECOND';else if(govTier>=1) roleName='🥇 FIRST';else if(rpRole>=3) roleName='🥇 COMMUNITY';else if(rpRole>=2) roleName='🥈 MIDDLE';else if(rpRole>=1) roleName='🥉 PRIMARY';$('cardRole').textContent=roleName;$('cardActiveBadge').innerHTML=basic.isActive?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';$('cardReferrer').textContent=basic.referrer==='0x0000000000000000000000000000000000000000'?'无':a6(basic.referrer);$('cardReferrer').style.color=basic.referrer==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';$('cardActivated').textContent=basic.activatedAt>0?new Date(basic.activatedAt*1000).toLocaleDateString('zh-CN'):'未激活';$('cardInvited').textContent=basic.invited;try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('cardStreak').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('cardStreak').textContent='0';}try{$('cardMYK').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardMYK').textContent='--';}try{$('cardUSDT').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardUSDT').textContent='--';}}catch(e){}}
     async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';try{const mw=Web3.utils.toWei(am,'ether'),d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='✅ 激活成功！';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='❌ '+parseError(e);}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();}}
