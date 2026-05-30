@@ -151,7 +151,7 @@
     <div class="glass-card"><h2>🎁 每日奖励</h2><div class="desc">持币即可领奖，<span class="highlight">一键领取</span></div><div class="stat-row"><span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span><span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span></div><div class="stat-row" style="margin-top:8px;"><span>今日可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领取：<span class="stat-value" id="claimedToday">--</span></span></div><button class="btn btn-green" id="claimRewardBtn">🎁 一键领取今日奖励</button><div id="claimLoading" style="display:none;text-align:center;margin-top:12px;"><span style="color:#f0b90b;">⏳ 正在获取签名数据...</span></div><div class="info-box" id="claimRewardResult" style="display:none;"></div></div>
 
     <!-- 5. 百万MYK生态福利 -->
-    <div class="glass-card"><h2>🎁 百万MYK生态福利</h2><div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量100万MYK赠完即止</div><div class="stat-row"><span>已赠送: <span class="stat-value" id="airdropPaid">--</span> MYK</span><span>剩余: <span class="stat-value" id="airdropRemaining">--</span> MYK</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div></div><div class="stat-row" style="margin-top:4px;"><span style="color:#888;">总量: 1,000,000 MYK</span><span style="color:#888;" id="airdropPercent">0%</span></div></div>
+    <div class="glass-card"><h2>🎁 百万MYK生态福利</h2><div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量<span class="highlight-green" id="airdropTotal">--</span>MYK赠完即止</div><div class="stat-row"><span>已赠送: <span class="stat-value" id="airdropPaid">--</span> MYK</span><span>剩余: <span class="stat-value" id="airdropRemaining">--</span> MYK</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div></div><div class="stat-row" style="margin-top:4px;"><span style="color:#888;">当前奖金池: <span id="airdropPoolBalance">--</span> MYK</span><span style="color:#888;" id="airdropPercent">0%</span></div></div>
 
     <!-- 6. 激活初级 -->
     <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.0%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.0%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(现货价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="150" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
@@ -163,78 +163,12 @@
     <div class="glass-card" id="rightsCardOuter" style="padding:12px 8px; display:inline-block; width:100%;">
         <div class="swipe-container" id="swipeContainer">
             <div class="swipe-track">
-                <div class="swipe-card" style="padding:8px 10px;">
-                    <div class="unlock-card locked" id="middleCard" style="border-radius:20px; padding:16px;">
-                        <h2 style="font-size:1.1rem;">🔓 MIDDLE 权益 <span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
-                        <div class="desc" id="middleStatus" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-text" style="font-size:11px;">解锁规则：已激活直推 ≥3 解锁更多权益</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.3%</span> 日奖币</div>
-                        <div class="stat-row" style="font-size:12px;"><span>当前已激活直推：<span class="stat-value" id="middleInvitedCount">--</span> 人</span><span>需达目标：<span class="stat-value">3</span> 人</span></div>
-                        <div class="progress-bar-container"><div class="progress-bar-fill" id="middleProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div>
-                    </div>
-                </div>
-                <div class="swipe-card" style="padding:8px 10px;">
-                    <div class="unlock-card locked" id="community1Card" style="border-radius:20px; padding:16px;">
-                        <h2 style="font-size:1.1rem;">第一社区权益 <span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2>
-                        <div class="desc" id="community1Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-unlock" id="community1Unlock">解锁规则：支付50 USDT 获取FIRST身份(<span>永久</span>)</div>
-                        <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币+<span class="highlight-green">1.6%/天×90天</span></div>
-                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：伞下无限代业绩10%奖励</div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="50" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
-                        <div class="info-box upgrade-result" style="display:none;"></div>
-                    </div>
-                </div>
-                <div class="swipe-card" style="padding:8px 10px;">
-                    <div class="unlock-card locked" id="community2Card" style="border-radius:20px; padding:16px;">
-                        <h2 style="font-size:1.1rem;">第二社区权益 <span class="badge badge-gold" style="font-size:10px;">SECOND</span></h2>
-                        <div class="desc" id="community2Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-unlock" id="community2Unlock">解锁规则：支付100 USDT 获取SECOND身份(<span>永久</span>)</div>
-                        <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币+<span class="highlight-green">1.6%/天×90天</span></div>
-                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第二层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="100" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
-                        <div class="info-box upgrade-result" style="display:none;"></div>
-                    </div>
-                </div>
-                <div class="swipe-card" style="padding:8px 10px;">
-                    <div class="unlock-card locked" id="community3Card" style="border-radius:20px; padding:16px;">
-                        <h2 style="font-size:1.1rem;">第三社区权益 <span class="badge badge-gold" style="font-size:10px;">THIRD</span></h2>
-                        <div class="desc" id="community3Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-unlock" id="community3Unlock">解锁规则：支付200 USDT 获取THIRD身份(<span>永久</span>)</div>
-                        <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币+<span class="highlight-green">1.6%/天×90天</span></div>
-                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第三层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="200" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button>
-                        <div class="info-box upgrade-result" style="display:none;"></div>
-                    </div>
-                </div>
-                <div class="swipe-card" style="padding:8px 10px;">
-                    <div class="unlock-card locked" id="community4Card" style="border-radius:20px; padding:16px;">
-                        <h2 style="font-size:1.1rem;">第四社区权益 <span class="badge badge-gold" style="font-size:10px;">FOURTH</span></h2>
-                        <div class="desc" id="community4Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-unlock" id="community4Unlock">解锁规则：MYK销毁累计≥500U 获取FOURTH(<span>永久</span>)</div>
-                        <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C4分红池<span class="highlight-green">35%</span></div>
-                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第四层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="500" style="margin-top:10px; font-size:14px;">🔥 销毁MYK解锁FOURTH</button>
-                        <div class="info-box upgrade-result" style="display:none;"></div>
-                    </div>
-                </div>
-                <div class="swipe-card" style="padding:8px 10px;">
-                    <div class="unlock-card locked" id="community5Card" style="border-radius:20px; padding:16px;">
-                        <h2 style="font-size:1.1rem;">第五社区权益 <span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2>
-                        <div class="desc" id="community5Status" style="font-size:13px;">🔒 未解锁</div>
-                        <div class="hint-unlock" id="community5Unlock">解锁规则：MYK销毁累计≥1000U 获取FIFTH(<span>永久</span>)</div>
-                        <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
-                        <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C5分红+<span class="highlight-green">永久有效</span></div>
-                        <div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第五层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div>
-                        <div class="hint-text" style="font-size:10px; color:#f0b90b;">SIXTH: MYK销毁累计≥2000U</div>
-                        <div class="price-row" style="margin-top:8px;"><span>当前等值MYK(含0.5%手续费): <span class="price-value" id="fifthMykAmount">--</span> MYK</span></div>
-                        <button class="btn btn-gold upgrade-btn" data-amount="1000" style="margin-top:10px; font-size:14px;">🔥 销毁MYK解锁FIFTH</button>
-                        <div class="info-box upgrade-result" style="display:none;"></div>
-                    </div>
-                </div>
+                <div class="swipe-card" style="padding:8px 10px;"><div class="unlock-card locked" id="middleCard" style="border-radius:20px; padding:16px;"><h2 style="font-size:1.1rem;">🔓 MIDDLE 权益 <span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2><div class="desc" id="middleStatus" style="font-size:13px;">🔒 未解锁</div><div class="hint-text" style="font-size:11px;">解锁规则：已激活直推 ≥3 解锁更多权益</div><div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.3%</span> 日奖币</div><div class="stat-row" style="font-size:12px;"><span>当前已激活直推：<span class="stat-value" id="middleInvitedCount">--</span> 人</span><span>需达目标：<span class="stat-value">3</span> 人</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="middleProgress" style="width:0%; background:linear-gradient(90deg, #f0b90b, #e94560);"></div></div></div></div>
+                <div class="swipe-card" style="padding:8px 10px;"><div class="unlock-card locked" id="community1Card" style="border-radius:20px; padding:16px;"><h2 style="font-size:1.1rem;">第一社区权益 <span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2><div class="desc" id="community1Status" style="font-size:13px;">🔒 未解锁</div><div class="hint-unlock" id="community1Unlock">解锁规则：支付50 USDT 获取FIRST身份(<span>永久</span>)</div><div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div><div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币+<span class="highlight-green">1.6%/天×90天</span></div><div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：伞下无限代业绩10%奖励</div><button class="btn btn-gold upgrade-btn" data-amount="50" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button><div class="info-box upgrade-result" style="display:none;"></div></div></div>
+                <div class="swipe-card" style="padding:8px 10px;"><div class="unlock-card locked" id="community2Card" style="border-radius:20px; padding:16px;"><h2 style="font-size:1.1rem;">第二社区权益 <span class="badge badge-gold" style="font-size:10px;">SECOND</span></h2><div class="desc" id="community2Status" style="font-size:13px;">🔒 未解锁</div><div class="hint-unlock" id="community2Unlock">解锁规则：支付100 USDT 获取SECOND身份(<span>永久</span>)</div><div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div><div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币+<span class="highlight-green">1.6%/天×90天</span></div><div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第二层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div><button class="btn btn-gold upgrade-btn" data-amount="100" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button><div class="info-box upgrade-result" style="display:none;"></div></div></div>
+                <div class="swipe-card" style="padding:8px 10px;"><div class="unlock-card locked" id="community3Card" style="border-radius:20px; padding:16px;"><h2 style="font-size:1.1rem;">第三社区权益 <span class="badge badge-gold" style="font-size:10px;">THIRD</span></h2><div class="desc" id="community3Status" style="font-size:13px;">🔒 未解锁</div><div class="hint-unlock" id="community3Unlock">解锁规则：支付200 USDT 获取THIRD身份(<span>永久</span>)</div><div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div><div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币+<span class="highlight-green">1.6%/天×90天</span></div><div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第三层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div><button class="btn btn-gold upgrade-btn" data-amount="200" style="margin-top:10px; font-size:14px;">🔓 立即解锁权益</button><div class="info-box upgrade-result" style="display:none;"></div></div></div>
+                <div class="swipe-card" style="padding:8px 10px;"><div class="unlock-card locked" id="community4Card" style="border-radius:20px; padding:16px;"><h2 style="font-size:1.1rem;">第四社区权益 <span class="badge badge-gold" style="font-size:10px;">FOURTH</span></h2><div class="desc" id="community4Status" style="font-size:13px;">🔒 未解锁</div><div class="hint-unlock" id="community4Unlock">解锁规则：MYK销毁累计≥500U 获取FOURTH(<span>永久</span>)</div><div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div><div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C4分红池<span class="highlight-green">35%</span></div><div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第四层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div><button class="btn btn-gold upgrade-btn" data-amount="500" style="margin-top:10px; font-size:14px;">🔥 销毁MYK解锁FOURTH</button><div class="info-box upgrade-result" style="display:none;"></div></div></div>
+                <div class="swipe-card" style="padding:8px 10px;"><div class="unlock-card locked" id="community5Card" style="border-radius:20px; padding:16px;"><h2 style="font-size:1.1rem;">第五社区权益 <span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2><div class="desc" id="community5Status" style="font-size:13px;">🔒 未解锁</div><div class="hint-unlock" id="community5Unlock">解锁规则：MYK销毁累计≥1000U 获取FIFTH(<span>永久</span>)</div><div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div><div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C5分红+<span class="highlight-green">永久有效</span></div><div class="hint-text" style="font-size:11px; color:#f0b90b;">🏆 团队奖励：享受第一社区权益+最高拿<span class="highlight-cyan">第五层</span>社区收益的<span class="highlight-cyan">50%</span>奖励</div><div class="hint-text" style="font-size:10px; color:#f0b90b;">SIXTH: MYK销毁累计≥2000U</div><div class="price-row" style="margin-top:8px;"><span>当前等值MYK(含0.5%手续费): <span class="price-value" id="fifthMykAmount">--</span> MYK</span></div><button class="btn btn-gold upgrade-btn" data-amount="1000" style="margin-top:10px; font-size:14px;">🔥 销毁MYK解锁FIFTH</button><div class="info-box upgrade-result" style="display:none;"></div></div></div>
             </div>
         </div>
         <div class="swipe-dots"><div class="swipe-dot active" data-index="0"></div><div class="swipe-dot" data-index="1"></div><div class="swipe-dot" data-index="2"></div><div class="swipe-dot" data-index="3"></div><div class="swipe-dot" data-index="4"></div><div class="swipe-dot" data-index="5"></div></div>
@@ -273,7 +207,8 @@
     const USDT='0x55d398326f99059fF775485246999027B3197955';
     const ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E';
     const PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
-    const AIRDROP_TOTAL=1000000;
+    // 🔥 活动奖金池初始总量（根据合约实际设定）
+    const AIRDROP_INITIAL=2100000; // 210万 MYK（根据合约 getActivityPoolBalance 返回值）
     const MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     const ZERO_ADDR='0x0000000000000000000000000000000000000000';
     const DEAD_ADDR='0x000000000000000000000000000000000000dEaD';
@@ -282,6 +217,8 @@
     const STORAGE_KEY='myk_baseline_price';
     const CARD_EXPIRY_MAP={community1:'community1Unlock',community2:'community2Unlock',community3:'community3Unlock',community4:'community4Unlock',community5:'community5Unlock'};
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
+    // 🔥 动态活动奖金池总量（首次读取后缓存）
+    let airdropTotalAmount=2100000;
     function getTodayKey(){const d=new Date();return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;}
     function getBaselinePrice(){try{const s=localStorage.getItem(STORAGE_KEY);if(!s)return null;const d=JSON.parse(s);if(d.date===getTodayKey())return d.price;localStorage.removeItem(STORAGE_KEY);return null;}catch(e){return null;}}
     function setBaselinePrice(p){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({date:getTodayKey(),price:p}));}catch(e){}}
@@ -325,7 +262,47 @@
     async function updateSellQuote(){const ma=parseFloat($('sellMYKAmount').value)||0;if(ma<=0){$('expectedUSDT').textContent='--';return}try{const mw=Web3.utils.toWei(String(ma),'ether'),uo=await getSwapQuote(mw,[MYK,USDT]),us=parseFloat(Web3.utils.fromWei(uo,'ether'))*(1-sellSlippage);$('expectedUSDT').textContent=us.toFixed(6);}catch(e){$('expectedUSDT').textContent='--';}}
     async function buyMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('buyMYKBtn'),el=$('buyResult'),ua=parseFloat($('buyUSDTAmount').value);if(!ua||ua<=0){alert('请输入有效的USDT数量');return}el.style.display='block';b.disabled=!0;try{const uw=Web3.utils.toWei(String(ua),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const mo=await getSwapQuote(uw,[USDT,MYK]);const mm=calcMinOutput(mo,buySlippage);el.innerHTML='⏳ 检查余额...';const br=await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',br))<BigInt(uw))throw new Error('USDT余额不足');el.innerHTML='⏳ 授权 USDT...';const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,uw])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 买入 MYK...';const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[uw,mm,[USDT,MYK],userAddress,String(dl)])}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);el.innerHTML='✅ 买入成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{b.disabled=!1;unlock();}}
     async function sellMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('sellMYKBtn'),el=$('sellResult'),ma=parseFloat($('sellMYKAmount').value);if(!ma||ma<=0){alert('请输入有效的MYK数量');return}el.style.display='block';b.disabled=!0;try{const mw=Web3.utils.toWei(String(ma),'ether'),dl=Math.floor(Date.now()/1000)+300;el.innerHTML='⏳ 查询报价...';const uo=await getSwapQuote(mw,[MYK,USDT]);const mu=calcMinOutput(uo,sellSlippage);el.innerHTML='⏳ 检查余额...';const br=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});if(BigInt(web3.eth.abi.decodeParameter('uint256',br))<BigInt(mw))throw new Error('MYK余额不足');el.innerHTML='⏳ 授权 MYK...';const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[ROUTER,mw])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 卖出 MYK...';const sTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:ROUTER,data:encodeCall(SWAP_SIG,['uint256','uint256','address[]','address','uint256'],[mw,mu,[MYK,USDT],userAddress,String(dl)])}]});el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(sTx);el.innerHTML='✅ 卖出成功！';setTimeout(()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{b.disabled=!1;unlock();}}
-    async function fetchAirdrop(){try{if(!web3)return;const d=encodeCall('getActivityPoolBalance()'),r=await web3.eth.call({to:RP,data:d}),rm=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',r),'ether')),pd=AIRDROP_TOTAL-rm,pc=Math.min(100,Math.max(0,(pd/AIRDROP_TOTAL)*100));$('airdropPaid').textContent=pd.toFixed(0);$('airdropRemaining').textContent=rm.toFixed(0);$('airdropProgress').style.width=pc.toFixed(1)+'%';$('airdropPercent').textContent=pc.toFixed(1)+'%';}catch(e){$('airdropPaid').textContent='--';$('airdropRemaining').textContent='--';}}
+    
+    // 🔥 修复：动态获取活动奖金池数据
+    async function fetchAirdrop(){
+        if(!web3)return;
+        try{
+            const d=encodeCall('getActivityPoolBalance()');
+            const r=await web3.eth.call({to:RP,data:d});
+            const currentBalance=n(web3.eth.abi.decodeParameter('uint256',r)); // 当前活动奖金池余额
+            
+            // 首次获取时，将当前余额作为总量基准缓存
+            const stored=localStorage.getItem('myk_airdrop_total_'+RP);
+            if(!stored){
+                airdropTotalAmount=Math.max(currentBalance,AIRDROP_INITIAL);
+                localStorage.setItem('myk_airdrop_total_'+RP,airdropTotalAmount);
+            }else{
+                airdropTotalAmount=parseFloat(stored);
+                // 如果当前余额大于缓存总量，更新总量（说明有充值）
+                if(currentBalance>airdropTotalAmount){
+                    airdropTotalAmount=currentBalance;
+                    localStorage.setItem('myk_airdrop_total_'+RP,airdropTotalAmount);
+                }
+            }
+            
+            const paid=airdropTotalAmount-currentBalance;
+            const pc=Math.min(100,Math.max(0,(paid/airdropTotalAmount)*100));
+            
+            $('airdropTotal').textContent=formatM(airdropTotalAmount);
+            $('airdropPaid').textContent=formatM(paid);
+            $('airdropRemaining').textContent=formatM(currentBalance);
+            $('airdropProgress').style.width=pc.toFixed(1)+'%';
+            $('airdropPercent').textContent=pc.toFixed(1)+'%';
+            $('airdropPoolBalance').textContent=formatM(currentBalance);
+            
+            console.log('📊 活动奖金池: 总量='+airdropTotalAmount+' 已赠送='+paid+' 剩余='+currentBalance);
+        }catch(e){
+            $('airdropTotal').textContent='--';
+            $('airdropPaid').textContent='--';
+            $('airdropRemaining').textContent='--';
+        }
+    }
+    
     async function fetchUserStats(){if(!userAddress||!web3)return;try{const basic=await fetchUserBasic();if(!basic){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';return;}const activatedInvited=basic.activatedInvited;$('middleInvitedCount').textContent=activatedInvited;const progress=Math.min(100,(activatedInvited/3)*100);$('middleProgress').style.width=progress.toFixed(1)+'%';if(basic.role>=2){$('middleCard').classList.remove('locked');$('middleCard').classList.add('unlocked');$('middleStatus').textContent='🔓 已解锁';$('middleStatus').style.color='#4ecca3';}else if(activatedInvited>=3&&basic.role===1){$('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';$('middleStatus').style.color='#f0b90b';}try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('streakDays').textContent='0';}}catch(e){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';}}
     async function refreshIdentityCard(){if(!userAddress||!web3)return;try{const basic=await fetchUserBasic();if(!basic)return;const govTier=await fetchUserGovTier();const rpRole=basic.role;let roleName='无';if(govTier>=6) roleName='👑 SIXTH';else if(govTier>=5) roleName='👑 FIFTH';else if(govTier>=4) roleName='🥇 FOURTH';else if(govTier>=3) roleName='🥇 THIRD';else if(govTier>=2) roleName='🥇 SECOND';else if(govTier>=1) roleName='🥇 FIRST';else if(rpRole>=3) roleName='🥇 COMMUNITY';else if(rpRole>=2) roleName='🥈 MIDDLE';else if(rpRole>=1) roleName='🥉 PRIMARY';$('cardRole').textContent=roleName;$('cardActiveBadge').innerHTML=basic.isActive?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';$('cardReferrer').textContent=basic.referrer==='0x0000000000000000000000000000000000000000'?'无':a6(basic.referrer);$('cardReferrer').style.color=basic.referrer==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';$('cardActivated').textContent=basic.activatedAt>0?new Date(basic.activatedAt*1000).toLocaleDateString('zh-CN'):'未激活';$('cardInvited').textContent=basic.invited;try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('cardStreak').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('cardStreak').textContent='0';}try{$('cardMYK').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardMYK').textContent='--';}try{$('cardUSDT').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardUSDT').textContent='--';}}catch(e){}}
     async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';try{const mw=Web3.utils.toWei(am,'ether'),d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='✅ 激活成功！';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='❌ '+parseError(e);}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();}}
