@@ -189,8 +189,8 @@
         <div style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);">
             <div style="font-size:12px; color:#888; margin-bottom:8px;">📋 合约地址</div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔵 MYK</span><span class="contract-addr-value">0x04f41F...CBDB</span><button class="contract-addr-copy" data-addr="0x04f41F35c4A3859310249971e7A82A468607CBDB">复制</button></div>
-            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0x4DE723...63C1</span><button class="contract-addr-copy" data-addr="0x4DE723a7c166f9A94E1f5a0Ba28D136aFf5B63C1">复制</button></div>
-            <div class="contract-addr-row"><span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0x7b088B...18c2</span><button class="contract-addr-copy" data-addr="0x7b088B43EDa0A179Ce37bdC5044Af3D4d41a18c2">复制</button></div>
+            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0x2c1b1B...AB07</span><button class="contract-addr-copy" data-addr="0x2c1b1B9508c523dB20DB3360a3574DA2dD0fAB07">复制</button></div>
+            <div class="contract-addr-row"><span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0x008e0d...A1A9</span><button class="contract-addr-copy" data-addr="0x008e0d0508D8128119292082Bdc2c7827AcAA1A9">复制</button></div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔴 FundManager</span><span class="contract-addr-value">0xF9f6f5...960f</span><button class="contract-addr-copy" data-addr="0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f">复制</button></div>
         </div>
     </div>
@@ -201,8 +201,8 @@
 <script>
 (function() {
     const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    const RP='0x4DE723a7c166f9A94E1f5a0Ba28D136aFf5B63C1';
-    const GOV='0x7b088B43EDa0A179Ce37bdC5044Af3D4d41a18c2';
+    const RP='0x2c1b1B9508c523dB20DB3360a3574DA2dD0fAB07';
+    const GOV='0x008e0d0508D8128119292082Bdc2c7827AcAA1A9';
     const FM='0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
     const USDT='0x55d398326f99059fF775485246999027B3197955';
     const ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E';
@@ -273,4 +273,5 @@
     window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupSwipeDots();setupUpgradeButtons();setupCopyButtons();$('claimBonusBtn').addEventListener('click',claimDailyBonus);if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
 })();
 </script>
+</body>
 </html>
