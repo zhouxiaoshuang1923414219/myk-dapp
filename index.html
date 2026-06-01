@@ -189,8 +189,8 @@
         <div style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);">
             <div style="font-size:12px; color:#888; margin-bottom:8px;">📋 合约地址</div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔵 MYK</span><span class="contract-addr-value">0x04f41F...CBDB</span><button class="contract-addr-copy" data-addr="0x04f41F35c4A3859310249971e7A82A468607CBDB">复制</button></div>
-            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0x3c5e26...A3b2</span><button class="contract-addr-copy" data-addr="0x3c5e26d01B67478762b493D156973D281C89A3b2">复制</button></div>
-            <div class="contract-addr-row"><span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0xc69876...1047</span><button class="contract-addr-copy" data-addr="0xc69876249A452aB538f2d1A8fea0be8d39b41047">复制</button></div>
+            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0x4DE723...63C1</span><button class="contract-addr-copy" data-addr="0x4DE723a7c166f9A94E1f5a0Ba28D136aFf5B63C1">复制</button></div>
+            <div class="contract-addr-row"><span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0x7b088B...18c2</span><button class="contract-addr-copy" data-addr="0x7b088B43EDa0A179Ce37bdC5044Af3D4d41a18c2">复制</button></div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔴 FundManager</span><span class="contract-addr-value">0xF9f6f5...960f</span><button class="contract-addr-copy" data-addr="0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f">复制</button></div>
         </div>
     </div>
@@ -200,15 +200,13 @@
 
 <script>
 (function() {
-    // ============ 🔥 最终合约地址 ============
     const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    const RP='0x3c5e26d01B67478762b493D156973D281C89A3b2';
-    const GOV='0xc69876249A452aB538f2d1A8fea0be8d39b41047';
+    const RP='0x4DE723a7c166f9A94E1f5a0Ba28D136aFf5B63C1';
+    const GOV='0x7b088B43EDa0A179Ce37bdC5044Af3D4d41a18c2';
     const FM='0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
     const USDT='0x55d398326f99059fF775485246999027B3197955';
     const ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E';
     const PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
-    // ============================================
     const AIRDROP_INITIAL=2100000;
     const MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     const ZERO_ADDR='0x0000000000000000000000000000000000000000';
@@ -248,40 +246,7 @@
     function setupCopyButtons(){document.querySelectorAll('.contract-addr-copy').forEach(btn=>{btn.addEventListener('click',async function(){const addr=this.dataset.addr;try{await navigator.clipboard.writeText(addr);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}catch(e){const ta=document.createElement('textarea');ta.value=addr;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}});});}
     async function waitForTransaction(txHash,maxAttempts=30){for(let i=0;i<maxAttempts;i++){try{const r=await web3.eth.getTransactionReceipt(txHash);if(r){if(r.status)return r;else throw new Error('交易失败');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('超时');}
     function calcMinOutput(amountOut,slippage){const a=BigInt(amountOut);const n=BigInt(Math.round((1-slippage)*10000));return(a*n/BigInt(10000)).toString();}
-
-    // 🔥 升级逻辑：amount<500→USDT升级(GV.upgradeWithUSDT), amount≥500→MYK销毁(GV.burnForTier)
-    async function upgradeCommunity(amount){
-        if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;
-        const btn=document.querySelector(`.upgrade-btn[data-amount="${amount}"]`);const el=btn?btn.nextElementSibling:null;
-        if(!btn||!el)return;btn.disabled=true;btn.textContent='处理中...';el.style.display='block';
-        try{
-            if(amount>=500){
-                // FOURTH~SIXTH: MYK销毁 → GV.burnForTier(amount)
-                const sp=getSpotPrice();if(sp<=0){alert('无法获取现货价格');return;}
-                const mykAmount=web3.utils.toWei(String((amount/sp)*1.055),'ether');
-                el.innerHTML=`⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`;
-                // 先授权GV使用MYK
-                const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,mykAmount])}]});
-                el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);
-                // 调用GV.burnForTier销毁MYK
-                el.innerHTML='⏳ 销毁中...';
-                const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('burnForTier(uint256)',['uint256'],[mykAmount])}]});
-                el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);
-            }else{
-                // FIRST~THIRD: USDT升级 → GV.upgradeWithUSDT(amount)
-                const fee=web3.utils.toWei(String(amount),'ether');
-                el.innerHTML=`⏳ 正在支付${amount} USDT...`;
-                const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});
-                el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);
-                el.innerHTML='⏳ 解锁中...';
-                const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee])}]});
-                el.innerHTML='⏳ 等待解锁确认...';await waitForTransaction(uTx);
-            }
-            el.innerHTML='✅ 解锁成功！';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';btn.style.display='none';
-            setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);
-        }catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}
-        finally{btn.disabled=false;btn.textContent=amount>=500?'🔥 销毁MYK解锁':'🔓 立即解锁权益';unlock();}
-    }
+    async function upgradeCommunity(amount){if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;const btn=document.querySelector(`.upgrade-btn[data-amount="${amount}"]`);const el=btn?btn.nextElementSibling:null;if(!btn||!el)return;btn.disabled=true;btn.textContent='处理中...';el.style.display='block';try{if(amount>=500){const sp=getSpotPrice();if(sp<=0){alert('无法获取现货价格');return;}const mykAmount=web3.utils.toWei(String((amount/sp)*1.055),'ether');el.innerHTML=`⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,mykAmount])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 销毁中...';const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('burnForTier(uint256)',['uint256'],[mykAmount])}]});el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);}else{const fee=web3.utils.toWei(String(amount),'ether');el.innerHTML=`⏳ 正在支付${amount} USDT...`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 解锁中...';const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee])}]});el.innerHTML='⏳ 等待解锁确认...';await waitForTransaction(uTx);}el.innerHTML='✅ 解锁成功！';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';btn.style.display='none';setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{btn.disabled=false;btn.textContent=amount>=500?'🔥 销毁MYK解锁':'🔓 立即解锁权益';unlock();}}
     function setupUpgradeButtons(){document.querySelectorAll('.upgrade-btn').forEach(b=>{b.addEventListener('click',function(){upgradeCommunity(parseInt(this.dataset.amount));});});}
     async function fetchRoleRates(){if(!web3)return;try{$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.0%';}try{$('middleRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('middleRate').textContent='1.3%';}try{$('communityRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('communityRate').textContent='1.6%';}}
     async function fetchContractInfo(){if(!web3)return;try{const ts=await web3.eth.call({to:MYK,data:encodeCall('totalSupply()')});$('totalSupply').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',ts)));let ba=0;try{const d=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[DEAD_ADDR])});ba=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',d),'ether'));}catch(e){}try{const z=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[ZERO_ADDR])});ba+=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',z),'ether'));}catch(e){}$('burnedAmount').textContent=formatM(ba);try{const bp=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[RP])});$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',bp)));}catch(e){$('bonusPool').textContent='--';}try{const data=encodeCall('getDividendInfo()');const result=await web3.eth.call({to:GOV,data:data});const info=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'],result);const totalDividend=BigInt(info[0])+BigInt(info[1])+BigInt(info[2]);$('govLocked').textContent=formatM(n(totalDividend.toString()));}catch(e){try{const gb=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[GOV])});$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',gb)));}catch(e2){$('govLocked').textContent='--';}}try{const fb=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[FM])});$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',fb)));}catch(e){$('fundAsset').textContent='--';}}catch(e){$('totalSupply').textContent='--';$('burnedAmount').textContent='--';}fetchRoleRates();fetchCommunityExpiry();fetchDailyBonusInfo();}
@@ -308,5 +273,4 @@
     window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupSwipeDots();setupUpgradeButtons();setupCopyButtons();$('claimBonusBtn').addEventListener('click',claimDailyBonus);if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
 })();
 </script>
-</body>
 </html>
