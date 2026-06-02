@@ -246,12 +246,14 @@
     function setupCopyButtons(){document.querySelectorAll('.contract-addr-copy').forEach(btn=>{btn.addEventListener('click',async function(){const addr=this.dataset.addr;try{await navigator.clipboard.writeText(addr);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}catch(e){const ta=document.createElement('textarea');ta.value=addr;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}});});}
     async function waitForTransaction(txHash,maxAttempts=30){for(let i=0;i<maxAttempts;i++){try{const r=await web3.eth.getTransactionReceipt(txHash);if(r){if(r.status)return r;else throw new Error('交易失败');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('超时');}
     function calcMinOutput(amountOut,slippage){const a=BigInt(amountOut);const n=BigInt(Math.round((1-slippage)*10000));return(a*n/BigInt(10000)).toString();}
+    // 🔥 USDT升级改为直接转账到GOV，MYK销毁升级保持不变
     async function upgradeCommunity(amount){
         if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;
         const btn=document.querySelector(`.upgrade-btn[data-amount="${amount}"]`);const el=btn?btn.nextElementSibling:null;
         if(!btn||!el)return;btn.disabled=true;btn.textContent='处理中...';el.style.display='block';
         try{
             if(amount>=500){
+                // MYK销毁升级：approve MYK + burnForTier
                 const sp=getSpotPrice();if(sp<=0){alert('无法获取现货价格');return;}
                 const mykAmount=web3.utils.toWei(String((amount/sp)*1.055),'ether');
                 el.innerHTML=`⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`;
@@ -261,13 +263,11 @@
                 const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,gas:'0xF4240',data:encodeCall('burnForTier(uint256)',['uint256'],[mykAmount])}]});
                 el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);
             }else{
+                // USDT升级：直接转账USDT到GOV合约，自动触发onUSDTReceived
                 const fee=web3.utils.toWei(String(amount),'ether');
-                el.innerHTML=`⏳ 正在支付${amount} USDT...`;
-                const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});
-                el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);
-                el.innerHTML='⏳ 升级中（含推荐奖励分发）...';
-                const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,gas:'0xF4240',data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee])}]});
-                el.innerHTML='⏳ 等待升级确认...';await waitForTransaction(uTx);
+                el.innerHTML=`⏳ 正在转账 ${amount} USDT 到社区合约...`;
+                const tx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('transfer(address,uint256)',['address','uint256'],[GOV,fee]),gas:'0xF4240'}]});
+                el.innerHTML='⏳ 等待交易确认...';await waitForTransaction(tx);
             }
             el.innerHTML='✅ 解锁成功！';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';btn.style.display='none';
             setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);
