@@ -258,16 +258,16 @@
                 const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,mykAmount])}]});
                 el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);
                 el.innerHTML='⏳ 销毁中...';
-                const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('burnForTier(uint256)',['uint256'],[mykAmount])}]});
+                const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('burnForTier(uint256)',['uint256'],[mykAmount]),gas:'0xF4240'}]});
                 el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);
             }else{
                 const fee=web3.utils.toWei(String(amount),'ether');
-                el.innerHTML=`⏳ 正在支付${amount} USDT...`;
+                el.innerHTML=`⏳ 正在授权 ${amount} USDT...`;
                 const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});
                 el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);
-                el.innerHTML='⏳ 解锁中...';
-                const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee])}]});
-                el.innerHTML='⏳ 等待解锁确认...';await waitForTransaction(uTx);
+                el.innerHTML='⏳ 升级中（含推荐奖励分发）...';
+                const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee]),gas:'0xF4240'}]});
+                el.innerHTML='⏳ 等待升级确认...';await waitForTransaction(uTx);
             }
             el.innerHTML='✅ 解锁成功！';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';btn.style.display='none';
             setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);
