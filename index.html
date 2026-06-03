@@ -147,8 +147,8 @@
     <!-- 3. MYK买卖 -->
     <div class="glass-card"><h2 style="justify-content:space-between;"><span>📈 买卖 MYK</span><span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span></span></h2><div class="order-panel"><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div><div style="font-size:13px;color:#4ecca3;font-weight:700;" id="buyPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 USDT = <span id="buyRateDisplay">--</span> MYK</div></div><div class="order-divider"></div><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">卖出价</div><div style="font-size:13px;color:#e94560;font-weight:700;" id="sellPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 MYK = <span id="sellRateDisplay">--</span> USDT</div></div></div><div class="tab-container" id="tradeTabSwitch"><div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div><div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div></div><div id="panelBuy"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button><div class="info-box" id="buyResult" style="display:none;"></div></div><div id="panelSell" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span></div><button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button><div class="info-box" id="sellResult" style="display:none;"></div></div></div>
 
-    <!-- 4. 每日奖励 -->
-    <div class="glass-card"><h2>🎁 每日奖励</h2><div class="desc">持币即可领奖，<span class="highlight">一键领取</span></div><div class="stat-row"><span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span><span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span></div><div class="stat-row" style="margin-top:8px;"><span>今日可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领取：<span class="stat-value" id="claimedToday">--</span></span></div><button class="btn btn-green" id="claimRewardBtn">🎁 一键领取今日奖励</button><div id="claimLoading" style="display:none;text-align:center;margin-top:12px;"><span style="color:#f0b90b;">⏳ 正在获取签名数据...</span></div><div class="info-box" id="claimRewardResult" style="display:none;"></div></div>
+    <!-- 4. 每日奖励（自动快照） -->
+    <div class="glass-card"><h2>🎁 每日奖励</h2><div class="desc">持币即可领奖，<span class="highlight">自动快照</span>无需签名</div><div class="stat-row"><span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span><span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span></div><div class="stat-row" style="margin-top:8px;"><span>今日可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领取：<span class="stat-value" id="claimedToday">--</span></span></div><button class="btn btn-green" id="claimRewardBtn">🎁 一键领取今日奖励</button><div class="info-box" id="claimRewardResult" style="display:none;"></div></div>
 
     <!-- 5. 百万MYK生态福利 -->
     <div class="glass-card"><h2>🎁 百万MYK生态福利</h2><div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量<span class="highlight-green" id="airdropTotal">--</span>MYK赠完即止</div><div class="stat-row"><span>已赠送: <span class="stat-value" id="airdropPaid">--</span> MYK</span><span>剩余: <span class="stat-value" id="airdropRemaining">--</span> MYK</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div></div><div class="stat-row" style="margin-top:4px;"><span style="color:#888;">当前奖金池: <span id="airdropPoolBalance">--</span> MYK</span><span style="color:#888;" id="airdropPercent">0%</span></div></div>
@@ -208,7 +208,6 @@
     const ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E';
     const PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
     const AIRDROP_INITIAL=2100000;
-    const MERKLE_API_URL='https://your-api.example.com/api/merkle-proof';
     const ZERO_ADDR='0x0000000000000000000000000000000000000000';
     const DEAD_ADDR='0x000000000000000000000000000000000000dEaD';
     const SWAP_SIG='swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
@@ -384,46 +383,31 @@
             $('claimRewardBtn').disabled=claimed;
             $('claimRewardBtn').textContent=claimed?'✅ 今日已领取':'🎁 一键领取今日奖励';
             $('claimRewardBtn').style.opacity=claimed?'0.6':'1';
+            $('todayReward').textContent='--';
         }catch(e){$('holdingBalance').textContent='--';}
     }
 
-    async function fetchMerkleProof(){
-        try{
-            const r=await fetch(`${MERKLE_API_URL}/${userAddress}`);
-            if(!r.ok){const ed=await r.json().catch(()=>({}));throw new Error(ed.message||'获取签名数据失败');}
-            const d=await r.json();
-            return{amountWei:web3.utils.toWei(String(d.amount),'ether'),batchId:String(d.batchId),proof:d.proof||[]};
-        }catch(e){throw new Error('签名服务暂不可用，请稍后重试');}
-    }
-
-    // 🔥 修复：新签名 claimDailyReward(uint256,uint256,bytes32[],uint256)
+    // 🔥 改用 claimDailyRewardAuto()，无需 Merkle 服务
     async function claimDailyReward(){
         if(!userAddress){alert('请先连接钱包');return}if(!lock())return;
-        const b=$('claimRewardBtn'),el=$('claimRewardResult'),ld=$('claimLoading');
-        el.style.display='none';ld.style.display='block';b.disabled=!0;b.textContent='获取签名...';
+        const b=$('claimRewardBtn'),el=$('claimRewardResult');
+        el.style.display='block';el.innerHTML='⏳ 自动快照中...';b.disabled=!0;b.textContent='快照中...';
         try{
-            const pd=await fetchMerkleProof(),an=parseFloat(web3.utils.fromWei(pd.amountWei,'ether'));
-            $('todayReward').textContent=an.toFixed(6);
-            // 查询用户当前 MYK 余额作为 netBuyAmount
-            const balanceResult=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});
-            const netBuyAmount=web3.eth.abi.decodeParameter('uint256',balanceResult);
-            b.textContent='领取中...';ld.innerHTML='<span style="color:#4ecca3;">⏳ 交易确认中...</span>';
-            const d=encodeCall('claimDailyReward(uint256,uint256,bytes32[],uint256)',['uint256','uint256','bytes32[]','uint256'],[pd.amountWei,pd.batchId,pd.proof,netBuyAmount]);
+            const d=encodeCall('claimDailyRewardAuto()');
             await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:d}]});
             markClaimedToday();
-            el.style.display='block';el.innerHTML=`✅ 领取成功！获得 ${an.toFixed(6)} MYK 奖励`;
+            el.innerHTML='✅ 领取成功！已记录快照并发放奖励';
             el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
             setTimeout(()=>{fetchHoldingInfo();fetchUserStats();refreshIdentityCard();fetchContractInfo();},3000);
         }catch(e){
             el.style.display='block';const m=parseError(e);
-            if(m.includes('already claimed')||m.includes('AlreadyClaimed')||m.includes('already settled')){el.innerHTML='⚠️ 今日已领取，请明天再来';b.disabled=!0;b.textContent='✅ 今日已领取';$('claimedToday').textContent='✅ 已领取';markClaimedToday();}
-            else if(m.includes('invalid proof')||m.includes('InvalidProof')||m.includes('merkle')){el.innerHTML='⚠️ 签名验证失败，请联系管理员更新 Merkle Root';}
-            else if(m.includes('NetBuyExceeds')||m.includes('NetBuyExceedsBalance')){el.innerHTML='⚠️ 净买入量超过当前余额，请检查持币量';}
-            else if(m.includes('NotActive')){el.innerHTML='⚠️ 账户未激活，请先激活 PRIMARY';}
-            else if(m.includes('MerkleRootNotSet')){el.innerHTML='⚠️ Merkle Root 尚未设置，请等待管理员更新';}
-            else if(m.includes('签名服务')){el.innerHTML='⚠️ '+m;}
+            if(m.includes('NotActive')){el.innerHTML='⚠️ 账户未激活，请先激活 PRIMARY';}
+            else if(m.includes('TooFrequent')){el.innerHTML='⚠️ 领取过于频繁，请等待115分钟后再试';}
+            else if(m.includes('ExceedsMax')){el.innerHTML='⚠️ 超出最大可领额度';}
+            else if(m.includes('SnapshotTaken')){el.innerHTML='📸 快照已记录！明天起可领取奖励';markClaimedToday();}
+            else if(m.includes('User denied')||m.includes('rejected')){el.innerHTML='⚠️ 交易已取消';}
             else{el.innerHTML='❌ '+m;}
-        }finally{ld.style.display='none';b.disabled=!1;if(b.textContent!=='✅ 今日已领取'){b.textContent='🎁 一键领取今日奖励';}unlock();}
+        }finally{b.disabled=!1;if(b.textContent!=='✅ 今日已领取'){b.textContent='🎁 一键领取今日奖励';}unlock();}
     }
 
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote();}else{sellSlippage=s;updateSellQuote();}});});}
