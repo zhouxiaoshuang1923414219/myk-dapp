@@ -157,7 +157,7 @@
     <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.0%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.0%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(现货价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="150" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
 
     <!-- 7. 每日升级奖励 1.6%/天 × 90天 -->
-    <div class="glass-card"><h2>📈 每日升级奖励</h2><div class="desc">USDT升级用户享 <span class="highlight">1.6%/天</span> × <span class="highlight-green">90天</span></div><div class="stat-row"><span>升级本金：<span class="stat-value" id="bonusPrincipal">--</span> USDT</span><span>每日可得：<span class="stat-value" id="bonusDaily">--</span> MYK</span></div><div class="stat-row" style="margin-top:8px;"><span>已领取：<span class="stat-value" id="bonusClaimed">--</span> 天</span><span>剩余：<span class="stat-value" id="bonusRemaining">--</span> 天</span></div><button class="btn btn-gold" id="claimBonusBtn">📈 领取今日升级奖励</button><div class="info-box" id="claimBonusResult" style="display:none;"></div></div>
+    <div class="glass-card"><h2>📈 每日升级奖励</h2><div class="desc">USDT升级用户享 <span class="highlight">1.6%/天</span> × <span class="highlight-green">90天</span></div><div class="stat-row"><span>升级本金：<span class="stat-value" id="bonusPrincipal">--</span> USDT</span><span>每日可得：<span class="stat-value" id="bonusDaily">--</span> MYK</span></div><div class="stat-row" style="margin-top:8px;"><span>已领取：<span class="stat-value" id="bonusClaimed">--</span> MYK</span><span>剩余：<span class="stat-value" id="bonusRemaining">--</span> 天</span></div><button class="btn btn-gold" id="claimBonusBtn">📈 领取今日升级奖励</button><div class="info-box" id="claimBonusResult" style="display:none;"></div></div>
 
     <!-- 8. 权益卡片（六张左右滑动） -->
     <div class="glass-card" id="rightsCardOuter" style="padding:12px 8px; display:inline-block; width:100%;">
@@ -250,27 +250,34 @@
                 result
             );
             const principal=parseFloat(Web3.utils.fromWei(info[0],'ether'));
-            const dailyAmount=parseFloat(Web3.utils.fromWei(info[1],'ether'));
+            const dailyAmountUSDT=parseFloat(Web3.utils.fromWei(info[1],'ether'));
             const startTime=parseInt(info[2]);
             const lastClaimDay=parseInt(info[3]);
-            const totalClaimed=parseFloat(Web3.utils.fromWei(info[4],'ether'));
+            const totalClaimedUSDT=parseFloat(Web3.utils.fromWei(info[4],'ether'));
             const isActive=info[5];
-            const claimable=parseFloat(Web3.utils.fromWei(info[6],'ether'));
+            const claimableUSDT=parseFloat(Web3.utils.fromWei(info[6],'ether'));
+
+            const price=getSpotPrice();
+            const dailyAmountMYK=price>0?dailyAmountUSDT/price:0;
+            const totalClaimedMYK=price>0?totalClaimedUSDT/price:0;
+            const claimableMYK=price>0?claimableUSDT/price:0;
+
             $('bonusPrincipal').textContent=principal.toFixed(0);
-            $('bonusDaily').textContent=dailyAmount.toFixed(6);
-            $('bonusClaimed').textContent=totalClaimed.toFixed(0);
+            $('bonusDaily').textContent=dailyAmountMYK.toFixed(6)+' MYK';
+            $('bonusClaimed').textContent=totalClaimedMYK.toFixed(6)+' MYK';
             const currentDay=Math.floor(Date.now()/86400000);
             const startDay=Math.floor(startTime/86400);
             const daysElapsed=currentDay-startDay;
-            $('bonusRemaining').textContent=Math.max(0,90-daysElapsed);
+            $('bonusRemaining').textContent=Math.max(0,90-daysElapsed)+' 天';
+
             $('claimBonusBtn').disabled=true;
             if(!isActive){
                 $('claimBonusBtn').textContent='📈 暂无升级奖励';
-            }else if(claimable<=0){
+            }else if(claimableMYK<=0){
                 $('claimBonusBtn').textContent='⏳ 明天可领取';
             }else{
                 $('claimBonusBtn').disabled=false;
-                $('claimBonusBtn').textContent='📈 领取今日升级奖励 ('+claimable.toFixed(6)+' MYK)';
+                $('claimBonusBtn').textContent='📈 领取今日升级奖励 ('+claimableMYK.toFixed(6)+' MYK)';
             }
         }catch(e){
             try{
@@ -282,10 +289,12 @@
                 const claimedDays=parseInt(info[2]);
                 const totalDays=parseInt(info[3])||90;
                 const isActive=info[4];
+                const price=getSpotPrice();
+                const dailyAmountMYK=price>0?dailyAmount/price:0;
                 $('bonusPrincipal').textContent=principal.toFixed(0);
-                $('bonusDaily').textContent=dailyAmount.toFixed(6);
-                $('bonusClaimed').textContent=claimedDays;
-                $('bonusRemaining').textContent=Math.max(0,totalDays-claimedDays);
+                $('bonusDaily').textContent=dailyAmountMYK.toFixed(6)+' MYK';
+                $('bonusClaimed').textContent=claimedDays+' 天';
+                $('bonusRemaining').textContent=Math.max(0,totalDays-claimedDays)+' 天';
                 $('claimBonusBtn').disabled=!isActive||claimedDays>=totalDays;
                 if(!isActive){$('claimBonusBtn').textContent='📈 暂无升级奖励';}
                 else if(claimedDays>=totalDays){$('claimBonusBtn').textContent='✅ 已全部领取';}
