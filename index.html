@@ -214,6 +214,7 @@
     const SWAP_SIG='swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
     const PCS_API='https://api.pancakeswap.info/api/v2/tokens/0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const STORAGE_KEY='myk_baseline_price';
+    const CLAIMED_KEY='myk_claimed_today_';
     const CARD_EXPIRY_MAP={community1:'community1Unlock',community2:'community2Unlock',community3:'community3Unlock',community4:'community4Unlock',community5:'community5Unlock'};
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
     let airdropTotalAmount=2100000;
@@ -240,7 +241,6 @@
     async function fetchUserGovTier(){if(!web3||!userAddress)return 0;try{const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseInt(web3.eth.abi.decodeParameter('uint8',result));}catch(e){try{const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseInt(web3.eth.abi.decodeParameter('uint256',result));}catch(e2){}}return 0;}
     async function fetchUserBasic(){if(!web3||!userAddress)return null;try{const data=encodeCall('getUserBasic(address)',['address'],[userAddress]);const result=await web3.eth.call({to:RP,data:data});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint8','uint256','bool'],result);return{referrer:u[0],invited:parseInt(u[1]),activatedInvited:parseInt(u[2]),role:parseInt(u[3]),activatedAt:parseInt(u[4]),isActive:u[5]};}catch(e){try{const data=encodeCall('users(address)',['address'],[userAddress]);const result=await web3.eth.call({to:RP,data:data});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],result);return{referrer:u[0],invited:parseInt(u[1]),activatedInvited:parseInt(u[1]),role:parseInt(u[7]),activatedAt:parseInt(u[4]),isActive:u[8]};}catch(e2){}}return null;}
 
-    // 🔥 修复：合约返回 USDT，前端除以 spotPrice 转换为 MYK 显示
     async function fetchDailyBonusInfo() {
         if (!web3 || !userAddress) return;
         try {
@@ -250,12 +250,11 @@
                 ['uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'bool', 'uint256'],
                 result
             );
-            const principal = parseFloat(Web3.utils.fromWei(info[0], 'ether'));        // USDT
-            const dailyAmountUSDT = parseFloat(Web3.utils.fromWei(info[1], 'ether'));  // USDT
-            const startTime = parseInt(info[2]);
-            const totalClaimedUSDT = parseFloat(Web3.utils.fromWei(info[4], 'ether')); // USDT
+            const principal = parseFloat(Web3.utils.fromWei(info[0], 'ether'));
+            const dailyAmountUSDT = parseFloat(Web3.utils.fromWei(info[1], 'ether'));
+            const totalClaimedUSDT = parseFloat(Web3.utils.fromWei(info[4], 'ether'));
             const isActive = info[5];
-            const claimableUSDT = parseFloat(Web3.utils.fromWei(info[6], 'ether'));    // USDT
+            const claimableUSDT = parseFloat(Web3.utils.fromWei(info[6], 'ether'));
 
             const sp = getSpotPrice();
             const dailyAmountMYK = sp > 0 ? (dailyAmountUSDT / sp) : 0;
@@ -278,7 +277,6 @@
                 $('claimBonusBtn').textContent = '📈 领取今日升级奖励 (' + claimableMYK.toFixed(6) + ' MYK)';
             }
         } catch (e) {
-            // 兼容旧函数名 getBonusInfo
             try {
                 const data = encodeCall('getBonusInfo(address)', ['address'], [userAddress]);
                 const result = await web3.eth.call({ to: RP, data: data });
@@ -373,9 +371,61 @@
     async function refreshIdentityCard(){if(!userAddress||!web3)return;try{const basic=await fetchUserBasic();if(!basic)return;const govTier=await fetchUserGovTier();const rpRole=basic.role;let roleName='无';if(govTier>=6) roleName='👑 SIXTH';else if(govTier>=5) roleName='👑 FIFTH';else if(govTier>=4) roleName='🥇 FOURTH';else if(govTier>=3) roleName='🥇 THIRD';else if(govTier>=2) roleName='🥇 SECOND';else if(govTier>=1) roleName='🥇 FIRST';else if(rpRole>=3) roleName='🥇 COMMUNITY';else if(rpRole>=2) roleName='🥈 MIDDLE';else if(rpRole>=1) roleName='🥉 PRIMARY';$('cardRole').textContent=roleName;$('cardActiveBadge').innerHTML=basic.isActive?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';$('cardReferrer').textContent=basic.referrer==='0x0000000000000000000000000000000000000000'?'无':a6(basic.referrer);$('cardReferrer').style.color=basic.referrer==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';$('cardActivated').textContent=basic.activatedAt>0?new Date(basic.activatedAt*1000).toLocaleDateString('zh-CN'):'未激活';$('cardInvited').textContent=basic.invited;try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('cardStreak').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('cardStreak').textContent='0';}try{$('cardMYK').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardMYK').textContent='--';}try{$('cardUSDT').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardUSDT').textContent='--';}}catch(e){}}
     async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';try{const mw=Web3.utils.toWei(am,'ether'),d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='✅ 激活成功！';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){$('activateMYKResult').style.display='block';$('activateMYKResult').innerHTML='❌ '+parseError(e);}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();}}
     async function activateUSDT(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateUSDTBtn'),el=$('activateUSDTResult');el.style.display='block';el.innerHTML='⏳ 授权USDT...';b.disabled=!0;try{const f=web3.utils.toWei('2','ether');const ad=encodeCall('approve(address,uint256)',['address','uint256'],[RP,f]);const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 激活中...';const ac=encodeCall('activateWithUSDT()');const acTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:ac}]});el.innerHTML='⏳ 等待激活确认...';await waitForTransaction(acTx);el.innerHTML='✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('referrer')?'⚠️ 推荐人无效或未绑定，请检查链上绑定关系':'❌ '+m;}finally{b.disabled=!1;unlock();}}
-    async function fetchHoldingInfo(){if(!userAddress||!web3)return;try{$('holdingBalance').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);const td=Math.floor(Date.now()/86400000);try{const cr=await web3.eth.call({to:RP,data:encodeCall('dailySettled(address,uint256)',['address','uint256'],[userAddress,String(td)])}),c=web3.eth.abi.decodeParameter('bool',cr);$('claimedToday').textContent=c?'✅ 已领取':'❌ 未领取';$('claimRewardBtn').disabled=c;$('claimRewardBtn').textContent=c?'✅ 今日已领取':'🎁 一键领取今日奖励';$('claimRewardBtn').style.opacity=c?'0.6':'1';}catch(e){$('claimedToday').textContent='--';}}catch(e){$('holdingBalance').textContent='--';}}
-    async function fetchMerkleProof(){try{const r=await fetch(`${MERKLE_API_URL}/${userAddress}`);if(!r.ok){const ed=await r.json().catch(()=>({}));throw new Error(ed.message||'获取签名数据失败');}const d=await r.json();return{amountWei:web3.utils.toWei(String(d.amount),'ether'),batchId:String(d.batchId),proof:d.proof||[],root:d.root||'0x0000000000000000000000000000000000000000000000000000000000000000'};}catch(e){throw new Error('签名服务暂不可用，请稍后重试');}}
-    async function claimDailyReward(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('claimRewardBtn'),el=$('claimRewardResult'),ld=$('claimLoading');el.style.display='none';ld.style.display='block';b.disabled=!0;b.textContent='获取签名...';try{const pd=await fetchMerkleProof(),an=parseFloat(web3.utils.fromWei(pd.amountWei,'ether'));$('todayReward').textContent=an.toFixed(6);b.textContent='领取中...';ld.innerHTML='<span style="color:#4ecca3;">⏳ 交易确认中...</span>';const d=encodeCall('claimDailyReward(uint256,uint256,bytes32[],bytes32)',['uint256','uint256','bytes32[]','bytes32'],[pd.amountWei,pd.batchId,pd.proof,pd.root]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:d}]});el.style.display='block';el.innerHTML=`✅ 领取成功！获得 ${an.toFixed(6)} MYK 奖励`;el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';setTimeout(()=>{fetchHoldingInfo();fetchUserStats();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){el.style.display='block';const m=parseError(e);if(m.includes('already claimed')||m.includes('already settled')){el.innerHTML='⚠️ 今日已领取，请明天再来';b.disabled=!0;b.textContent='✅ 今日已领取';$('claimedToday').textContent='✅ 已领取';}else if(m.includes('invalid proof')||m.includes('merkle')){el.innerHTML='⚠️ 签名验证失败，请联系管理员更新 Merkle Root';}else if(m.includes('签名服务')){el.innerHTML='⚠️ '+m;}else{el.innerHTML='❌ '+m;}}finally{ld.style.display='none';b.disabled=!1;if(b.textContent!=='✅ 今日已领取'){b.textContent='🎁 一键领取今日奖励';}unlock();}}
+
+    function isClaimedToday(){const k=CLAIMED_KEY+userAddress+'_'+getTodayKey();return localStorage.getItem(k)==='1';}
+    function markClaimedToday(){const k=CLAIMED_KEY+userAddress+'_'+getTodayKey();localStorage.setItem(k,'1');}
+
+    async function fetchHoldingInfo(){
+        if(!userAddress||!web3)return;
+        try{
+            $('holdingBalance').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);
+            const claimed=isClaimedToday();
+            $('claimedToday').textContent=claimed?'✅ 已领取':'❌ 未领取';
+            $('claimRewardBtn').disabled=claimed;
+            $('claimRewardBtn').textContent=claimed?'✅ 今日已领取':'🎁 一键领取今日奖励';
+            $('claimRewardBtn').style.opacity=claimed?'0.6':'1';
+        }catch(e){$('holdingBalance').textContent='--';}
+    }
+
+    async function fetchMerkleProof(){
+        try{
+            const r=await fetch(`${MERKLE_API_URL}/${userAddress}`);
+            if(!r.ok){const ed=await r.json().catch(()=>({}));throw new Error(ed.message||'获取签名数据失败');}
+            const d=await r.json();
+            return{amountWei:web3.utils.toWei(String(d.amount),'ether'),batchId:String(d.batchId),proof:d.proof||[]};
+        }catch(e){throw new Error('签名服务暂不可用，请稍后重试');}
+    }
+
+    // 🔥 修复：新签名 claimDailyReward(uint256,uint256,bytes32[],uint256)
+    async function claimDailyReward(){
+        if(!userAddress){alert('请先连接钱包');return}if(!lock())return;
+        const b=$('claimRewardBtn'),el=$('claimRewardResult'),ld=$('claimLoading');
+        el.style.display='none';ld.style.display='block';b.disabled=!0;b.textContent='获取签名...';
+        try{
+            const pd=await fetchMerkleProof(),an=parseFloat(web3.utils.fromWei(pd.amountWei,'ether'));
+            $('todayReward').textContent=an.toFixed(6);
+            // 查询用户当前 MYK 余额作为 netBuyAmount
+            const balanceResult=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])});
+            const netBuyAmount=web3.eth.abi.decodeParameter('uint256',balanceResult);
+            b.textContent='领取中...';ld.innerHTML='<span style="color:#4ecca3;">⏳ 交易确认中...</span>';
+            const d=encodeCall('claimDailyReward(uint256,uint256,bytes32[],uint256)',['uint256','uint256','bytes32[]','uint256'],[pd.amountWei,pd.batchId,pd.proof,netBuyAmount]);
+            await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:d}]});
+            markClaimedToday();
+            el.style.display='block';el.innerHTML=`✅ 领取成功！获得 ${an.toFixed(6)} MYK 奖励`;
+            el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
+            setTimeout(()=>{fetchHoldingInfo();fetchUserStats();refreshIdentityCard();fetchContractInfo();},3000);
+        }catch(e){
+            el.style.display='block';const m=parseError(e);
+            if(m.includes('already claimed')||m.includes('AlreadyClaimed')||m.includes('already settled')){el.innerHTML='⚠️ 今日已领取，请明天再来';b.disabled=!0;b.textContent='✅ 今日已领取';$('claimedToday').textContent='✅ 已领取';markClaimedToday();}
+            else if(m.includes('invalid proof')||m.includes('InvalidProof')||m.includes('merkle')){el.innerHTML='⚠️ 签名验证失败，请联系管理员更新 Merkle Root';}
+            else if(m.includes('NetBuyExceeds')||m.includes('NetBuyExceedsBalance')){el.innerHTML='⚠️ 净买入量超过当前余额，请检查持币量';}
+            else if(m.includes('NotActive')){el.innerHTML='⚠️ 账户未激活，请先激活 PRIMARY';}
+            else if(m.includes('MerkleRootNotSet')){el.innerHTML='⚠️ Merkle Root 尚未设置，请等待管理员更新';}
+            else if(m.includes('签名服务')){el.innerHTML='⚠️ '+m;}
+            else{el.innerHTML='❌ '+m;}
+        }finally{ld.style.display='none';b.disabled=!1;if(b.textContent!=='✅ 今日已领取'){b.textContent='🎁 一键领取今日奖励';}unlock();}
+    }
+
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote();}else{sellSlippage=s;updateSellQuote();}});});}
     function setupTabs(){document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion();});});document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell');});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote();});});}
     window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupSwipeDots();setupUpgradeButtons();setupCopyButtons();$('claimBonusBtn').addEventListener('click',claimDailyBonus);if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
