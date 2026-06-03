@@ -214,6 +214,7 @@
     const PCS_API='https://api.pancakeswap.info/api/v2/tokens/0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const STORAGE_KEY='myk_baseline_price';
     const CLAIMED_KEY='myk_claimed_today_';
+    const SNAPSHOT_KEY='myk_snapshot_done_';
     const CARD_EXPIRY_MAP={community1:'community1Unlock',community2:'community2Unlock',community3:'community3Unlock',community4:'community4Unlock',community5:'community5Unlock'};
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,priceRefreshInterval;
     let airdropTotalAmount=2100000;
@@ -387,27 +388,40 @@
         }catch(e){$('holdingBalance').textContent='--';}
     }
 
-    // 🔥 改用 claimDailyRewardAuto()，无需 Merkle 服务
+    // 🔥 修复：区分快照（SnapshotTaken）和实际领取（DailyRewardClaimed）
     async function claimDailyReward(){
         if(!userAddress){alert('请先连接钱包');return}if(!lock())return;
         const b=$('claimRewardBtn'),el=$('claimRewardResult');
-        el.style.display='block';el.innerHTML='⏳ 自动快照中...';b.disabled=!0;b.textContent='快照中...';
+        el.style.display='block';el.innerHTML='⏳ 自动快照中...';b.disabled=!0;b.textContent='处理中...';
         try{
-            const d=encodeCall('claimDailyRewardAuto()');
-            await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:d}]});
-            markClaimedToday();
-            el.innerHTML='✅ 领取成功！已记录快照并发放奖励';
-            el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
+            const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('claimDailyRewardAuto()')}]});
+            el.innerHTML='⏳ 等待确认...';
+            const receipt=await waitForTransaction(txHash);
+            const snapshotEventSig=web3.eth.abi.encodeEventSignature('SnapshotTaken(address,uint256,uint256)');
+            let isSnapshot=!1;
+            for(const log of receipt.logs||[]){
+                if(log.topics&&log.topics[0]===snapshotEventSig){isSnapshot=!0;break;}
+            }
+            if(isSnapshot){
+                el.innerHTML='📸 首次快照已记录！<br>请等待115分钟后再次点击领取奖励';
+                el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';
+                b.disabled=!1;b.textContent='⏰ 等待冷却后领取';
+            }else{
+                markClaimedToday();
+                el.innerHTML='✅ 领取成功！奖励已发放';
+                el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
+                b.disabled=!0;b.textContent='✅ 今日已领取';
+                $('claimedToday').textContent='✅ 已领取';
+            }
             setTimeout(()=>{fetchHoldingInfo();fetchUserStats();refreshIdentityCard();fetchContractInfo();},3000);
         }catch(e){
             el.style.display='block';const m=parseError(e);
             if(m.includes('NotActive')){el.innerHTML='⚠️ 账户未激活，请先激活 PRIMARY';}
-            else if(m.includes('TooFrequent')){el.innerHTML='⚠️ 领取过于频繁，请等待115分钟后再试';}
+            else if(m.includes('TooFrequent')){el.innerHTML='⚠️ 冷却中，请等待后再试（约115分钟）';}
             else if(m.includes('ExceedsMax')){el.innerHTML='⚠️ 超出最大可领额度';}
-            else if(m.includes('SnapshotTaken')){el.innerHTML='📸 快照已记录！明天起可领取奖励';markClaimedToday();}
             else if(m.includes('User denied')||m.includes('rejected')){el.innerHTML='⚠️ 交易已取消';}
             else{el.innerHTML='❌ '+m;}
-        }finally{b.disabled=!1;if(b.textContent!=='✅ 今日已领取'){b.textContent='🎁 一键领取今日奖励';}unlock();}
+        }finally{b.disabled=!1;if(b.textContent!=='✅ 今日已领取'&&b.textContent!=='⏰ 等待冷却后领取'){b.textContent='🎁 一键领取今日奖励';}unlock();}
     }
 
     function setupSlippageButtons(cid,type){const c=document.getElementById(cid);if(!c)return;c.querySelectorAll('.slippage-btn').forEach(b=>{b.addEventListener('click',function(){c.querySelectorAll('.slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const s=parseFloat(this.dataset.slip)/100;if(type==='buy'){buySlippage=s;updateBuyQuote();}else{sellSlippage=s;updateSellQuote();}});});}
