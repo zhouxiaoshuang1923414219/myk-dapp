@@ -239,8 +239,81 @@
     function updateFifthMykSuggestion(){const p=getSpotPrice();if(p>0){const m=(1000/p*1.055).toFixed(4);$('fifthMykAmount').textContent=m;}}
     async function fetchUserGovTier(){if(!web3||!userAddress)return 0;try{const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseInt(web3.eth.abi.decodeParameter('uint8',result));}catch(e){try{const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseInt(web3.eth.abi.decodeParameter('uint256',result));}catch(e2){}}return 0;}
     async function fetchUserBasic(){if(!web3||!userAddress)return null;try{const data=encodeCall('getUserBasic(address)',['address'],[userAddress]);const result=await web3.eth.call({to:RP,data:data});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint8','uint256','bool'],result);return{referrer:u[0],invited:parseInt(u[1]),activatedInvited:parseInt(u[2]),role:parseInt(u[3]),activatedAt:parseInt(u[4]),isActive:u[5]};}catch(e){try{const data=encodeCall('users(address)',['address'],[userAddress]);const result=await web3.eth.call({to:RP,data:data});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],result);return{referrer:u[0],invited:parseInt(u[1]),activatedInvited:parseInt(u[1]),role:parseInt(u[7]),activatedAt:parseInt(u[4]),isActive:u[8]};}catch(e2){}}return null;}
-    async function fetchDailyBonusInfo(){if(!web3||!userAddress)return;try{const data=encodeCall('getBonusInfo(address)',['address'],[userAddress]);const result=await web3.eth.call({to:RP,data:data});const info=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','bool'],result);const principal=parseFloat(Web3.utils.fromWei(info[0],'ether'));const dailyAmount=parseFloat(Web3.utils.fromWei(info[1],'ether'));const claimedDays=parseInt(info[2]);const totalDays=parseInt(info[3])||90;const isActive=info[4];$('bonusPrincipal').textContent=principal.toFixed(0);$('bonusDaily').textContent=dailyAmount.toFixed(6);$('bonusClaimed').textContent=claimedDays;$('bonusRemaining').textContent=Math.max(0,totalDays-claimedDays);$('claimBonusBtn').disabled=!isActive||claimedDays>=totalDays;if(!isActive){$('claimBonusBtn').textContent='📈 暂无升级奖励';}else if(claimedDays>=totalDays){$('claimBonusBtn').textContent='✅ 已全部领取';}else{$('claimBonusBtn').textContent='📈 领取今日升级奖励';}}catch(e){$('bonusPrincipal').textContent='--';$('bonusDaily').textContent='--';$('bonusClaimed').textContent='--';$('bonusRemaining').textContent='--';$('claimBonusBtn').disabled=true;$('claimBonusBtn').textContent='📈 暂无升级奖励';}}
-    async function claimDailyBonus(){if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;const b=$('claimBonusBtn'),el=$('claimBonusResult');el.style.display='block';el.innerHTML='⏳ 领取中...';b.disabled=true;try{const tx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('claimDailyBonus()')}]});el.innerHTML='⏳ 等待确认...';await waitForTransaction(tx);el.innerHTML='✅ 领取成功！';el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';setTimeout(()=>{fetchDailyBonusInfo();fetchHoldingInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('already claimed')?'⚠️ 今日已领取':m.includes('not active')?'⚠️ 暂无升级奖励':'❌ '+m;}finally{b.disabled=false;unlock();}}
+
+    // 🔥 修复：适配新 RewardPool 的 getDailyBonusInfo (7 个返回值)
+    async function fetchDailyBonusInfo(){
+        if(!web3||!userAddress)return;
+        try{
+            const data=encodeCall('getDailyBonusInfo(address)',['address'],[userAddress]);
+            const result=await web3.eth.call({to:RP,data:data});
+            const info=web3.eth.abi.decodeParameters(
+                ['uint256','uint256','uint256','uint256','uint256','bool','uint256'],
+                result
+            );
+            const principal=parseFloat(Web3.utils.fromWei(info[0],'ether'));
+            const dailyAmount=parseFloat(Web3.utils.fromWei(info[1],'ether'));
+            const startTime=parseInt(info[2]);
+            const lastClaimDay=parseInt(info[3]);
+            const totalClaimed=parseFloat(Web3.utils.fromWei(info[4],'ether'));
+            const isActive=info[5];
+            const claimable=parseFloat(Web3.utils.fromWei(info[6],'ether'));
+            $('bonusPrincipal').textContent=principal.toFixed(0);
+            $('bonusDaily').textContent=dailyAmount.toFixed(6);
+            $('bonusClaimed').textContent=totalClaimed.toFixed(0);
+            const currentDay=Math.floor(Date.now()/86400000);
+            const startDay=Math.floor(startTime/86400);
+            const daysElapsed=currentDay-startDay;
+            $('bonusRemaining').textContent=Math.max(0,90-daysElapsed);
+            $('claimBonusBtn').disabled=!isActive||claimable<=0;
+            if(!isActive){
+                $('claimBonusBtn').textContent='📈 暂无升级奖励';
+            }else if(claimable<=0){
+                $('claimBonusBtn').textContent='✅ 今日已领取';
+            }else{
+                $('claimBonusBtn').textContent='📈 领取今日升级奖励';
+            }
+        }catch(e){
+            // 兼容旧函数名
+            try{
+                const data=encodeCall('getBonusInfo(address)',['address'],[userAddress]);
+                const result=await web3.eth.call({to:RP,data:data});
+                const info=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','bool'],result);
+                const principal=parseFloat(Web3.utils.fromWei(info[0],'ether'));
+                const dailyAmount=parseFloat(Web3.utils.fromWei(info[1],'ether'));
+                const claimedDays=parseInt(info[2]);
+                const totalDays=parseInt(info[3])||90;
+                const isActive=info[4];
+                $('bonusPrincipal').textContent=principal.toFixed(0);
+                $('bonusDaily').textContent=dailyAmount.toFixed(6);
+                $('bonusClaimed').textContent=claimedDays;
+                $('bonusRemaining').textContent=Math.max(0,totalDays-claimedDays);
+                $('claimBonusBtn').disabled=!isActive||claimedDays>=totalDays;
+                if(!isActive){$('claimBonusBtn').textContent='📈 暂无升级奖励';}
+                else if(claimedDays>=totalDays){$('claimBonusBtn').textContent='✅ 已全部领取';}
+                else{$('claimBonusBtn').textContent='📈 领取今日升级奖励';}
+            }catch(e2){
+                $('bonusPrincipal').textContent='--';$('bonusDaily').textContent='--';
+                $('bonusClaimed').textContent='--';$('bonusRemaining').textContent='--';
+                $('claimBonusBtn').disabled=true;$('claimBonusBtn').textContent='📈 暂无升级奖励';
+            }
+        }
+    }
+
+    async function claimDailyBonus(){
+        if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;
+        const b=$('claimBonusBtn'),el=$('claimBonusResult');
+        el.style.display='block';el.innerHTML='⏳ 领取中...';b.disabled=true;
+        try{
+            const tx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('claimDailyBonus()')}]});
+            el.innerHTML='⏳ 等待确认...';await waitForTransaction(tx);
+            el.innerHTML='✅ 领取成功！';el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
+            setTimeout(()=>{fetchDailyBonusInfo();fetchHoldingInfo();},3000);
+        }catch(e){
+            const m=parseError(e);
+            el.innerHTML=m.includes('NothingToClaim')||m.includes('already claimed')?'⚠️ 今日已领取或无待领奖励':m.includes('not active')?'⚠️ 暂无升级奖励':'❌ '+m;
+        }finally{b.disabled=false;unlock();}
+    }
+
     async function fetchCommunityExpiry(){if(!web3||!userAddress)return;try{const userTier=await fetchUserGovTier();for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;span.textContent='永久';}const tierCards={1:['community1Card','community1Status'],2:['community2Card','community2Status'],3:['community3Card','community3Status'],4:['community4Card','community4Status'],5:['community5Card','community5Status'],6:['community5Card','community5Status']};for(let t=1;t<=6;t++){const[cardId,statusId]=tierCards[t]||[];if(cardId&&statusId){$(cardId).classList.add('locked');$(cardId).classList.remove('unlocked');$(statusId).textContent='🔒 未解锁';$(statusId).style.color='#a3adc9';}}if(userTier>=1){const[cardId,statusId]=tierCards[1];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}if(userTier>=2){const[cardId,statusId]=tierCards[2];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}if(userTier>=3){const[cardId,statusId]=tierCards[3];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}if(userTier>=4){const[cardId,statusId]=tierCards[4];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}if(userTier>=5){const[cardId,statusId]=tierCards[5];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}updateRightsCardBorder(userTier);}catch(e){}}
     function updateRightsCardBorder(userTier){const outer=$('rightsCardOuter');if(!outer)return;if(userTier>=1){outer.classList.add('glass-card-active');}else{outer.classList.remove('glass-card-active');}}
     function setupCopyButtons(){document.querySelectorAll('.contract-addr-copy').forEach(btn=>{btn.addEventListener('click',async function(){const addr=this.dataset.addr;try{await navigator.clipboard.writeText(addr);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}catch(e){const ta=document.createElement('textarea');ta.value=addr;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}});});}
