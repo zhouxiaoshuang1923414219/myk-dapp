@@ -240,7 +240,6 @@
     async function fetchUserGovTier(){if(!web3||!userAddress)return 0;try{const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseInt(web3.eth.abi.decodeParameter('uint8',result));}catch(e){try{const data=encodeCall('getCommunityTier(address)',['address'],[userAddress]);const result=await web3.eth.call({to:GOV,data:data});return parseInt(web3.eth.abi.decodeParameter('uint256',result));}catch(e2){}}return 0;}
     async function fetchUserBasic(){if(!web3||!userAddress)return null;try{const data=encodeCall('getUserBasic(address)',['address'],[userAddress]);const result=await web3.eth.call({to:RP,data:data});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint8','uint256','bool'],result);return{referrer:u[0],invited:parseInt(u[1]),activatedInvited:parseInt(u[2]),role:parseInt(u[3]),activatedAt:parseInt(u[4]),isActive:u[5]};}catch(e){try{const data=encodeCall('users(address)',['address'],[userAddress]);const result=await web3.eth.call({to:RP,data:data});const u=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],result);return{referrer:u[0],invited:parseInt(u[1]),activatedInvited:parseInt(u[1]),role:parseInt(u[7]),activatedAt:parseInt(u[4]),isActive:u[8]};}catch(e2){}}return null;}
 
-    // 🔥 修复：适配新 RewardPool 的 getDailyBonusInfo (7 个返回值)
     async function fetchDailyBonusInfo(){
         if(!web3||!userAddress)return;
         try{
@@ -264,16 +263,16 @@
             const startDay=Math.floor(startTime/86400);
             const daysElapsed=currentDay-startDay;
             $('bonusRemaining').textContent=Math.max(0,90-daysElapsed);
-            $('claimBonusBtn').disabled=!isActive||claimable<=0;
+            $('claimBonusBtn').disabled=true;
             if(!isActive){
                 $('claimBonusBtn').textContent='📈 暂无升级奖励';
             }else if(claimable<=0){
-                $('claimBonusBtn').textContent='✅ 今日已领取';
+                $('claimBonusBtn').textContent='⏳ 明天可领取';
             }else{
-                $('claimBonusBtn').textContent='📈 领取今日升级奖励';
+                $('claimBonusBtn').disabled=false;
+                $('claimBonusBtn').textContent='📈 领取今日升级奖励 ('+claimable.toFixed(6)+' MYK)';
             }
         }catch(e){
-            // 兼容旧函数名
             try{
                 const data=encodeCall('getBonusInfo(address)',['address'],[userAddress]);
                 const result=await web3.eth.call({to:RP,data:data});
