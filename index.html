@@ -236,7 +236,6 @@
     function lock(){if(isProcessing){alert('请等待当前操作完成');return!1}isProcessing=!0;return!0}
     function unlock(){isProcessing=!1}
 
-    // 🔥 新合约 getCurrentPrice 是 view 函数，每次实时从 PancakeSwap 获取价格
     async function updateActivateSuggestion(){
         try{
             const p=await web3.eth.call({to:RP, data:encodeCall('getCurrentPrice()')});
@@ -341,7 +340,49 @@
         }finally{b.disabled=false;unlock();}
     }
 
-    async function fetchCommunityExpiry(){if(!web3||!userAddress)return;try{const userTier=await fetchUserGovTier();for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;span.textContent='永久';}const tierCards={1:['community1Card','community1Status'],2:['community2Card','community2Status'],3:['community3Card','community3Status'],4:['community4Card','community4Status'],5:['community5Card','community5Status'],6:['community5Card','community5Status']};for(let t=1;t<=6;t++){const[cardId,statusId]=tierCards[t]||[];if(cardId&&statusId){$(cardId).classList.add('locked');$(cardId).classList.remove('unlocked');$(statusId).textContent='🔒 未解锁';$(statusId).style.color='#a3adc9';}}if(userTier>=1){const[cardId,statusId]=tierCards[1];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}if(userTier>=2){const[cardId,statusId]=tierCards[2];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}if(userTier>=3){const[cardId,statusId]=tierCards[3];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}if(userTier>=4){const[cardId,statusId]=tierCards[4];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}if(userTier>=5){const[cardId,statusId]=tierCards[5];$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}updateRightsCardBorder(userTier);}catch(e){}}
+    // 🔥 精确匹配：只有对应等级才显示已解锁
+    async function fetchCommunityExpiry(){
+        if(!web3||!userAddress)return;
+        try{
+            const userTier=await fetchUserGovTier();
+            for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){
+                const el=$(elId);if(!el)continue;
+                const span=el.querySelector('span');if(!span)continue;
+                span.textContent='永久';
+            }
+            const tierCards={
+                1:['community1Card','community1Status'],
+                2:['community2Card','community2Status'],
+                3:['community3Card','community3Status'],
+                4:['community4Card','community4Status'],
+                5:['community5Card','community5Status'],
+                6:['community5Card','community5Status']
+            };
+            // 先全部设为未解锁
+            for(let t=1;t<=6;t++){
+                const[cardId,statusId]=tierCards[t]||[];
+                if(cardId&&statusId){
+                    $(cardId).classList.add('locked');
+                    $(cardId).classList.remove('unlocked');
+                    $(statusId).textContent='🔒 未解锁';
+                    $(statusId).style.color='#a3adc9';
+                }
+            }
+            // 🔥 精确匹配：只解锁对应等级
+            if(userTier===1||userTier===2||userTier===3||userTier===4||userTier===5||userTier===6){
+                const tier=userTier>=5?5:userTier; // FIFTH和SIXTH都映射到卡片5
+                const[cardId,statusId]=tierCards[tier];
+                if(cardId&&statusId){
+                    $(cardId).classList.remove('locked');
+                    $(cardId).classList.add('unlocked');
+                    $(statusId).textContent='🔓 已解锁';
+                    $(statusId).style.color='#4ecca3';
+                }
+            }
+            updateRightsCardBorder(userTier);
+        }catch(e){}
+    }
+
     function updateRightsCardBorder(userTier){const outer=$('rightsCardOuter');if(!outer)return;if(userTier>=1){outer.classList.add('glass-card-active');}else{outer.classList.remove('glass-card-active');}}
     function setupCopyButtons(){document.querySelectorAll('.contract-addr-copy').forEach(btn=>{btn.addEventListener('click',async function(){const addr=this.dataset.addr;try{await navigator.clipboard.writeText(addr);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}catch(e){const ta=document.createElement('textarea');ta.value=addr;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}});});}
     async function waitForTransaction(txHash,maxAttempts=30){for(let i=0;i<maxAttempts;i++){try{const r=await web3.eth.getTransactionReceipt(txHash);if(r){if(r.status)return r;else throw new Error('交易失败');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('超时');}
@@ -391,7 +432,6 @@
     async function fetchUserStats(){if(!userAddress||!web3)return;try{const basic=await fetchUserBasic();if(!basic){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';return;}const activatedInvited=basic.activatedInvited;$('middleInvitedCount').textContent=activatedInvited;const progress=Math.min(100,(activatedInvited/3)*100);$('middleProgress').style.width=progress.toFixed(1)+'%';if(basic.role>=2){$('middleCard').classList.remove('locked');$('middleCard').classList.add('unlocked');$('middleStatus').textContent='🔓 已解锁';$('middleStatus').style.color='#4ecca3';}else if(activatedInvited>=3&&basic.role===1){$('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';$('middleStatus').style.color='#f0b90b';}try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('streakDays').textContent='0';}}catch(e){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';}}
     async function refreshIdentityCard(){if(!userAddress||!web3)return;try{const basic=await fetchUserBasic();if(!basic)return;const govTier=await fetchUserGovTier();const rpRole=basic.role;let roleName='无';if(govTier>=6) roleName='👑 SIXTH';else if(govTier>=5) roleName='👑 FIFTH';else if(govTier>=4) roleName='🥇 FOURTH';else if(govTier>=3) roleName='🥇 THIRD';else if(govTier>=2) roleName='🥇 SECOND';else if(govTier>=1) roleName='🥇 FIRST';else if(rpRole>=3) roleName='🥇 COMMUNITY';else if(rpRole>=2) roleName='🥈 MIDDLE';else if(rpRole>=1) roleName='🥉 PRIMARY';$('cardRole').textContent=roleName;$('cardActiveBadge').innerHTML=basic.isActive?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';$('cardReferrer').textContent=basic.referrer==='0x0000000000000000000000000000000000000000'?'无':a6(basic.referrer);$('cardReferrer').style.color=basic.referrer==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';$('cardActivated').textContent=basic.activatedAt>0?new Date(basic.activatedAt*1000).toLocaleDateString('zh-CN'):'未激活';$('cardInvited').textContent=basic.invited;try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('cardStreak').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('cardStreak').textContent='0';}try{$('cardMYK').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardMYK').textContent='--';}try{$('cardUSDT').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardUSDT').textContent='--';}}catch(e){}}
 
-    // 🔥 新合约 getCurrentPrice 是 view 函数，每次实时获取，无需 updatePrice
     async function activateMYK(){
         if(!userAddress){alert('请先连接钱包');return}
         if(!lock())return;
@@ -399,7 +439,6 @@
         if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}
         b.disabled=!0;b.textContent='处理中...';el.style.display='block';
         try{
-            // 读取实时合约价
             el.innerHTML='⏳ 获取实时价格...';
             const rawPrice=await web3.eth.call({to:RP,data:encodeCall('getCurrentPrice()')});
             const contractPrice=parseFloat(Web3.utils.fromWei(rawPrice,'ether'));
@@ -409,7 +448,6 @@
             $('suggestedMYK').textContent=requiredMYK;
             $('mykAmount').setAttribute('data-default',requiredMYK);
 
-            // 校验用户输入
             const userAmount=parseFloat($('mykAmount').value||am);
             if(userAmount<parseFloat(requiredMYK)){
                 $('mykAmount').value=requiredMYK;
@@ -418,7 +456,6 @@
                 b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();return;
             }
 
-            // 转账激活
             b.textContent='激活中...';el.innerHTML='⏳ 激活中...';
             const mw=Web3.utils.toWei($('mykAmount').value,'ether');
             const d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);
