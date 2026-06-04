@@ -340,7 +340,6 @@
         }finally{b.disabled=false;unlock();}
     }
 
-    // 🔥 社区卡片精确匹配 + MIDDLE卡片精确匹配
     async function fetchCommunityExpiry(){
         if(!web3||!userAddress)return;
         try{
@@ -358,7 +357,6 @@
                 5:['community5Card','community5Status'],
                 6:['community5Card','community5Status']
             };
-            // 先全部设为未解锁
             for(let t=1;t<=6;t++){
                 const[cardId,statusId]=tierCards[t]||[];
                 if(cardId&&statusId){
@@ -368,7 +366,6 @@
                     $(statusId).style.color='#a3adc9';
                 }
             }
-            // 🔥 精确匹配：只解锁对应等级
             if(userTier===1||userTier===2||userTier===3||userTier===4||userTier===5||userTier===6){
                 const tier=userTier>=5?5:userTier;
                 const[cardId,statusId]=tierCards[tier];
@@ -418,10 +415,72 @@
     function setupUpgradeButtons(){document.querySelectorAll('.upgrade-btn').forEach(b=>{b.addEventListener('click',function(){upgradeCommunity(parseFloat(this.dataset.amount));});});}
     async function fetchRoleRates(){if(!web3)return;try{$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.0%';}try{$('middleRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('middleRate').textContent='1.3%';}try{$('communityRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('communityRate').textContent='1.6%';}}
     async function fetchContractInfo(){if(!web3)return;try{const ts=await web3.eth.call({to:MYK,data:encodeCall('totalSupply()')});$('totalSupply').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',ts)));let ba=0;try{const d=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[DEAD_ADDR])});ba=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',d),'ether'));}catch(e){}try{const z=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[ZERO_ADDR])});ba+=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',z),'ether'));}catch(e){}$('burnedAmount').textContent=formatM(ba);try{const bp=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[RP])});$('bonusPool').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',bp)));}catch(e){$('bonusPool').textContent='--';}try{const data=encodeCall('getDividendInfo()');const result=await web3.eth.call({to:GOV,data:data});const info=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'],result);const totalDividend=BigInt(info[0])+BigInt(info[1])+BigInt(info[2]);$('govLocked').textContent=formatM(n(totalDividend.toString()));}catch(e){try{const gb=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[GOV])});$('govLocked').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',gb)));}catch(e2){$('govLocked').textContent='--';}}try{const fb=await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[FM])});$('fundAsset').textContent=formatM(n(web3.eth.abi.decodeParameter('uint256',fb)));}catch(e){$('fundAsset').textContent='--';}}catch(e){$('totalSupply').textContent='--';$('burnedAmount').textContent='--';}fetchRoleRates();fetchCommunityExpiry();fetchDailyBonusInfo();}
-    async function updateOrderPanel(){try{if(!web3)return;const pa=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];const pc=new web3.eth.Contract(pa,PAIR);const t0=await pc.methods.token0().call();const rv=await pc.methods.getReserves().call();const r0=BigInt(rv[0]),r1=BigInt(rv[1]);let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1;}else{rU=r1;rM=r0;}const sr=Number((rU*BigInt(10**18))/rM)/1e18;const br=Number((rM*BigInt(10**18))/rU)/1e18;$('buyRateDisplay').textContent=br.toFixed(4);$('sellRateDisplay').textContent=sr.toFixed(6);$('buyPriceDisplay').textContent='$'+sr.toFixed(6);$('sellPriceDisplay').textContent='$'+sr.toFixed(6);}catch(e){}}
+
+    // 🔥 改用 Router 报价反推价格，与 TP 钱包一致
+    async function updateOrderPanel() {
+        try {
+            if (!web3) return;
+            const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
+            const rc = new web3.eth.Contract(ra, ROUTER);
+            const oneMYK = Web3.utils.toWei('1', 'ether');
+            const oneUSDT = Web3.utils.toWei('1', 'ether');
+            const sellAmounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call();
+            const sellPrice = parseFloat(Web3.utils.fromWei(sellAmounts[1], 'ether'));
+            const buyAmounts = await rc.methods.getAmountsOut(oneUSDT, [USDT, MYK]).call();
+            const buyRate = parseFloat(Web3.utils.fromWei(buyAmounts[1], 'ether'));
+            $('buyRateDisplay').textContent = buyRate.toFixed(4);
+            $('sellRateDisplay').textContent = sellPrice.toFixed(6);
+            $('buyPriceDisplay').textContent = '$' + sellPrice.toFixed(6);
+            $('sellPriceDisplay').textContent = '$' + sellPrice.toFixed(6);
+        } catch (e) {}
+    }
+
     function setupSwipeDots(){const c=$('swipeContainer');const ds=document.querySelectorAll('.swipe-dot');c.addEventListener('scroll',function(){const i=Math.round(c.scrollLeft/c.offsetWidth);ds.forEach((d,j)=>d.classList.toggle('active',j===i));});}
     async function connectWallet(){if(!window.ethereum){alert('请安装MetaMask');return}const a=await window.ethereum.request({method:'eth_requestAccounts'});web3=new Web3(window.ethereum);userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';await fetchPrice();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}
-    async function fetchPrice(){try{if(!web3)return;try{activationPrice=(await web3.eth.call({to:RP,data:encodeCall('getCurrentPrice()')})).toString();}catch(e1){if(BigInt(spotPrice)>BigInt(0))activationPrice=spotPrice;}try{const pa=[{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];const pc=new web3.eth.Contract(pa,PAIR);const t0=await pc.methods.token0().call();const rv=await pc.methods.getReserves().call();const r0=BigInt(rv[0]),r1=BigInt(rv[1]);if(r0===BigInt(0)||r1===BigInt(0))throw new Error('0');let rU,rM;if(t0.toLowerCase()===USDT.toLowerCase()){rU=r0;rM=r1;}else{rU=r1;rM=r0;}spotPrice=((rU*BigInt(10**18))/rM).toString();}catch(e2){}const sp=getSpotPrice();const pcs=await fetchPCSChange();if(pcs){updatePriceDisplay(sp,pcs.change);}else{const lr=getLocalChange(sp);updatePriceDisplay(sp,lr.change);}updateActivateSuggestion();updateFifthMykSuggestion();updateBuyQuote();updateSellQuote();updateOrderPanel();}catch(e){$('tradePriceDisplay').textContent='1.00';$('tradePriceBadge').className='trade-price-badge price-change-flat';$('tradeChangeDisplay').textContent='--';updateActivateSuggestion();}}
+
+    // 🔥 改用 Router 报价作为 spotPrice
+    async function fetchPrice() {
+        try {
+            if (!web3) return;
+            try { activationPrice = (await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') })).toString(); } catch (e1) {}
+            try {
+                const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
+                const rc = new web3.eth.Contract(ra, ROUTER);
+                const oneMYK = Web3.utils.toWei('1', 'ether');
+                const amounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call();
+                const priceFromRouter = parseFloat(Web3.utils.fromWei(amounts[1], 'ether'));
+                spotPrice = Web3.utils.toWei(String(priceFromRouter), 'ether');
+            } catch (e2) {
+                try {
+                    const pa = [{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];
+                    const pc = new web3.eth.Contract(pa, PAIR);
+                    const t0 = await pc.methods.token0().call();
+                    const rv = await pc.methods.getReserves().call();
+                    const r0 = BigInt(rv[0]), r1 = BigInt(rv[1]);
+                    if (r0 === BigInt(0) || r1 === BigInt(0)) throw new Error('0');
+                    let rU, rM;
+                    if (t0.toLowerCase() === USDT.toLowerCase()) { rU = r0; rM = r1; }
+                    else { rU = r1; rM = r0; }
+                    spotPrice = ((rU * BigInt(10**18)) / rM).toString();
+                } catch (e3) {}
+            }
+            const sp = getSpotPrice();
+            const pcs = await fetchPCSChange();
+            if (pcs) { updatePriceDisplay(sp, pcs.change); }
+            else { const lr = getLocalChange(sp); updatePriceDisplay(sp, lr.change); }
+            updateActivateSuggestion();
+            updateFifthMykSuggestion();
+            updateBuyQuote();
+            updateSellQuote();
+            updateOrderPanel();
+        } catch (e) {
+            $('tradePriceDisplay').textContent = '--';
+            $('tradePriceBadge').className = 'trade-price-badge price-change-flat';
+            $('tradeChangeDisplay').textContent = '--';
+            updateActivateSuggestion();
+        }
+    }
+
     function startPriceAutoRefresh(){fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});priceRefreshInterval=setInterval(()=>{const s=localStorage.getItem(STORAGE_KEY);if(s){try{const d=JSON.parse(s);if(d.date!==getTodayKey())localStorage.removeItem(STORAGE_KEY);}catch(e){}}fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});},30000);}
     async function getSwapQuote(ai,p){try{const ra=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];const rc=new web3.eth.Contract(ra,ROUTER);const ams=await rc.methods.getAmountsOut(ai,p).call();return ams[1];}catch(e){const pr=getSpotPrice();if(isNaN(pr)||pr<=0)return'0';const an=parseFloat(Web3.utils.fromWei(ai,'ether'));return p[0].toLowerCase()===USDT.toLowerCase()?Web3.utils.toWei(String(an/pr),'ether'):Web3.utils.toWei(String(an*pr),'ether');}}
     async function updateBuyQuote(){const ua=parseFloat($('buyUSDTAmount').value)||0;if(ua<=0){$('expectedMYK').textContent='--';return}try{const uw=Web3.utils.toWei(String(ua),'ether'),mo=await getSwapQuote(uw,[USDT,MYK]),ms=parseFloat(Web3.utils.fromWei(mo,'ether'))*(1-buySlippage);$('expectedMYK').textContent=ms.toFixed(4);}catch(e){$('expectedMYK').textContent='--';}}
@@ -438,7 +497,6 @@
             $('middleInvitedCount').textContent=activatedInvited;
             const progress=Math.min(100,(activatedInvited/3)*100);
             $('middleProgress').style.width=progress.toFixed(1)+'%';
-            // 🔥 MIDDLE精确匹配：只有role===2才解锁
             if(basic.role===2){
                 $('middleCard').classList.remove('locked');
                 $('middleCard').classList.add('unlocked');
