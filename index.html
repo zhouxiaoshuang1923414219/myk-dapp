@@ -154,7 +154,7 @@
     <div class="glass-card"><h2>🎁 百万MYK生态福利</h2><div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量<span class="highlight-green" id="airdropTotal">--</span>MYK赠完即止</div><div class="stat-row"><span>已赠送: <span class="stat-value" id="airdropPaid">--</span> MYK</span><span>剩余: <span class="stat-value" id="airdropRemaining">--</span> MYK</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div></div><div class="stat-row" style="margin-top:4px;"><span style="color:#888;">当前奖金池: <span id="airdropPoolBalance">--</span> MYK</span><span style="color:#888;" id="airdropPercent">0%</span></div></div>
 
     <!-- 6. 激活初级 -->
-    <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.0%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.0%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(合约价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="150" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
+    <div class="glass-card"><h2>🥉 激活初级 <span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch"><div class="tab active" data-tab="usdt">💵 USDT激活</div><div class="tab" data-tab="myk">💎 MYK激活</div></div><div id="panelUSDT"><div class="desc">支付 <span class="highlight">2 USDT</span>，获得<span class="highlight">1.0%</span>日奖币</div><div class="hint-text">推荐人由链上绑定关系自动识别</div><button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button><div class="info-box" id="activateUSDTResult" style="display:none;"></div></div><div id="panelMYK" style="display:none;"><div class="desc">支付 <span class="highlight">2 USDT</span> 等值MYK，获得<span class="highlight">1.0%</span>日奖币</div><div class="price-row"><span>建议: <span class="price-value" id="suggestedMYK">--</span> MYK<span class="price-source-tag">(实时价)</span></span></div><input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="150" step="0.1" min="0"><button class="btn" id="activateMYKBtn">💸 支付MYK激活</button><div class="info-box" id="activateMYKResult" style="display:none;"></div></div></div>
 
     <!-- 7. 每日升级奖励 1.6%/天 × 90天 -->
     <div class="glass-card"><h2>📈 每日升级奖励</h2><div class="desc">USDT升级用户享 <span class="highlight">1.6%/天</span> × <span class="highlight-green">90天</span></div><div class="stat-row"><span>升级本金：<span class="stat-value" id="bonusPrincipal">--</span></span><span>每日可得：<span class="stat-value" id="bonusDaily">--</span></span></div><div class="stat-row" style="margin-top:8px;"><span>已领取：<span class="stat-value" id="bonusClaimed">--</span></span><span>剩余：<span class="stat-value" id="bonusRemaining">--</span></span></div><button class="btn btn-gold" id="claimBonusBtn">📈 领取今日升级奖励</button><div class="info-box" id="claimBonusResult" style="display:none;"></div></div>
@@ -189,7 +189,7 @@
         <div style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);">
             <div style="font-size:12px; color:#888; margin-bottom:8px;">📋 合约地址</div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔵 MYK</span><span class="contract-addr-value">0x04f41F...CBDB</span><button class="contract-addr-copy" data-addr="0x04f41F35c4A3859310249971e7A82A468607CBDB">复制</button></div>
-            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0x95B0A0...b8e9</span><button class="contract-addr-copy" data-addr="0x95B0A093D570186cdf430274cA672DF0D9b6b8e9">复制</button></div>
+            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0xc2C1fA...650A</span><button class="contract-addr-copy" data-addr="0xc2C1fA5976fcBD7C61bb8Aad9233A1aBA5EA650A">复制</button></div>
             <div class="contract-addr-row"><span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0xA5966E...6A0C</span><button class="contract-addr-copy" data-addr="0xA5966E7B74c437293Bd0a0dd7E06b34573d96A0C">复制</button></div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔴 FundManager</span><span class="contract-addr-value">0xF9f6f5...960f</span><button class="contract-addr-copy" data-addr="0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f">复制</button></div>
         </div>
@@ -201,7 +201,7 @@
 <script>
 (function() {
     const MYK='0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    const RP='0x95B0A093D570186cdf430274cA672DF0D9b6b8e9';
+    const RP='0xc2C1fA5976fcBD7C61bb8Aad9233A1aBA5EA650A';
     const GOV='0xA5966E7B74c437293Bd0a0dd7E06b34573d96A0C';
     const FM='0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
     const USDT='0x55d398326f99059fF775485246999027B3197955';
@@ -236,12 +236,13 @@
     function lock(){if(isProcessing){alert('请等待当前操作完成');return!1}isProcessing=!0;return!0}
     function unlock(){isProcessing=!1}
 
+    // 🔥 新合约 getCurrentPrice 是 view 函数，每次实时从 PancakeSwap 获取价格
     async function updateActivateSuggestion(){
         try{
             const p=await web3.eth.call({to:RP, data:encodeCall('getCurrentPrice()')});
             const contractPrice=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',p),'ether'));
             if(contractPrice>0){
-                const s=(2/contractPrice*1.1).toFixed(4);
+                const s=(2/contractPrice*1.05).toFixed(4);
                 $('suggestedMYK').textContent=s;
                 $('mykAmount').value=s;
                 $('mykAmount').setAttribute('data-default',s);
@@ -250,7 +251,7 @@
         }catch(e){}
         const p=getSpotPrice();
         if(p>0){
-            const s=(2/p*1.1).toFixed(4);
+            const s=(2/p*1.05).toFixed(4);
             $('suggestedMYK').textContent=s;
             $('mykAmount').value=s;
             $('mykAmount').setAttribute('data-default',s);
@@ -390,44 +391,34 @@
     async function fetchUserStats(){if(!userAddress||!web3)return;try{const basic=await fetchUserBasic();if(!basic){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';return;}const activatedInvited=basic.activatedInvited;$('middleInvitedCount').textContent=activatedInvited;const progress=Math.min(100,(activatedInvited/3)*100);$('middleProgress').style.width=progress.toFixed(1)+'%';if(basic.role>=2){$('middleCard').classList.remove('locked');$('middleCard').classList.add('unlocked');$('middleStatus').textContent='🔓 已解锁';$('middleStatus').style.color='#4ecca3';}else if(activatedInvited>=3&&basic.role===1){$('middleStatus').textContent='⚠️ 条件满足，请检查锁仓状态';$('middleStatus').style.color='#f0b90b';}try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('streakDays').textContent='0';}}catch(e){$('middleInvitedCount').textContent='--';$('streakDays').textContent='--';}}
     async function refreshIdentityCard(){if(!userAddress||!web3)return;try{const basic=await fetchUserBasic();if(!basic)return;const govTier=await fetchUserGovTier();const rpRole=basic.role;let roleName='无';if(govTier>=6) roleName='👑 SIXTH';else if(govTier>=5) roleName='👑 FIFTH';else if(govTier>=4) roleName='🥇 FOURTH';else if(govTier>=3) roleName='🥇 THIRD';else if(govTier>=2) roleName='🥇 SECOND';else if(govTier>=1) roleName='🥇 FIRST';else if(rpRole>=3) roleName='🥇 COMMUNITY';else if(rpRole>=2) roleName='🥈 MIDDLE';else if(rpRole>=1) roleName='🥉 PRIMARY';$('cardRole').textContent=roleName;$('cardActiveBadge').innerHTML=basic.isActive?'<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>':'<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';$('cardReferrer').textContent=basic.referrer==='0x0000000000000000000000000000000000000000'?'无':a6(basic.referrer);$('cardReferrer').style.color=basic.referrer==='0x0000000000000000000000000000000000000000'?'#888':'#4ef0a8';$('cardActivated').textContent=basic.activatedAt>0?new Date(basic.activatedAt*1000).toLocaleDateString('zh-CN'):'未激活';$('cardInvited').textContent=basic.invited;try{const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});$('cardStreak').textContent=web3.eth.abi.decodeParameter('uint256',sl);}catch(e){$('cardStreak').textContent='0';}try{$('cardMYK').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardMYK').textContent='--';}try{$('cardUSDT').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:USDT,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);}catch(e){$('cardUSDT').textContent='--';}}catch(e){}}
 
-    // 🔥 100%激活成功：强更价格 + 合约价校验 + 冷却重试 + 5%安全边际
+    // 🔥 新合约 getCurrentPrice 是 view 函数，每次实时获取，无需 updatePrice
     async function activateMYK(){
         if(!userAddress){alert('请先连接钱包');return}
         if(!lock())return;
         const b=$('activateMYKBtn'),el=$('activateMYKResult'),am=$('mykAmount').value;
         if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}
-        b.disabled=!0;b.textContent='更新价格中...';el.style.display='block';
+        b.disabled=!0;b.textContent='处理中...';el.style.display='block';
         try{
-            let priceUpdated=!1;
-            try{
-                const priceTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('updatePrice()')}]});
-                await waitForTransaction(priceTx);
-                priceUpdated=!0;
-            }catch(e){
-                if(e.message&&e.message.includes('TooFrequent')){
-                    el.innerHTML='⏳ 价格冷却中，等待6秒...';
-                    await new Promise(r=>setTimeout(r,6000));
-                    try{
-                        const priceTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('updatePrice()')}]});
-                        await waitForTransaction(priceTx);
-                        priceUpdated=!0;
-                    }catch(e2){}
-                }
-            }
-            el.innerHTML='⏳ 读取合约价格...';
+            // 读取实时合约价
+            el.innerHTML='⏳ 获取实时价格...';
             const rawPrice=await web3.eth.call({to:RP,data:encodeCall('getCurrentPrice()')});
             const contractPrice=parseFloat(Web3.utils.fromWei(rawPrice,'ether'));
             if(contractPrice<=0)throw new Error('无法获取合约价格');
+
             const requiredMYK=(2/contractPrice*1.05).toFixed(4);
             $('suggestedMYK').textContent=requiredMYK;
             $('mykAmount').setAttribute('data-default',requiredMYK);
+
+            // 校验用户输入
             const userAmount=parseFloat($('mykAmount').value||am);
             if(userAmount<parseFloat(requiredMYK)){
                 $('mykAmount').value=requiredMYK;
-                el.innerHTML=`⚠️ 合约价已更新，需至少 ${requiredMYK} MYK，已自动填入，请再次点击`;
+                el.innerHTML=`⚠️ 需至少 ${requiredMYK} MYK，已自动填入，请再次点击`;
                 el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';
                 b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();return;
             }
+
+            // 转账激活
             b.textContent='激活中...';el.innerHTML='⏳ 激活中...';
             const mw=Web3.utils.toWei($('mykAmount').value,'ether');
             const d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);
