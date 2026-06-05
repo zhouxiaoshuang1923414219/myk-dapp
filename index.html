@@ -148,8 +148,8 @@
     <!-- 3. MYK买卖 -->
     <div class="glass-card"><h2 style="justify-content:space-between;"><span>📈 买卖 MYK</span><span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span></span></h2><div class="order-panel"><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div><div style="font-size:13px;color:#4ecca3;font-weight:700;" id="buyPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 USDT = <span id="buyRateDisplay">--</span> MYK</div></div><div class="order-divider"></div><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">卖出价</div><div style="font-size:13px;color:#e94560;font-weight:700;" id="sellPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 MYK = <span id="sellRateDisplay">--</span> USDT</div></div></div><div class="tab-container" id="tradeTabSwitch"><div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div><div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div></div><div id="panelBuy"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button><div class="info-box" id="buyResult" style="display:none;"></div></div><div id="panelSell" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span></div><button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button><div class="info-box" id="sellResult" style="display:none;"></div></div></div>
 
-    <!-- 新卡片：小池 -->
-    <div class="glass-card"><h2>🏊 小池 (Pool)</h2><div class="desc">存入 USDT 自动换 MYK，<span class="highlight">取24h平均余额</span>领持币奖励</div><div class="stat-row"><span>小池余额：<span class="stat-value" id="poolBalance">--</span> MYK</span><span>有效余额：<span class="stat-value" id="poolEffective">--</span> MYK</span></div><div class="stat-row" style="margin-top:8px;"><span>上次领取：<span class="stat-value" id="poolLastClaim">--</span></span><span>待领奖励：<span class="stat-value" id="poolPending">--</span> MYK</span></div><div class="tab-container" id="poolTabSwitch"><div class="tab active" data-tab="deposit">📥 存入</div><div class="tab" data-tab="withdraw">📤 提取</div></div><div id="panelPoolDeposit"><input class="input-field" id="poolDepositAmount" type="number" placeholder="USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="poolExpectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="poolDepositBtn">📥 存入小池</button></div><div id="panelPoolWithdraw" style="display:none;"><input class="input-field" id="poolWithdrawAmount" type="number" placeholder="MYK 数量" value="10" step="0.1" min="0"><button class="btn btn-red" id="poolWithdrawBtn">📤 从小池提取</button></div><button class="btn btn-blue" id="poolClaimBtn" style="margin-top:10px;">🎁 领取小池奖励</button><div class="info-box" id="poolResult" style="display:none;"></div></div>
+    <!-- 新卡片：小池（一键做市） -->
+    <div class="glass-card"><h2>🏊 小池做市</h2><div class="desc">划入 USDT 自动买 MYK，<span class="highlight">取24h平均余额</span>领持币奖励</div><div class="stat-row"><span>小池余额：<span class="stat-value" id="poolBalance">--</span> MYK</span><span>有效余额：<span class="stat-value" id="poolEffective">--</span> MYK</span></div><div class="stat-row" style="margin-top:8px;"><span>上次领取：<span class="stat-value" id="poolLastClaim">--</span></span><span>待领奖励：<span class="stat-value" id="poolPending">--</span> MYK</span></div><div class="tab-container" id="poolTabSwitch"><div class="tab active" data-tab="deposit">📥 参与做市</div><div class="tab" data-tab="withdraw">📤 退出做市</div></div><div id="panelPoolDeposit"><input class="input-field" id="poolDepositAmount" type="number" placeholder="USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="poolExpectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="poolDepositBtn">📥 划入 USDT 参与做市</button></div><div id="panelPoolWithdraw" style="display:none;"><input class="input-field" id="poolWithdrawAmount" type="number" placeholder="MYK 数量" value="10" step="0.1" min="0"><button class="btn btn-red" id="poolWithdrawBtn">📤 提出 MYK 退出做市</button></div><div class="info-box" id="poolResult" style="display:none;"></div></div>
 
     <!-- 4. 每日奖励（自动快照） -->
     <div class="glass-card"><h2>🎁 每日奖励</h2><div class="desc">持币即可领奖，<span class="highlight">自动快照</span>无需签名</div><div class="stat-row"><span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span><span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span></div><div class="stat-row" style="margin-top:8px;"><span>今日可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领取：<span class="stat-value" id="claimedToday">--</span></span></div><button class="btn btn-green" id="claimRewardBtn">🎁 一键领取今日奖励</button><div class="info-box" id="claimRewardResult" style="display:none;"></div></div>
@@ -242,7 +242,7 @@
     function lock(){if(isProcessing){alert('请等待当前操作完成');return!1}isProcessing=!0;return!0}
     function unlock(){isProcessing=!1}
 
-    // ========== 小池功能 ==========
+    // ========== 小池功能（一键做市） ==========
     async function fetchPoolInfo(){
         if(!web3||!userAddress||!POOL)return;
         try{
@@ -258,8 +258,6 @@
             $('poolEffective').textContent=effective.toFixed(4)+' MYK';
             $('poolLastClaim').textContent=lastClaim>0?new Date(lastClaim*1000).toLocaleString('zh-CN'):'从未';
             $('poolPending').textContent=pending.toFixed(6)+' MYK';
-            $('poolClaimBtn').disabled=!canClaim;
-            $('poolClaimBtn').textContent=canClaim?'🎁 领取小池奖励':'✅ 今日已领取';
         }catch(e){
             $('poolBalance').textContent='--';
             $('poolEffective').textContent='--';
@@ -268,6 +266,7 @@
         }
     }
 
+    // 🔥 参与做市：先领奖 → 授权 USDT → 存入小池
     async function depositToPool(){
         if(!userAddress||!POOL){alert('请先连接钱包');return}
         if(!lock())return;
@@ -275,20 +274,33 @@
         if(!am||parseFloat(am)<=0){alert('请输入有效的USDT数量');return}
         b.disabled=!0;b.textContent='处理中...';el.style.display='block';
         try{
+            // 步骤1：先领取待领奖励
+            el.innerHTML='⏳ 检查待领奖励...';
+            try{
+                const claimTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:POOL,data:encodeCall('claimPoolReward()'),gas:'0xF4240'}]});
+                await waitForTransaction(claimTx);
+                el.innerHTML='✅ 奖励已领取，继续存入...';
+            }catch(e){
+                // 无可领奖励或今日已领取，忽略继续
+                el.innerHTML='⏳ 无可领奖励，继续存入...';
+            }
+            // 步骤2：授权 USDT
             const uw=Web3.utils.toWei(String(am),'ether');
             el.innerHTML='⏳ 授权USDT...';
             const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[POOL,uw])}]});
             await waitForTransaction(aTx);
+            // 步骤3：存入小池
             el.innerHTML='⏳ 存入小池...';
             const dTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:POOL,data:encodeCall('depositToPool(uint256)',['uint256'],[uw]),gas:'0xF4240'}]});
             await waitForTransaction(dTx);
-            el.innerHTML='✅ 存入成功！';
+            el.innerHTML='✅ 参与做市成功！';
             el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
             setTimeout(()=>{fetchPoolInfo();fetchHoldingInfo();},3000);
         }catch(e){el.innerHTML='❌ '+parseError(e);}
-        finally{b.disabled=!1;b.textContent='📥 存入小池';unlock();}
+        finally{b.disabled=!1;b.textContent='📥 划入 USDT 参与做市';unlock();}
     }
 
+    // 🔥 退出做市：提取 MYK 到钱包
     async function withdrawFromPool(){
         if(!userAddress||!POOL){alert('请先连接钱包');return}
         if(!lock())return;
@@ -300,30 +312,11 @@
             el.innerHTML='⏳ 提取中...';
             const dTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:POOL,data:encodeCall('withdrawFromPool(uint256)',['uint256'],[mw]),gas:'0xF4240'}]});
             await waitForTransaction(dTx);
-            el.innerHTML='✅ 提取成功！';
+            el.innerHTML='✅ 退出做市成功！MYK 已到钱包';
             el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';
             setTimeout(()=>{fetchPoolInfo();fetchHoldingInfo();refreshIdentityCard();},3000);
         }catch(e){el.innerHTML='❌ '+parseError(e);}
-        finally{b.disabled=!1;b.textContent='📤 从小池提取';unlock();}
-    }
-
-    async function claimPoolReward(){
-        if(!userAddress||!POOL){alert('请先连接钱包');return}
-        if(!lock())return;
-        const b=$('poolClaimBtn'),el=$('poolResult');
-        b.disabled=!0;b.textContent='处理中...';el.style.display='block';
-        try{
-            el.innerHTML='⏳ 领取中...';
-            const dTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:POOL,data:encodeCall('claimPoolReward()'),gas:'0xF4240'}]});
-            await waitForTransaction(dTx);
-            el.innerHTML='✅ 领取成功！';
-            el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
-            setTimeout(()=>{fetchPoolInfo();fetchHoldingInfo();},3000);
-        }catch(e){
-            const m=parseError(e);
-            el.innerHTML=m.includes('NotActive')?'⚠️ 请先激活PRIMARY':m.includes('already claimed')?'⚠️ 今日已领取':m.includes('No balance')?'⚠️ 小池余额为零':'❌ '+m;
-        }
-        finally{b.disabled=!1;b.textContent='🎁 领取小池奖励';unlock();}
+        finally{b.disabled=!1;b.textContent='📤 提出 MYK 退出做市';unlock();}
     }
 
     async function updatePoolDepositQuote(){
@@ -421,26 +414,12 @@
         if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;
         const b=$('claimBonusBtn'),el=$('claimBonusResult');
         el.style.display='block';el.innerHTML='⏳ 领取中...';b.disabled=true;
-        try{
-            const tx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('claimDailyBonus()')}]});
-            el.innerHTML='⏳ 等待确认...';await waitForTransaction(tx);
-            el.innerHTML='✅ 领取成功！';el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
-            setTimeout(()=>{fetchDailyBonusInfo();fetchHoldingInfo();},3000);
-        }catch(e){const m=parseError(e);el.innerHTML=m.includes('NothingToClaim')||m.includes('already claimed')?'⚠️ 今日已领取或无待领奖励':m.includes('not active')?'⚠️ 暂无升级奖励':'❌ '+m;}
-        finally{b.disabled=false;unlock();}
+        try{const tx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('claimDailyBonus()')}]});el.innerHTML='⏳ 等待确认...';await waitForTransaction(tx);el.innerHTML='✅ 领取成功！';el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';setTimeout(()=>{fetchDailyBonusInfo();fetchHoldingInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('NothingToClaim')||m.includes('already claimed')?'⚠️ 今日已领取或无待领奖励':m.includes('not active')?'⚠️ 暂无升级奖励':'❌ '+m;}finally{b.disabled=false;unlock();}
     }
 
     async function fetchCommunityExpiry(){
         if(!web3||!userAddress)return;
-        try{
-            const userTier=await fetchUserGovTier();
-            for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;span.textContent='永久';}
-            const tierCards={1:['community1Card','community1Status'],2:['community2Card','community2Status'],3:['community3Card','community3Status'],4:['community4Card','community4Status'],5:['community5Card','community5Status'],6:['community5Card','community5Status']};
-            for(let t=1;t<=6;t++){const[cardId,statusId]=tierCards[t]||[];if(cardId&&statusId){$(cardId).classList.add('locked');$(cardId).classList.remove('unlocked');$(statusId).textContent='🔒 未解锁';$(statusId).style.color='#a3adc9';}}
-            if(userTier===1||userTier===2||userTier===3||userTier===4||userTier===5||userTier===6){const tier=userTier>=5?5:userTier;const[cardId,statusId]=tierCards[tier];if(cardId&&statusId){$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}}
-            updateRightsCardBorder(userTier);
-        }catch(e){}
-    }
+        try{const userTier=await fetchUserGovTier();for(const[cardId,elId]of Object.entries(CARD_EXPIRY_MAP)){const el=$(elId);if(!el)continue;const span=el.querySelector('span');if(!span)continue;span.textContent='永久';}const tierCards={1:['community1Card','community1Status'],2:['community2Card','community2Status'],3:['community3Card','community3Status'],4:['community4Card','community4Status'],5:['community5Card','community5Status'],6:['community5Card','community5Status']};for(let t=1;t<=6;t++){const[cardId,statusId]=tierCards[t]||[];if(cardId&&statusId){$(cardId).classList.add('locked');$(cardId).classList.remove('unlocked');$(statusId).textContent='🔒 未解锁';$(statusId).style.color='#a3adc9';}}if(userTier===1||userTier===2||userTier===3||userTier===4||userTier===5||userTier===6){const tier=userTier>=5?5:userTier;const[cardId,statusId]=tierCards[tier];if(cardId&&statusId){$(cardId).classList.remove('locked');$(cardId).classList.add('unlocked');$(statusId).textContent='🔓 已解锁';$(statusId).style.color='#4ecca3';}}updateRightsCardBorder(userTier);}catch(e){}}
     function updateRightsCardBorder(userTier){const outer=$('rightsCardOuter');if(!outer)return;if(userTier>=1){outer.classList.add('glass-card-active');}else{outer.classList.remove('glass-card-active');}}
     function setupCopyButtons(){document.querySelectorAll('.contract-addr-copy').forEach(btn=>{btn.addEventListener('click',async function(){const addr=this.dataset.addr;if(!addr)return;try{await navigator.clipboard.writeText(addr);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}catch(e){const ta=document.createElement('textarea');ta.value=addr;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);this.textContent='✅ 已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied');},2000);}});});}
     async function waitForTransaction(txHash,maxAttempts=30){for(let i=0;i<maxAttempts;i++){try{const r=await web3.eth.getTransactionReceipt(txHash);if(r){if(r.status)return r;else throw new Error('交易失败');}}catch(e){if(i===maxAttempts-1)throw e;}await new Promise(r=>setTimeout(r,2000));}throw new Error('超时');}
@@ -449,12 +428,7 @@
         if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;
         const btn=document.querySelector(`.upgrade-btn[data-amount="${amount}"]`);const el=btn?btn.nextElementSibling:null;
         if(!btn||!el)return;btn.disabled=true;btn.textContent='处理中...';el.style.display='block';
-        try{
-            if(amount>=500){const sp=getSpotPrice();if(sp<=0){alert('无法获取现货价格');return;}const mykAmount=web3.utils.toWei(String((amount/sp)*1.055),'ether');el.innerHTML=`⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,mykAmount])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 销毁中...';const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,gas:'0xF4240',data:encodeCall('burnForTier(uint256)',['uint256'],[mykAmount])}]});el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);}
-            else{const fee=web3.utils.toWei(String(amount),'ether');el.innerHTML=`⏳ 正在授权 ${amount} USDT...`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 升级中（含推荐奖励分发）...';const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,gas:'0xF4240',data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee])}]});el.innerHTML='⏳ 等待升级确认...';await waitForTransaction(uTx);}
-            el.innerHTML='✅ 解锁成功！';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';btn.style.display='none';setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);
-        }catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}
-        finally{btn.disabled=false;btn.textContent=amount>=500?'🔥 销毁MYK解锁':'🔓 立即解锁权益';unlock();}
+        try{if(amount>=500){const sp=getSpotPrice();if(sp<=0){alert('无法获取现货价格');return;}const mykAmount=web3.utils.toWei(String((amount/sp)*1.055),'ether');el.innerHTML=`⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,mykAmount])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 销毁中...';const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,gas:'0xF4240',data:encodeCall('burnForTier(uint256)',['uint256'],[mykAmount])}]});el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);}else{const fee=web3.utils.toWei(String(amount),'ether');el.innerHTML=`⏳ 正在授权 ${amount} USDT...`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 升级中（含推荐奖励分发）...';const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,gas:'0xF4240',data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee])}]});el.innerHTML='⏳ 等待升级确认...';await waitForTransaction(uTx);}el.innerHTML='✅ 解锁成功！';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';btn.style.display='none';setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{btn.disabled=false;btn.textContent=amount>=500?'🔥 销毁MYK解锁':'🔓 立即解锁权益';unlock();}
     }
     function setupUpgradeButtons(){document.querySelectorAll('.upgrade-btn').forEach(b=>{b.addEventListener('click',function(){upgradeCommunity(parseFloat(this.dataset.amount));});});}
     async function fetchRoleRates(){if(!web3)return;try{$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('PRIMARY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.0%';}try{$('middleRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('MIDDLE_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('middleRate').textContent='1.3%';}try{$('communityRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:RP,data:encodeCall('COMMUNITY_RATE()')})))/10).toFixed(1)+'%';}catch(e){$('communityRate').textContent='1.6%';}}
@@ -506,9 +480,9 @@
     function setupTabs(){
         document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion();});});
         document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell');});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote();});});
-        document.querySelectorAll('#poolTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#poolTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelPoolDeposit').style.display=tb==='deposit'?'block':'none';$('panelPoolWithdraw').style.display=tb==='withdraw'?'block':'none';if(tb==='deposit')updatePoolDepositQuote();});});
+        document.querySelectorAll('#poolTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#poolTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelPoolDeposit').style.display=tb==='deposit'?'block':'none';$('panelPoolWithdraw').style.display=tb==='withdraw'?'block':'none';if(tb=='deposit')updatePoolDepositQuote();});});
     }
-    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupSwipeDots();setupUpgradeButtons();setupCopyButtons();$('claimBonusBtn').addEventListener('click',claimDailyBonus);$('poolDepositBtn').addEventListener('click',depositToPool);$('poolWithdrawBtn').addEventListener('click',withdrawFromPool);$('poolClaimBtn').addEventListener('click',claimPoolReward);$('poolDepositAmount').addEventListener('input',updatePoolDepositQuote);if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
+    window.addEventListener('load',async()=>{setupTabs();setupSlippageButtons('panelBuy','buy');setupSlippageButtons('panelSell','sell');setupSwipeDots();setupUpgradeButtons();setupCopyButtons();$('claimBonusBtn').addEventListener('click',claimDailyBonus);$('poolDepositBtn').addEventListener('click',depositToPool);$('poolWithdrawBtn').addEventListener('click',withdrawFromPool);$('poolDepositAmount').addEventListener('input',updatePoolDepositQuote);if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
 })();
 </script>
 </body>
