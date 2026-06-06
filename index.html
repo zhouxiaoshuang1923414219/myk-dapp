@@ -132,11 +132,47 @@
         }
         .contract-addr-copy:active { background:#e94560; color:white; }
         .contract-addr-copy.copied { background:#4ecca3; border-color:#4ecca3; color:white; }
-        .gear-bar { display:flex; gap:6px; margin:10px 0; }
-        .gear-btn { flex:1; padding:8px 2px; border-radius:10px; background:#1a1f35; border:1px solid #2d3355; color:#aaa; cursor:pointer; font-size:10px; font-weight:600; text-align:center; transition:0.2s; }
-        .gear-btn.active { background:#3b82f6; color:white; border-color:#3b82f6; }
-        .gear-btn span { display:block; font-size:9px; color:#888; }
-        .gear-btn.active span { color:#93c5fd; }
+
+        /* 滑动条容器 */
+        .slider-track-container {
+            position:relative; width:100%; height:40px; margin:16px 0 8px;
+            display:flex; align-items:center; cursor:pointer;
+            user-select:none; -webkit-user-select:none;
+            touch-action:pan-x;
+        }
+        /* 横线 */
+        .slider-line {
+            position:absolute; left:0; right:0; top:50%; transform:translateY(-50%);
+            height:4px; background:#2d3355; border-radius:2px;
+        }
+        /* 已填充段 */
+        .slider-fill {
+            position:absolute; left:0; top:50%; transform:translateY(-50%);
+            height:4px; background:linear-gradient(90deg, #e94560, #f0b90b);
+            border-radius:2px; transition:width 0.15s ease-out;
+        }
+        /* 圆点 */
+        .slider-dot {
+            position:absolute; top:50%; transform:translate(-50%,-50%);
+            width:16px; height:16px; border-radius:50%;
+            background:#2d3355; border:2px solid #555;
+            transition:all 0.2s; z-index:2;
+        }
+        .slider-dot.active {
+            background:#f0b90b; border-color:#f0b90b;
+            box-shadow:0 0 12px rgba(240,185,11,0.4);
+        }
+        .slider-dot.passed {
+            background:#e94560; border-color:#e94560;
+        }
+        /* 标签 */
+        .slider-label {
+            position:absolute; top:100%; transform:translateX(-50%);
+            font-size:10px; color:#888; margin-top:6px; white-space:nowrap;
+            transition:color 0.2s;
+        }
+        .slider-label.active { color:#f0b90b; }
+        .slider-label.passed { color:#e94560; }
     </style>
 </head>
 <body>
@@ -154,7 +190,25 @@
     <div class="glass-card"><h2 style="justify-content:space-between;"><span>📈 买卖 MYK</span><span class="trade-price-badge price-change-flat" id="tradePriceBadge">$<span id="tradePriceDisplay">--</span><span id="tradeChangeDisplay" style="font-size:11px;">--</span></span></h2><div class="order-panel"><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div><div style="font-size:13px;color:#4ecca3;font-weight:700;" id="buyPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 USDT = <span id="buyRateDisplay">--</span> MYK</div></div><div class="order-divider"></div><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">卖出价</div><div style="font-size:13px;color:#e94560;font-weight:700;" id="sellPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 MYK = <span id="sellRateDisplay">--</span> USDT</div></div></div><div class="tab-container" id="tradeTabSwitch"><div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div><div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div></div><div id="panelBuy"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button><div class="info-box" id="buyResult" style="display:none;"></div></div><div id="panelSell" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="expectedUSDT">--</span> USDT</span></div><button class="btn btn-red" id="sellMYKBtn">🔴 卖出 MYK</button><div class="info-box" id="sellResult" style="display:none;"></div></div></div>
 
     <!-- 做市商赚币 -->
-    <div class="glass-card"><h2 style="justify-content:space-between;"><span>🏊 做市商赚币</span><span class="trade-price-badge price-change-flat" id="poolPriceBadge">$<span id="poolPriceDisplay">--</span><span id="poolChangeDisplay" style="font-size:11px;">--</span></span></h2><div class="order-panel"><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div><div style="font-size:13px;color:#4ecca3;font-weight:700;" id="poolBuyPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 USDT = <span id="poolBuyRateDisplay">--</span> MYK</div></div><div class="order-divider"></div><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">卖出价</div><div style="font-size:13px;color:#e94560;font-weight:700;" id="poolSellPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 MYK = <span id="poolSellRateDisplay">--</span> USDT</div></div></div><div class="stat-row"><span>可用 USDT：<span class="stat-value" id="poolAvailableUSDT">--</span></span><span>已持币：<span class="stat-value" id="poolBalance">--</span> MYK</span></div><div class="tab-container" id="poolTabSwitch"><div class="tab active" data-tab="deposit">参与做市</div><div class="tab" data-tab="withdraw">退出做市</div></div><div id="panelPoolDeposit"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="poolDepositAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="poolExpectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="poolDepositBtn">买入 MYK 参与做市</button></div><div id="panelPoolWithdraw" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT / 划入钱包</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="poolWithdrawAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0"><div class="gear-bar" id="poolGearBar"><span class="gear-btn" data-ratio="0.3125">挡1<span>0.3125%</span></span><span class="gear-btn" data-ratio="0.15625">挡2<span>0.15625%</span></span><span class="gear-btn" data-ratio="0.078125">挡3<span>0.078125%</span></span><span class="gear-btn" data-ratio="0.0390625">挡4<span>0.0390625%</span></span><span class="gear-btn" data-ratio="0.01953125">挡5<span>0.01953125%</span></span></div><div class="price-row"><span>预计获得: <span class="price-value" id="poolExpectedUSDT">--</span> USDT</span></div><div class="row-buttons" style="margin-top:10px;"><button class="btn btn-red" id="poolSellBtn" style="flex:1;">交易所卖出</button><button class="btn btn-blue" id="poolWithdrawBtn" style="flex:1;">划入钱包</button></div></div><div class="info-box" id="poolResult" style="display:none;"></div></div>
+    <div class="glass-card"><h2 style="justify-content:space-between;"><span>🏊 做市商赚币</span><span class="trade-price-badge price-change-flat" id="poolPriceBadge">$<span id="poolPriceDisplay">--</span><span id="poolChangeDisplay" style="font-size:11px;">--</span></span></h2><div class="order-panel"><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div><div style="font-size:13px;color:#4ecca3;font-weight:700;" id="poolBuyPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 USDT = <span id="poolBuyRateDisplay">--</span> MYK</div></div><div class="order-divider"></div><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">卖出价</div><div style="font-size:13px;color:#e94560;font-weight:700;" id="poolSellPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 MYK = <span id="poolSellRateDisplay">--</span> USDT</div></div></div><div class="stat-row"><span>可用 USDT：<span class="stat-value" id="poolAvailableUSDT">--</span></span><span>已持币：<span class="stat-value" id="poolBalance">--</span> MYK</span></div><div class="tab-container" id="poolTabSwitch"><div class="tab active" data-tab="deposit">参与做市</div><div class="tab" data-tab="withdraw">退出做市</div></div><div id="panelPoolDeposit"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="poolDepositAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="poolExpectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="poolDepositBtn">买入 MYK 参与做市</button></div><div id="panelPoolWithdraw" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT / 划入钱包</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="poolWithdrawAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0">
+
+            <!-- 🔥 滑动条：5个圆点 25%-50%-75%-100% -->
+            <div class="slider-track-container" id="poolSliderTrack">
+                <div class="slider-line"></div>
+                <div class="slider-fill" id="poolSliderFill" style="width:0%;"></div>
+                <div class="slider-dot" data-pct="25" style="left:0%;"></div>
+                <div class="slider-dot" data-pct="50" style="left:25%;"></div>
+                <div class="slider-dot" data-pct="75" style="left:50%;"></div>
+                <div class="slider-dot" data-pct="100" style="left:75%;"></div>
+                <div class="slider-dot" data-pct="100" style="left:100%;"></div>
+                <div class="slider-label" style="left:0%;">25%</div>
+                <div class="slider-label" style="left:25%;">50%</div>
+                <div class="slider-label" style="left:50%;">75%</div>
+                <div class="slider-label" style="left:75%;">100%</div>
+                <div class="slider-label" style="left:100%;">100%</div>
+            </div>
+
+            <div class="price-row"><span>预计获得: <span class="price-value" id="poolExpectedUSDT">--</span> USDT</span></div><div class="row-buttons" style="margin-top:10px;"><button class="btn btn-red" id="poolSellBtn" style="flex:1;">交易所卖出</button><button class="btn btn-blue" id="poolWithdrawBtn" style="flex:1;">划入钱包</button></div></div><div class="info-box" id="poolResult" style="display:none;"></div></div>
 
     <!-- 4. 每日奖励（自动快照） -->
     <div class="glass-card"><h2>🎁 每日奖励</h2><div class="desc">持币即可领奖，<span class="highlight">自动快照</span>无需签名</div><div class="stat-row"><span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span><span>连续领取：<span class="stat-value" id="streakDays">--</span> 天</span></div><div class="stat-row" style="margin-top:8px;"><span>今日可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领取：<span class="stat-value" id="claimedToday">--</span></span></div><button class="btn btn-green" id="claimRewardBtn">🎁 一键领取今日奖励</button><div class="info-box" id="claimRewardResult" style="display:none;"></div></div>
@@ -217,7 +271,7 @@
     const USDT='0x55d398326f99059fF775485246999027B3197955';
     const ROUTER='0x10ED43C718714eb63d5aA57B78B54704E256024E';
     const PAIR='0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
-    const POOL=''; // 待部署后填入
+    const POOL='';
     const AIRDROP_INITIAL=2100000;
     const ZERO_ADDR='0x0000000000000000000000000000000000000000';
     const DEAD_ADDR='0x000000000000000000000000000000000000dEaD';
@@ -226,9 +280,8 @@
     const STORAGE_KEY='myk_baseline_price';
     const CLAIMED_KEY='myk_claimed_today_';
     const CARD_EXPIRY_MAP={community1:'community1Unlock',community2:'community2Unlock',community3:'community3Unlock',community4:'community4Unlock',community5:'community5Unlock'};
-    let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,poolBuySlippage=.005,poolSellSlippage=.005,priceRefreshInterval;
+    let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,poolBuySlippage=.005,poolSellSlippage=.005,priceRefreshInterval,currentSliderPct=0;
     let airdropTotalAmount=2100000;
-    const gearPresets=[0.3125,0.15625,0.078125,0.0390625,0.01953125];
     function getTodayKey(){const d=new Date();return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;}
     function getBaselinePrice(){try{const s=localStorage.getItem(STORAGE_KEY);if(!s)return null;const d=JSON.parse(s);if(d.date===getTodayKey())return d.price;localStorage.removeItem(STORAGE_KEY);return null;}catch(e){return null;}}
     function setBaselinePrice(p){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({date:getTodayKey(),price:p}));}catch(e){}}
@@ -249,7 +302,6 @@
     function lock(){if(isProcessing){alert('请等待当前操作完成');return!1}isProcessing=!0;return!0}
     function unlock(){isProcessing=!1}
 
-    // ========== 做市商赚币 ==========
     async function fetchPoolInfo(){
         if(!web3||!userAddress||!POOL)return;
         try{
@@ -262,21 +314,78 @@
             const info=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','bool'],result);
             const balance=n(info[0]);
             $('poolBalance').textContent=balance.toFixed(4)+' MYK';
-        }catch(e){
-            $('poolAvailableUSDT').textContent='--';
-            $('poolBalance').textContent='--';
-        }
+        }catch(e){$('poolAvailableUSDT').textContent='--';$('poolBalance').textContent='--';}
     }
 
-    function applyGearRatio(ratioPercent){
+    function applySliderPct(pct){
+        currentSliderPct=pct;
         const balanceText=$('poolBalance').textContent;
         const match=balanceText.match(/([\d.]+)/);
         if(match){
             const balance=parseFloat(match[1]);
-            const amount=(balance*ratioPercent/100).toFixed(8);
+            if(pct===0){$('poolWithdrawAmount').value='0';updatePoolSellQuote();return;}
+            const amount=(balance*pct/100).toFixed(8);
             $('poolWithdrawAmount').value=amount;
             updatePoolSellQuote();
         }
+        updateSliderUI(pct);
+    }
+
+    function updateSliderUI(pct){
+        const dots=document.querySelectorAll('#poolSliderTrack .slider-dot');
+        const labels=document.querySelectorAll('#poolSliderTrack .slider-label');
+        const fill=$('poolSliderFill');
+        const positions=[0,25,50,75,100];
+        let activeIndex=-1;
+        for(let i=positions.length-1;i>=0;i--){if(pct>=positions[i]){activeIndex=i;break;}}
+        fill.style.width=pct+'%';
+        dots.forEach((d,i)=>{
+            d.classList.remove('active','passed');
+            if(i<=activeIndex&&activeIndex>=0){d.classList.add('passed');}
+            if(i===activeIndex||(activeIndex===-1&&i===0&&pct===0)){d.classList.add('active');d.classList.remove('passed');}
+        });
+        labels.forEach((l,i)=>{
+            l.classList.remove('active','passed');
+            if(i<=activeIndex&&activeIndex>=0){l.classList.add('passed');}
+            if(i===activeIndex||(activeIndex===-1&&i===0&&pct===0)){l.classList.add('active');l.classList.remove('passed');}
+        });
+    }
+
+    function setupSlider(){
+        const track=$('poolSliderTrack');
+        const positions=[0,25,50,75,100];
+        const getPctFromX=(clientX)=>{
+            const rect=track.getBoundingClientRect();
+            const x=clientX-rect.left;
+            const pctRaw=Math.max(0,Math.min(100,(x/rect.width)*100));
+            let closest=positions[0],minDiff=Math.abs(pctRaw-positions[0]);
+            for(let i=1;i<positions.length;i++){const diff=Math.abs(pctRaw-positions[i]);if(diff<minDiff){minDiff=diff;closest=positions[i];}}
+            return closest;
+        };
+        const onMove=(e)=>{
+            e.preventDefault();
+            const clientX=e.touches?e.touches[0].clientX:e.clientX;
+            const pct=getPctFromX(clientX);
+            if(pct!==currentSliderPct)applySliderPct(pct);
+        };
+        const onEnd=(e)=>{
+            document.removeEventListener('mousemove',onMove);
+            document.removeEventListener('mouseup',onEnd);
+            document.removeEventListener('touchmove',onMove);
+            document.removeEventListener('touchend',onEnd);
+        };
+        track.addEventListener('mousedown',(e)=>{
+            const pct=getPctFromX(e.clientX);
+            applySliderPct(pct);
+            document.addEventListener('mousemove',onMove);
+            document.addEventListener('mouseup',onEnd);
+        });
+        track.addEventListener('touchstart',(e)=>{
+            const pct=getPctFromX(e.touches[0].clientX);
+            applySliderPct(pct);
+            document.addEventListener('touchmove',onMove,{passive:false});
+            document.addEventListener('touchend',onEnd);
+        });
     }
 
     async function depositToPool(){
@@ -341,33 +450,19 @@
     async function updatePoolDepositQuote(){
         const ua=parseFloat($('poolDepositAmount').value)||0;
         if(ua<=0){$('poolExpectedMYK').textContent='--';return}
-        try{
-            const uw=Web3.utils.toWei(String(ua),'ether');
-            const ra=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
-            const rc=new web3.eth.Contract(ra,ROUTER);
-            const ams=await rc.methods.getAmountsOut(uw,[USDT,MYK]).call();
-            const mo=parseFloat(Web3.utils.fromWei(ams[1],'ether'))*(1-poolBuySlippage);
-            $('poolExpectedMYK').textContent=mo.toFixed(4);
-        }catch(e){$('poolExpectedMYK').textContent='--';}
+        try{const uw=Web3.utils.toWei(String(ua),'ether');const ra=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];const rc=new web3.eth.Contract(ra,ROUTER);const ams=await rc.methods.getAmountsOut(uw,[USDT,MYK]).call();const mo=parseFloat(Web3.utils.fromWei(ams[1],'ether'))*(1-poolBuySlippage);$('poolExpectedMYK').textContent=mo.toFixed(4);}catch(e){$('poolExpectedMYK').textContent='--';}
     }
 
     async function updatePoolSellQuote(){
         const ma=parseFloat($('poolWithdrawAmount').value)||0;
         if(ma<=0){$('poolExpectedUSDT').textContent='--';return}
-        try{
-            const mw=Web3.utils.toWei(String(ma),'ether');
-            const ra=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
-            const rc=new web3.eth.Contract(ra,ROUTER);
-            const ams=await rc.methods.getAmountsOut(mw,[MYK,USDT]).call();
-            const uo=parseFloat(Web3.utils.fromWei(ams[1],'ether'))*(1-poolSellSlippage);
-            $('poolExpectedUSDT').textContent=uo.toFixed(6);
-        }catch(e){$('poolExpectedUSDT').textContent='--';}
+        try{const mw=Web3.utils.toWei(String(ma),'ether');const ra=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];const rc=new web3.eth.Contract(ra,ROUTER);const ams=await rc.methods.getAmountsOut(mw,[MYK,USDT]).call();const uo=parseFloat(Web3.utils.fromWei(ams[1],'ether'))*(1-poolSellSlippage);$('poolExpectedUSDT').textContent=uo.toFixed(6);}catch(e){$('poolExpectedUSDT').textContent='--';}
     }
 
     async function updatePoolOrderPanel(){
-        try{if(!web3)return;const ra=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];const rc=new web3.eth.Contract(ra,ROUTER);const oneMYK=Web3.utils.toWei('1','ether');const oneUSDT=Web3.utils.toWei('1','ether');const sellAmounts=await rc.methods.getAmountsOut(oneMYK,[MYK,USDT]).call();const sellPrice=parseFloat(Web3.utils.fromWei(sellAmounts[1],'ether'));const buyAmounts=await rc.methods.getAmountsOut(oneUSDT,[USDT,MYK]).call();const buyRate=parseFloat(Web3.utils.fromWei(buyAmounts[1],'ether'));$('poolBuyRateDisplay').textContent=buyRate.toFixed(4);$('poolSellRateDisplay').textContent=sellPrice.toFixed(6);$('poolBuyPriceDisplay').textContent='$'+sellPrice.toFixed(6);$('poolSellPriceDisplay').textContent='$'+sellPrice.toFixed(6);const sp=sellPrice;const pcs=await fetchPCSChange();if(pcs){updatePoolPriceDisplay(sp,pcs.change);}else{const lr=getLocalChange(sp);updatePoolPriceDisplay(sp,lr.change);}}catch(e){}}
+        try{if(!web3)return;const ra=[{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];const rc=new web3.eth.Contract(ra,ROUTER);const oneMYK=Web3.utils.toWei('1','ether');const oneUSDT=Web3.utils.toWei('1','ether');const sellAmounts=await rc.methods.getAmountsOut(oneMYK,[MYK,USDT]).call();const sellPrice=parseFloat(Web3.utils.fromWei(sellAmounts[1],'ether'));const buyAmounts=await rc.methods.getAmountsOut(oneUSDT,[USDT,MYK]).call();const buyRate=parseFloat(Web3.utils.fromWei(buyAmounts[1],'ether'));$('poolBuyRateDisplay').textContent=buyRate.toFixed(4);$('poolSellRateDisplay').textContent=sellPrice.toFixed(6);$('poolBuyPriceDisplay').textContent='$'+sellPrice.toFixed(6);$('poolSellPriceDisplay').textContent='$'+sellPrice.toFixed(6);const sp=sellPrice;const pcs=await fetchPCSChange();if(pcs){updatePoolPriceDisplay(sp,pcs.change);}else{const lr=getLocalChange(sp);updatePoolPriceDisplay(sp,lr.change);}}catch(e){}
+    }
 
-    // ========== 其他保持不变 ==========
     async function updateActivateSuggestion(){
         try{const p=await web3.eth.call({to:RP, data:encodeCall('getCurrentPrice()')});const contractPrice=parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256',p),'ether'));if(contractPrice>0){const s=(2/contractPrice*1.05).toFixed(4);$('suggestedMYK').textContent=s;$('mykAmount').value=s;$('mykAmount').setAttribute('data-default',s);return;}}catch(e){}
         const p=getSpotPrice();if(p>0){const s=(2/p*1.05).toFixed(4);$('suggestedMYK').textContent=s;$('mykAmount').value=s;$('mykAmount').setAttribute('data-default',s);}
@@ -390,25 +485,17 @@
             $('bonusPrincipal').textContent = principal.toFixed(2) + ' USDT';$('bonusDaily').textContent = dailyAmountMYK.toFixed(6) + ' MYK';
             $('bonusClaimed').textContent = claimedDays + '天 / ' + totalClaimedMYK.toFixed(6) + ' MYK';$('bonusRemaining').textContent = remainingDays + '天';
             $('claimBonusBtn').disabled = !isActive || remainingDays <= 0;
-            if (!isActive) { $('claimBonusBtn').textContent = '📈 暂无升级奖励'; }
-            else if (remainingDays <= 0) { $('claimBonusBtn').textContent = '✅ 已全部领取'; }
-            else { $('claimBonusBtn').textContent = '📈 领取今日升级奖励 (' + claimableMYK.toFixed(6) + ' MYK)'; }
+            if (!isActive) { $('claimBonusBtn').textContent = '📈 暂无升级奖励'; } else if (remainingDays <= 0) { $('claimBonusBtn').textContent = '✅ 已全部领取'; } else { $('claimBonusBtn').textContent = '📈 领取今日升级奖励 (' + claimableMYK.toFixed(6) + ' MYK)'; }
         } catch (e) {
             try {
-                const data = encodeCall('getBonusInfo(address)', ['address'], [userAddress]);
-                const result = await web3.eth.call({ to: RP, data: data });const info = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256', 'bool'], result);
+                const data = encodeCall('getBonusInfo(address)', ['address'], [userAddress]);const result = await web3.eth.call({ to: RP, data: data });const info = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256', 'bool'], result);
                 const principal = parseFloat(Web3.utils.fromWei(info[0], 'ether'));const dailyAmount = parseFloat(Web3.utils.fromWei(info[1], 'ether'));
                 const claimedDays = parseInt(info[2]);const totalDays = parseInt(info[3]) || 90;const isActive = info[4];
                 $('bonusPrincipal').textContent = principal.toFixed(0) + ' USDT';$('bonusDaily').textContent = dailyAmount.toFixed(6) + ' MYK';
                 $('bonusClaimed').textContent = claimedDays + '天';$('bonusRemaining').textContent = Math.max(0, totalDays - claimedDays) + '天';
                 $('claimBonusBtn').disabled = !isActive || claimedDays >= totalDays;
-                if (!isActive) { $('claimBonusBtn').textContent = '📈 暂无升级奖励'; }
-                else if (claimedDays >= totalDays) { $('claimBonusBtn').textContent = '✅ 已全部领取'; }
-                else { $('claimBonusBtn').textContent = '📈 领取今日升级奖励'; }
-            } catch (e2) {
-                $('bonusPrincipal').textContent = '--'; $('bonusDaily').textContent = '--';$('bonusClaimed').textContent = '--';$('bonusRemaining').textContent = '--';
-                $('claimBonusBtn').disabled = true; $('claimBonusBtn').textContent = '📈 暂无升级奖励';
-            }
+                if (!isActive) { $('claimBonusBtn').textContent = '📈 暂无升级奖励'; } else if (claimedDays >= totalDays) { $('claimBonusBtn').textContent = '✅ 已全部领取'; } else { $('claimBonusBtn').textContent = '📈 领取今日升级奖励'; }
+            } catch (e2) { $('bonusPrincipal').textContent = '--'; $('bonusDaily').textContent = '--';$('bonusClaimed').textContent = '--';$('bonusRemaining').textContent = '--';$('claimBonusBtn').disabled = true; $('claimBonusBtn').textContent = '📈 暂无升级奖励'; }
         }
     }
 
@@ -456,29 +543,20 @@
 
     async function claimDailyReward(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('claimRewardBtn'),el=$('claimRewardResult');el.style.display='block';el.innerHTML='⏳ 自动快照中...';b.disabled=!0;b.textContent='处理中...';try{const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('claimDailyRewardAuto()')}]});el.innerHTML='⏳ 等待确认...';const receipt=await waitForTransaction(txHash);const snapshotEventSig=web3.eth.abi.encodeEventSignature('SnapshotTaken(address,uint256,uint256)');let isSnapshot=!1;for(const log of receipt.logs||[]){if(log.topics&&log.topics[0]===snapshotEventSig){isSnapshot=!0;break;}}if(isSnapshot){el.innerHTML='📸 首次快照已记录！<br>请等待115分钟后再次点击领取奖励';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';b.disabled=!1;b.textContent='⏰ 等待冷却后领取';}else{markClaimedToday();el.innerHTML='✅ 领取成功！奖励已发放';el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';b.disabled=!0;b.textContent='✅ 今日已领取';$('claimedToday').textContent='✅ 已领取';}setTimeout(()=>{fetchHoldingInfo();fetchUserStats();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){el.style.display='block';const m=parseError(e);if(m.includes('NotActive')){el.innerHTML='⚠️ 账户未激活，请先激活 PRIMARY';}else if(m.includes('TooFrequent')){el.innerHTML='⚠️ 冷却中，请等待后再试（约115分钟）';}else if(m.includes('ExceedsMax')){el.innerHTML='⚠️ 超出最大可领额度';}else if(m.includes('User denied')||m.includes('rejected')){el.innerHTML='⚠️ 交易已取消';}else{el.innerHTML='❌ '+m;}}finally{b.disabled=!1;if(b.textContent!=='✅ 今日已领取'&&b.textContent!=='⏰ 等待冷却后领取'){b.textContent='🎁 一键领取今日奖励';}unlock();}}
 
-    // 🔥 统一滑点事件处理：与第三卡片完全相同
     function setupAllSlippageButtons(){
-        // 第三卡片买入滑点
         document.querySelectorAll('#panelBuy .slippage-btn').forEach(b=>{b.addEventListener('click',function(){document.querySelectorAll('#panelBuy .slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');buySlippage=parseFloat(this.dataset.slip)/100;updateBuyQuote();});});
-        // 第三卡片卖出滑点
         document.querySelectorAll('#panelSell .slippage-btn').forEach(b=>{b.addEventListener('click',function(){document.querySelectorAll('#panelSell .slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');sellSlippage=parseFloat(this.dataset.slip)/100;updateSellQuote();});});
-        // 第四卡片参与做市滑点
         document.querySelectorAll('#panelPoolDeposit .slippage-btn').forEach(b=>{b.addEventListener('click',function(){document.querySelectorAll('#panelPoolDeposit .slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');poolBuySlippage=parseFloat(this.dataset.slip)/100;updatePoolDepositQuote();});});
-        // 第四卡片退出做市滑点
         document.querySelectorAll('#panelPoolWithdraw .slippage-btn').forEach(b=>{b.addEventListener('click',function(){document.querySelectorAll('#panelPoolWithdraw .slippage-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');poolSellSlippage=parseFloat(this.dataset.slip)/100;updatePoolSellQuote();});});
     }
 
     function setupTabs(){
         document.querySelectorAll('#activateTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#activateTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelUSDT').style.display=tb==='usdt'?'block':'none';$('panelMYK').style.display=tb==='myk'?'block':'none';if(tb==='myk')updateActivateSuggestion();});});
         document.querySelectorAll('#tradeTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#tradeTabSwitch .tab').forEach(x=>{x.classList.remove('active','tab-buy','tab-sell');});this.classList.add('active');const tb=this.dataset.tab;if(tb==='buy')this.classList.add('tab-buy');if(tb==='sell')this.classList.add('tab-sell');$('panelBuy').style.display=tb==='buy'?'block':'none';$('panelSell').style.display=tb==='sell'?'block':'none';if(tb==='buy')updateBuyQuote();if(tb==='sell')updateSellQuote();});});
-        document.querySelectorAll('#poolTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#poolTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelPoolDeposit').style.display=tb==='deposit'?'block':'none';$('panelPoolWithdraw').style.display=tb==='withdraw'?'block':'none';if(tb=='deposit')updatePoolDepositQuote();if(tb=='withdraw')updatePoolSellQuote();});});
+        document.querySelectorAll('#poolTabSwitch .tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('#poolTabSwitch .tab').forEach(x=>x.classList.remove('active'));this.classList.add('active');const tb=this.dataset.tab;$('panelPoolDeposit').style.display=tb==='deposit'?'block':'none';$('panelPoolWithdraw').style.display=tb==='withdraw'?'block':'none';if(tb=='deposit')updatePoolDepositQuote();if(tb=='withdraw'){updatePoolSellQuote();applySliderPct(currentSliderPct);}});});
     }
 
-    function setupGearButtons(){
-        document.querySelectorAll('#poolGearBar .gear-btn').forEach(b=>{b.addEventListener('click',function(){document.querySelectorAll('#poolGearBar .gear-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const ratio=parseFloat(this.dataset.ratio);applyGearRatio(ratio);});});
-    }
-
-    window.addEventListener('load',async()=>{setupTabs();setupAllSlippageButtons();setupGearButtons();setupSwipeDots();setupUpgradeButtons();setupCopyButtons();$('claimBonusBtn').addEventListener('click',claimDailyBonus);$('poolDepositBtn').addEventListener('click',depositToPool);$('poolWithdrawBtn').addEventListener('click',withdrawFromPool);$('poolSellBtn').addEventListener('click',poolSellMYK);$('poolDepositAmount').addEventListener('input',updatePoolDepositQuote);$('poolWithdrawAmount').addEventListener('input',updatePoolSellQuote);if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
+    window.addEventListener('load',async()=>{setupTabs();setupAllSlippageButtons();setupSlider();setupSwipeDots();setupUpgradeButtons();setupCopyButtons();$('claimBonusBtn').addEventListener('click',claimDailyBonus);$('poolDepositBtn').addEventListener('click',depositToPool);$('poolWithdrawBtn').addEventListener('click',withdrawFromPool);$('poolSellBtn').addEventListener('click',poolSellMYK);$('poolDepositAmount').addEventListener('input',updatePoolDepositQuote);$('poolWithdrawAmount').addEventListener('input',updatePoolSellQuote);if(window.ethereum){web3=new Web3(window.ethereum);try{const a=await window.ethereum.request({method:'eth_accounts'});if(a.length){userAddress=a[0];$('walletDisplay').textContent=a6(userAddress);$('walletDisplay').style.color='#4ef0a8';startPriceAutoRefresh();fetchAirdrop();fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();}}catch(e){}window.ethereum.on('accountsChanged',()=>{fetchPrice().then(()=>{updateBuyQuote();updateSellQuote();});});}setInterval(fetchContractInfo,60000);$('connectWalletBtn').addEventListener('click',connectWallet);$('buyUSDTAmount').addEventListener('input',updateBuyQuote);$('sellMYKAmount').addEventListener('input',updateSellQuote);$('buyMYKBtn').addEventListener('click',buyMYK);$('sellMYKBtn').addEventListener('click',sellMYK);$('activateMYKBtn').addEventListener('click',activateMYK);$('activateUSDTBtn').addEventListener('click',activateUSDT);$('claimRewardBtn').addEventListener('click',claimDailyReward);});
 })();
 </script>
 </body>
