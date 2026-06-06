@@ -135,10 +135,10 @@
 
         /* 滑动条容器 */
         .slider-track-container {
-            position:relative; width:100%; height:40px; margin:16px 0 8px;
-            display:flex; align-items:center; cursor:pointer;
+            position:relative; width:100%; height:50px; margin:8px 0 8px;
+            display:flex; align-items:flex-end; cursor:pointer;
             user-select:none; -webkit-user-select:none;
-            touch-action:pan-x;
+            touch-action:pan-x; padding-top:22px;
         }
         /* 横线 */
         .slider-line {
@@ -165,13 +165,13 @@
         .slider-dot.passed {
             background:#e94560; border-color:#e94560;
         }
-        /* 标签 */
+        /* 标签 - 上方 */
         .slider-label {
-            position:absolute; top:100%; transform:translateX(-50%);
-            font-size:10px; color:#888; margin-top:6px; white-space:nowrap;
+            position:absolute; bottom:100%; transform:translateX(-50%);
+            font-size:10px; color:#888; margin-bottom:8px; white-space:nowrap;
             transition:color 0.2s;
         }
-        .slider-label.active { color:#f0b90b; }
+        .slider-label.active { color:#f0b90b; font-weight:700; }
         .slider-label.passed { color:#e94560; }
     </style>
 </head>
@@ -192,20 +192,20 @@
     <!-- 做市商赚币 -->
     <div class="glass-card"><h2 style="justify-content:space-between;"><span>🏊 做市商赚币</span><span class="trade-price-badge price-change-flat" id="poolPriceBadge">$<span id="poolPriceDisplay">--</span><span id="poolChangeDisplay" style="font-size:11px;">--</span></span></h2><div class="order-panel"><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div><div style="font-size:13px;color:#4ecca3;font-weight:700;" id="poolBuyPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 USDT = <span id="poolBuyRateDisplay">--</span> MYK</div></div><div class="order-divider"></div><div style="flex:1;text-align:center;"><div style="font-size:10px;color:#888;margin-bottom:2px;">卖出价</div><div style="font-size:13px;color:#e94560;font-weight:700;" id="poolSellPriceDisplay">--</div><div style="font-size:10px;color:#666;">1 MYK = <span id="poolSellRateDisplay">--</span> USDT</div></div></div><div class="stat-row"><span>可用 USDT：<span class="stat-value" id="poolAvailableUSDT">--</span></span><span>已持币：<span class="stat-value" id="poolBalance">--</span> MYK</span></div><div class="tab-container" id="poolTabSwitch"><div class="tab active" data-tab="deposit">参与做市</div><div class="tab" data-tab="withdraw">退出做市</div></div><div id="panelPoolDeposit"><div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="poolDepositAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0"><div class="price-row"><span>预计获得: <span class="price-value" id="poolExpectedMYK">--</span> MYK</span></div><button class="btn btn-green" id="poolDepositBtn">买入 MYK 参与做市</button></div><div id="panelPoolWithdraw" style="display:none;"><div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT / 划入钱包</div><div class="slippage-row"><span style="color:#aaa;font-size:12px;">滑点:</span><span class="slippage-btn" data-slip="0.3">0.3%</span><span class="slippage-btn active" data-slip="0.5">0.5%</span><span class="slippage-btn" data-slip="1">1%</span><span class="slippage-btn" data-slip="3">3%</span></div><input class="input-field" id="poolWithdrawAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0">
 
-            <!-- 🔥 滑动条：5个圆点 25%-50%-75%-100% -->
+            <!-- 🔥 滑动条：5个圆点 25%-50%-75%-100%，标签在上方 -->
             <div class="slider-track-container" id="poolSliderTrack">
                 <div class="slider-line"></div>
                 <div class="slider-fill" id="poolSliderFill" style="width:0%;"></div>
-                <div class="slider-dot" data-pct="25" style="left:0%;"></div>
-                <div class="slider-dot" data-pct="50" style="left:25%;"></div>
-                <div class="slider-dot" data-pct="75" style="left:50%;"></div>
-                <div class="slider-dot" data-pct="100" style="left:75%;"></div>
-                <div class="slider-dot" data-pct="100" style="left:100%;"></div>
                 <div class="slider-label" style="left:0%;">25%</div>
+                <div class="slider-dot" data-pct="25" style="left:0%;"></div>
                 <div class="slider-label" style="left:25%;">50%</div>
+                <div class="slider-dot" data-pct="50" style="left:25%;"></div>
                 <div class="slider-label" style="left:50%;">75%</div>
+                <div class="slider-dot" data-pct="75" style="left:50%;"></div>
                 <div class="slider-label" style="left:75%;">100%</div>
+                <div class="slider-dot" data-pct="100" style="left:75%;"></div>
                 <div class="slider-label" style="left:100%;">100%</div>
+                <div class="slider-dot" data-pct="100" style="left:100%;"></div>
             </div>
 
             <div class="price-row"><span>预计获得: <span class="price-value" id="poolExpectedUSDT">--</span> USDT</span></div><div class="row-buttons" style="margin-top:10px;"><button class="btn btn-red" id="poolSellBtn" style="flex:1;">交易所卖出</button><button class="btn btn-blue" id="poolWithdrawBtn" style="flex:1;">划入钱包</button></div></div><div class="info-box" id="poolResult" style="display:none;"></div></div>
