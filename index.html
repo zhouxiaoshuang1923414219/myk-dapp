@@ -250,7 +250,6 @@
     const SWAP_SIG='swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
     const PCS_API='https://api.pancakeswap.info/api/v2/tokens/0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
     const STORAGE_KEY='myk_baseline_price';
-    const CLAIMED_KEY='myk_claimed_today_';
     const CARD_EXPIRY_MAP={community1:'community1Unlock',community2:'community2Unlock',community3:'community3Unlock',community4:'community4Unlock',community5:'community5Unlock'};
     let web3,userAddress,activationPrice='1000000000000000000',spotPrice='1000000000000000000',isProcessing=!1,buySlippage=.005,sellSlippage=.005,poolBuySlippage=.005,poolSellSlippage=.005,priceRefreshInterval,currentSliderPct=0;
     let airdropTotalAmount=2100000;
@@ -319,7 +318,6 @@
         track.addEventListener('touchstart',(e)=>{const pct=getPctFromX(e.touches[0].clientX);applySliderPct(pct);document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);});
     }
 
-    // 🔥 参与做市：先领奖 → 授权USDT → depositToTradingPool(amount, slippageBps)
     async function depositToPool(){
         if(!userAddress){alert('请先连接钱包');return}
         if(!lock())return;
@@ -344,7 +342,6 @@
         finally{b.disabled=!1;b.textContent='买入 MYK 参与做市';unlock();}
     }
 
-    // 🔥 交易所卖出：withdrawFromTradingPool(mykAmount, slippageBps)
     async function poolSellMYK(){
         if(!userAddress){alert('请先连接钱包');return}
         if(!lock())return;
@@ -364,7 +361,6 @@
         finally{b.disabled=!1;b.textContent='交易所卖出';unlock();}
     }
 
-    // 🔥 划入钱包：withdrawMYKDirectly(mykAmount)
     async function withdrawFromPool(){
         if(!userAddress){alert('请先连接钱包');return}
         if(!lock())return;
@@ -429,7 +425,6 @@
     function calcMinOutput(amountOut,slippage){const a=BigInt(amountOut);const n=BigInt(Math.round((1-slippage)*10000));return(a*n/BigInt(10000)).toString();}
     async function upgradeCommunity(amount){if(!userAddress){alert('请先连接钱包');return;}if(!lock())return;const btn=document.querySelector(`.upgrade-btn[data-amount="${amount}"]`);const el=btn?btn.nextElementSibling:null;if(!btn||!el)return;btn.disabled=true;btn.textContent='处理中...';el.style.display='block';try{if(amount>=500){const sp=getSpotPrice();if(sp<=0){alert('无法获取现货价格');return;}const mykAmount=web3.utils.toWei(String((amount/sp)*1.055),'ether');el.innerHTML=`⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,mykAmount])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 销毁中...';const bTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,gas:'0xF4240',data:encodeCall('burnForTier(uint256)',['uint256'],[mykAmount])}]});el.innerHTML='⏳ 等待销毁确认...';await waitForTransaction(bTx);}else{const fee=web3.utils.toWei(String(amount),'ether');el.innerHTML=`⏳ 正在授权 ${amount} USDT...`;const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:encodeCall('approve(address,uint256)',['address','uint256'],[GOV,fee])}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 升级中（含推荐奖励分发）...';const uTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:GOV,gas:'0xF4240',data:encodeCall('upgradeWithUSDT(uint256)',['uint256'],[fee])}]});el.innerHTML='⏳ 等待升级确认...';await waitForTransaction(uTx);}el.innerHTML='✅ 解锁成功！';el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';btn.style.display='none';setTimeout(()=>{fetchUserStats();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('User denied')||m.includes('rejected')?'⚠️ 交易已取消':m.includes('insufficient')?'⚠️ 余额不足':'❌ '+m;}finally{btn.disabled=false;btn.textContent=amount>=500?'🔥 销毁MYK解锁':'🔓 立即解锁权益';unlock();}}
     function setupUpgradeButtons(){document.querySelectorAll('.upgrade-btn').forEach(b=>{b.addEventListener('click',function(){upgradeCommunity(parseFloat(this.dataset.amount));});});}
-    // 🔥 角色费率改用 getRoleRate
     async function fetchRoleRates(){if(!web3)return;
         try{const p=await web3.eth.call({to:RP,data:encodeCall('getRoleRate(address)',['address'],[userAddress])});$('primaryRate').textContent=(Number(web3.eth.abi.decodeParameter('uint256',p))/10).toFixed(1)+'%';}catch(e){$('primaryRate').textContent='1.0%';}
         try{const basic=await fetchUserBasic();if(basic&&basic.role>=2){$('middleRate').textContent='1.3%';}else{$('middleRate').textContent='1.3%';}}catch(e){$('middleRate').textContent='1.3%';}
@@ -461,44 +456,50 @@
     async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),el=$('activateMYKResult'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';el.style.display='block';try{el.innerHTML='⏳ 获取实时价格...';const rawPrice=await web3.eth.call({to:RP,data:encodeCall('getCurrentPrice()')});const contractPrice=parseFloat(Web3.utils.fromWei(rawPrice,'ether'));if(contractPrice<=0)throw new Error('无法获取合约价格');const requiredMYK=(2/contractPrice*1.05).toFixed(4);$('suggestedMYK').textContent=requiredMYK;$('mykAmount').setAttribute('data-default',requiredMYK);const userAmount=parseFloat($('mykAmount').value||am);if(userAmount<parseFloat(requiredMYK)){$('mykAmount').value=requiredMYK;el.innerHTML=`⚠️ 需至少 ${requiredMYK} MYK，已自动填入，请再次点击`;el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();return;}b.textContent='激活中...';el.innerHTML='⏳ 激活中...';const mw=Web3.utils.toWei($('mykAmount').value,'ether');const d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});el.innerHTML='✅ 激活成功！';el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){el.innerHTML='❌ '+parseError(e);}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();}}
     async function activateUSDT(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateUSDTBtn'),el=$('activateUSDTResult');el.style.display='block';el.innerHTML='⏳ 授权USDT...';b.disabled=!0;try{const f=web3.utils.toWei('2','ether');const ad=encodeCall('approve(address,uint256)',['address','uint256'],[RP,f]);const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 激活中...';const ac=encodeCall('activateWithUSDT()');const acTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:ac}]});el.innerHTML='⏳ 等待激活确认...';await waitForTransaction(acTx);el.innerHTML='✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('referrer')?'⚠️ 推荐人无效或未绑定，请检查链上绑定关系':'❌ '+m;}finally{b.disabled=!1;unlock();}}
 
-    function isClaimedToday(){const k=CLAIMED_KEY+userAddress+'_'+getTodayKey();return localStorage.getItem(k)==='1';}
-    function markClaimedToday(){const k=CLAIMED_KEY+userAddress+'_'+getTodayKey();localStorage.setItem(k,'1');}
-
+    // 🔥 用 getTradingPoolStats 获取完整的交易池数据
     async function fetchHoldingInfo(){
         if(!userAddress||!web3)return;
         try{
             $('holdingBalance').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);
-            try{const stats=await web3.eth.call({to:RP,data:encodeCall('getTradingPoolStats(address)',['address'],[userAddress])});const s=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'],stats);$('streakDays').textContent=s[3]||'0';}catch(e){$('streakDays').textContent='0';}
-            const claimed=isClaimedToday();
-            $('claimedToday').textContent=claimed?'✅ 已领取':'-- MYK';
-            $('claimRewardBtn').disabled=claimed;
-            $('claimRewardBtn').textContent=claimed?'✅ 已领取':'领取历史奖励';
-            $('claimRewardBtn').style.opacity=claimed?'0.6':'1';
-            $('todayReward').textContent='--';
+            try{
+                const stats=await web3.eth.call({to:RP,data:encodeCall('getTradingPoolStats(address)',['address'],[userAddress])});
+                const s=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'],stats);
+                const poolBalance=n(s[0]);        // 池子余额（备用）
+                const totalEarned=n(s[1]);        // 累计奖励
+                const claimable=n(s[2]);          // 可领奖励
+                const cycles=s[3];                // 周期数
+                $('streakDays').textContent=cycles;
+                $('todayReward').textContent=claimable.toFixed(6)+' MYK';
+                $('claimedToday').textContent=totalEarned.toFixed(6)+' MYK';
+                $('claimRewardBtn').disabled=claimable<=0;
+                $('claimRewardBtn').textContent=claimable>0?'领取历史奖励':'暂无待领奖励';
+                $('claimRewardBtn').style.opacity=claimable>0?'1':'0.6';
+            }catch(e){
+                $('streakDays').textContent='0';
+                $('todayReward').textContent='--';
+                $('claimedToday').textContent='-- MYK';
+            }
         }catch(e){$('holdingBalance').textContent='--';}
     }
 
-    // 🔥 7天做市奖励改用 claimTradingPoolReward
+    // 🔥 7天做市奖励调用 claimTradingPoolReward
     async function claimDailyReward(){
         if(!userAddress){alert('请先连接钱包');return}if(!lock())return;
         const b=$('claimRewardBtn'),el=$('claimRewardResult');el.style.display='block';el.innerHTML='⏳ 领取中...';b.disabled=!0;b.textContent='处理中...';
         try{
             const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:encodeCall('claimTradingPoolReward()'),gas:'0xF4240'}]});
             el.innerHTML='⏳ 等待确认...';await waitForTransaction(txHash);
-            markClaimedToday();
             el.innerHTML='✅ 领取成功！奖励已发放';
             el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';
-            b.disabled=!0;b.textContent='✅ 已领取';
-            $('claimedToday').textContent='✅ 已领取';
             setTimeout(()=>{fetchHoldingInfo();fetchUserStats();refreshIdentityCard();fetchContractInfo();},3000);
         }catch(e){
             el.style.display='block';const m=parseError(e);
             if(m.includes('NotActive')){el.innerHTML='⚠️ 账户未激活，请先激活 PRIMARY';}
-            else if(m.includes('TooFrequent')){el.innerHTML='⚠️ 领取过于频繁，请稍后再试';}
-            else if(m.includes('No reward')){el.innerHTML='⚠️ 暂无待领奖励';}
+            else if(m.includes('TooFrequent')||m.includes('cooldown')){el.innerHTML='⚠️ 领取过于频繁，请稍后再试';}
+            else if(m.includes('No reward')||m.includes('nothing')){el.innerHTML='⚠️ 暂无待领奖励';b.disabled=!0;b.textContent='暂无待领奖励';}
             else if(m.includes('User denied')||m.includes('rejected')){el.innerHTML='⚠️ 交易已取消';}
             else{el.innerHTML='❌ '+m;}
-        }finally{b.disabled=!1;if(b.textContent!=='✅ 已领取'){b.textContent='领取历史奖励';}unlock();}
+        }finally{b.disabled=!1;if(b.textContent!=='暂无待领奖励'){b.textContent='领取历史奖励';}unlock();}
     }
 
     function setupAllSlippageButtons(){
