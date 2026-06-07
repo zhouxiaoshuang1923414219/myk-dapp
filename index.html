@@ -187,7 +187,7 @@
             <div class="price-row"><span>预计获得: <span class="price-value" id="poolExpectedUSDT">--</span> USDT</span></div><div class="row-buttons" style="margin-top:10px;"><button class="btn btn-red" id="poolSellBtn" style="flex:1;">交易所卖出</button><button class="btn btn-blue" id="poolWithdrawBtn" style="flex:1;">划入钱包</button></div></div><div class="info-box" id="poolResult" style="display:none;"></div></div>
 
     <!-- 5. 7天做市奖励 -->
-    <div class="glass-card"><h2>🏆 7天做市奖励</h2><div class="desc">持币即可赚币，<span class="highlight">市值增长双收益</span></div><div class="stat-row"><span>当前持币：<span class="stat-value" id="holdingBalance">--</span> MYK</span><span>连续已领：<span class="stat-value" id="streakDays">--</span> 天</span></div><div class="stat-row" style="margin-top:8px;"><span>今天可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领币：<span class="stat-value" id="claimedToday">--</span> MYK</span></div><button class="btn btn-green" id="claimRewardBtn">领取历史奖励</button><div class="info-box" id="claimRewardResult" style="display:none;"></div></div>
+    <div class="glass-card"><h2>🏆 7天做市奖励</h2><div class="desc">持币即可赚币，<span class="highlight">市值增长双收益</span></div><div class="stat-row"><span>最近购买：<span class="stat-value" id="holdingBalance">--</span> USDT</span><span>连续已领：<span class="stat-value" id="streakDays">--</span> 天</span></div><div class="stat-row" style="margin-top:8px;"><span>今天可领：<span class="stat-value" id="todayReward">--</span> MYK</span><span>已领币：<span class="stat-value" id="claimedToday">--</span> MYK</span></div><button class="btn btn-green" id="claimRewardBtn">领取历史奖励</button><div class="info-box" id="claimRewardResult" style="display:none;"></div></div>
 
     <!-- 6. 百万MYK生态福利 -->
     <div class="glass-card"><h2>🎁 百万MYK生态福利</h2><div class="desc">新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量<span class="highlight-green" id="airdropTotal">--</span>MYK赠完即止</div><div class="stat-row"><span>已赠送: <span class="stat-value" id="airdropPaid">--</span> MYK</span><span>剩余: <span class="stat-value" id="airdropRemaining">--</span> MYK</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div></div><div class="stat-row" style="margin-top:4px;"><span style="color:#888;">当前奖金池: <span id="airdropPoolBalance">--</span> MYK</span><span style="color:#888;" id="airdropPercent">0%</span></div></div>
@@ -454,11 +454,16 @@
     async function activateMYK(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateMYKBtn'),el=$('activateMYKResult'),am=$('mykAmount').value;if(!am||parseFloat(am)<=0){alert('请输入有效的MYK数量');return}b.disabled=!0;b.textContent='处理中...';el.style.display='block';try{el.innerHTML='⏳ 获取实时价格...';const rawPrice=await web3.eth.call({to:RP,data:encodeCall('getCurrentPrice()')});const contractPrice=parseFloat(Web3.utils.fromWei(rawPrice,'ether'));if(contractPrice<=0)throw new Error('无法获取合约价格');const requiredMYK=(2/contractPrice*1.05).toFixed(4);$('suggestedMYK').textContent=requiredMYK;$('mykAmount').setAttribute('data-default',requiredMYK);const userAmount=parseFloat($('mykAmount').value||am);if(userAmount<parseFloat(requiredMYK)){$('mykAmount').value=requiredMYK;el.innerHTML=`⚠️ 需至少 ${requiredMYK} MYK，已自动填入，请再次点击`;el.style.borderLeftColor='#f0b90b';el.style.background='rgba(240,185,11,0.1)';b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();return;}b.textContent='激活中...';el.innerHTML='⏳ 激活中...';const mw=Web3.utils.toWei($('mykAmount').value,'ether');const d=encodeCall('transfer(address,uint256)',['address','uint256'],[RP,mw]);await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:MYK,data:d}]});el.innerHTML='✅ 激活成功！';el.style.borderLeftColor='#4ecca3';el.style.background='rgba(78,204,163,0.1)';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){el.innerHTML='❌ '+parseError(e);}finally{b.disabled=!1;b.textContent='💸 支付MYK激活';unlock();}}
     async function activateUSDT(){if(!userAddress){alert('请先连接钱包');return}if(!lock())return;const b=$('activateUSDTBtn'),el=$('activateUSDTResult');el.style.display='block';el.innerHTML='⏳ 授权USDT...';b.disabled=!0;try{const f=web3.utils.toWei('2','ether');const ad=encodeCall('approve(address,uint256)',['address','uint256'],[RP,f]);const aTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:USDT,data:ad}]});el.innerHTML='⏳ 等待授权确认...';await waitForTransaction(aTx);el.innerHTML='⏳ 激活中...';const ac=encodeCall('activateWithUSDT()');const acTx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAddress,to:RP,data:ac}]});el.innerHTML='⏳ 等待激活确认...';await waitForTransaction(acTx);el.innerHTML='✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';setTimeout(()=>{fetchUserStats();fetchAirdrop();fetchHoldingInfo();refreshIdentityCard();fetchContractInfo();},3000);}catch(e){const m=parseError(e);el.innerHTML=m.includes('referrer')?'⚠️ 推荐人无效或未绑定，请检查链上绑定关系':'❌ '+m;}finally{b.disabled=!1;unlock();}}
 
-    // 🔥 第五卡片：用 getStreakLength + lastSnapshotBalance
+    // 🔥 第五卡片：最近购买改取 lastPancakeBuyValue
     async function fetchHoldingInfo(){
         if(!userAddress||!web3)return;
         try{
-            $('holdingBalance').textContent=n(web3.eth.abi.decodeParameter('uint256',await web3.eth.call({to:MYK,data:encodeCall('balanceOf(address)',['address'],[userAddress])}))).toFixed(4);
+            // 最近购买 USDT 价值
+            try{
+                const bv=await web3.eth.call({to:RP,data:encodeCall('lastPancakeBuyValue(address)',['address'],[userAddress])});
+                const buyValue=n(web3.eth.abi.decodeParameter('uint256',bv));
+                $('holdingBalance').textContent=buyValue.toFixed(2)+' USDT';
+            }catch(e){$('holdingBalance').textContent='--';}
             try{
                 const sl=await web3.eth.call({to:RP,data:encodeCall('getStreakLength(address)',['address'],[userAddress])});
                 $('streakDays').textContent=web3.eth.abi.decodeParameter('uint256',sl);
@@ -468,7 +473,6 @@
                 const snapBalance=n(web3.eth.abi.decodeParameter('uint256',sb));
                 $('claimedToday').textContent=snapBalance.toFixed(4)+' MYK';
             }catch(e){$('claimedToday').textContent='-- MYK';}
-            // 检查是否可领取
             try{
                 const isBuyer=await web3.eth.call({to:RP,data:encodeCall('isRecentPancakeBuyer(address)',['address'],[userAddress])});
                 const b=web3.eth.abi.decodeParameter('bool',isBuyer);
@@ -484,7 +488,7 @@
         }catch(e){$('holdingBalance').textContent='--';}
     }
 
-    // 🔥 改回 claimDailyRewardAuto
+    // 🔥 claimDailyRewardAuto
     async function claimDailyReward(){
         if(!userAddress){alert('请先连接钱包');return}if(!lock())return;
         const b=$('claimRewardBtn'),el=$('claimRewardResult');el.style.display='block';el.innerHTML='⏳ 领取中...';b.disabled=!0;b.textContent='处理中...';
