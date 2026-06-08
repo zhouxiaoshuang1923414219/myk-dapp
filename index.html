@@ -1006,7 +1006,7 @@
                 </div>
                 <div class="contract-addr-row">
                     <span class="contract-addr-label">🟢 RewardPool</span>
-                    <span class="contract-addr-value">0x9d468...936e</span>
+                    <span class="contract-addr-value">0x9d468F...936e</span>
                     <button class="contract-addr-copy" data-addr="0x9d468F0d3D730fffe19FB16E97b04bA5B753936e">复制</button>
                 </div>
                 <div class="contract-addr-row">
@@ -1034,7 +1034,7 @@
         const USDT = '0x55d398326f99059fF775485246999027B3197955';
         const ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
         const PAIR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
-        const AIRDROP_INITIAL = 2100000;
+        const AIRDROP_INITIAL = 1000000;
         const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
         const DEAD_ADDR = '0x000000000000000000000000000000000000dEaD';
         const SWAP_SIG = 'swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
@@ -1049,7 +1049,7 @@
             poolBuySlippage = .005,
             poolSellSlippage = .005,
             priceRefreshInterval, currentSliderPct = 0;
-        let airdropTotalAmount = 2100000;
+        let airdropTotalAmount = 1000000;
 
         function getTodayKey() { const d = new Date(); return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`; }
 
@@ -1390,7 +1390,7 @@
         async function activateUSDT() { if (!userAddress) { alert('请先连接钱包'); return } if (!lock()) return; const b = $('activateUSDTBtn'),
                 el = $('activateUSDTResult'); el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...'; b.disabled = !0; try { const f = web3.utils.toWei('2', 'ether'); const ad = encodeCall('approve(address,uint256)', ['address', 'uint256'], [RP, f]); const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: ad }] }); el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx); el.innerHTML = '⏳ 激活中...'; const ac = encodeCall('activateWithUSDT()'); const acTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: ac }] }); el.innerHTML = '⏳ 等待激活确认...'; await waitForTransaction(acTx); el.innerHTML = '✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励'; setTimeout(() => { fetchUserStats(); fetchAirdrop(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000); } catch (e) { const m = parseError(e); el.innerHTML = m.includes('referrer') ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m; } finally { b.disabled = !1; unlock(); } }
 
-        // 🔥 第五卡片：已领币使用 getTotalDailyRewardClaimed
+        // 第五卡片：已领币使用 getTotalDailyRewardClaimed
         async function fetchHoldingInfo() {
             if (!userAddress || !web3) return;
             try {
@@ -1423,7 +1423,7 @@
             } catch (e) { $('holdingBalance').textContent = '--'; }
         }
 
-        // 🔥 claimDailyRewardAuto
+        // claimDailyRewardAuto
         async function claimDailyReward() {
             if (!userAddress) { alert('请先连接钱包'); return }
             if (!lock()) return;
