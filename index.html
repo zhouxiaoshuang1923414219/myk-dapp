@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -786,7 +787,7 @@
                 <span>连续已领：<span class="stat-value" id="streakDays">--</span> 天</span>
             </div>
             <div class="stat-row" style="margin-top:8px;">
-                <span>今天可领：<span class="stat-value" id="todayReward">--</span> MYK</span>
+                <span>今天可领：<span class="stat-value" id="todayReward">--</span></span>
                 <span>已领币：<span class="stat-value" id="claimedToday">--</span> MYK</span>
             </div>
             <button class="btn btn-green" id="claimRewardBtn">领取历史奖励</button>
@@ -1007,7 +1008,7 @@
                 <div class="contract-addr-row">
                     <span class="contract-addr-label">🟢 RewardPool</span>
                     <span class="contract-addr-value">0xf56C22...4643</span>
-                    <button class="contract-addr-copy" data-addr="0xf56C22820D4Bb7E6Ad80C3A8a2b606a20b44c643">复制</button>
+                    <button class="contract-addr-copy" data-addr="0x9d468F0d3D730fffe19FB16E97b04bA5B753936e">复制</button>
                 </div>
                 <div class="contract-addr-row">
                     <span class="contract-addr-label">🟡 Governance</span>
@@ -1028,7 +1029,7 @@
     <script>
     (function() {
         const MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-        const RP = '0xf56C22820D4Bb7E6Ad80C3A8a2b606a20b44c643';
+        const RP = '0x9d468F0d3D730fffe19FB16E97b04bA5B753936e';
         const GOV = '0x26010B7b6E873Dba7de3a79E67e0cE31433b4657';
         const FM = '0x97371aaF9CB8DcCa738c1f45ae368eF6e88B5A1a';
         const USDT = '0x55d398326f99059fF775485246999027B3197955';
@@ -1060,15 +1061,12 @@
         function calcChange(cp, bp) { if (!bp || bp <= 0 || cp <= 0) return null; return ((cp - bp) / bp) * 100; }
         async function fetchPCSChange() { try { const r = await fetch(PCS_API); const d = await r.json(); if (d && d.data && d.data.price_change_24h) return { change: d.data.price_change_24h }; } catch (e) {} return null; }
 
-        function getLocalChange(price) { let bp = getBaselinePrice(); if (!bp) { setBaselinePrice(price);
-                bp = price; } const ch = calcChange(price, bp); if (ch === null) return { change: '0.00%' }; const sign = ch > 0 ? '+' : ''; return { change: sign + ch.toFixed(2) + '%' }; }
+        function getLocalChange(price) { let bp = getBaselinePrice(); if (!bp) { setBaselinePrice(price); bp = price; } const ch = calcChange(price, bp); if (ch === null) return { change: '0.00%' }; const sign = ch > 0 ? '+' : ''; return { change: sign + ch.toFixed(2) + '%' }; }
 
         function updatePriceDisplay(price, changeStr) { $('tradePriceDisplay').textContent = formatPrice(price); const ce = $('tradeChangeDisplay'),
-                bd = $('tradePriceBadge');
-            ce.textContent = changeStr; if (changeStr.startsWith('+')) bd.className = 'trade-price-badge price-change-up'; else if (changeStr.startsWith('-')) bd.className = 'trade-price-badge price-change-down'; else bd.className = 'trade-price-badge price-change-flat'; }
+                bd = $('tradePriceBadge'); ce.textContent = changeStr; if (changeStr.startsWith('+')) bd.className = 'trade-price-badge price-change-up'; else if (changeStr.startsWith('-')) bd.className = 'trade-price-badge price-change-down'; else bd.className = 'trade-price-badge price-change-flat'; }
 
-        function updatePoolPriceDisplay(price, changeStr) { $('poolPriceDisplay').textContent = formatPrice(price);
-            $('poolChangeDisplay').textContent = changeStr; const bd = $('poolPriceBadge'); if (changeStr.startsWith('+')) bd.className = 'trade-price-badge price-change-up'; else if (changeStr.startsWith('-')) bd.className = 'trade-price-badge price-change-down'; else bd.className = 'trade-price-badge price-change-flat'; }
+        function updatePoolPriceDisplay(price, changeStr) { $('poolPriceDisplay').textContent = formatPrice(price); $('poolChangeDisplay').textContent = changeStr; const bd = $('poolPriceBadge'); if (changeStr.startsWith('+')) bd.className = 'trade-price-badge price-change-up'; else if (changeStr.startsWith('-')) bd.className = 'trade-price-badge price-change-down'; else bd.className = 'trade-price-badge price-change-flat'; }
 
         function $(id) { return document.getElementById(id) }
 
@@ -1089,8 +1087,7 @@
         function parseError(e) { const m = e?.message || '',
                 mc = m.match(/execution reverted:\s*(.+?)(?:"|$)/); if (mc) return mc[1].trim(); const m2 = m.match(/reason="([^"]+)"/); if (m2) return m2[1]; return m.slice(0, 200) }
 
-        function lock() { if (isProcessing) { alert('请等待当前操作完成'); return !1 }
-            isProcessing = !0; return !0 }
+        function lock() { if (isProcessing) { alert('请等待当前操作完成'); return !1 } isProcessing = !0; return !0 }
 
         function unlock() { isProcessing = !1 }
 
@@ -1106,18 +1103,14 @@
                 const result = await web3.eth.call({ to: RP, data: data });
                 const balance = n(web3.eth.abi.decodeParameter('uint256', result));
                 $('poolBalance').textContent = balance.toFixed(4) + ' MYK';
-            } catch (e) { $('poolAvailableUSDT').textContent = '--';
-                $('poolBalance').textContent = '--'; }
+            } catch (e) { $('poolAvailableUSDT').textContent = '--'; $('poolBalance').textContent = '--'; }
         }
 
         function applySliderPct(pct) {
             currentSliderPct = pct;
             const balanceText = $('poolBalance').textContent;
             const match = balanceText.match(/([\d.]+)/);
-            if (match) { const balance = parseFloat(match[1]); if (pct === 0) { $('poolWithdrawAmount').value = '0';
-                    updatePoolSellQuote(); return; } const amount = (balance * pct / 100).toFixed(8);
-                $('poolWithdrawAmount').value = amount;
-                updatePoolSellQuote(); }
+            if (match) { const balance = parseFloat(match[1]); if (pct === 0) { $('poolWithdrawAmount').value = '0'; updatePoolSellQuote(); return; } const amount = (balance * pct / 100).toFixed(8); $('poolWithdrawAmount').value = amount; updatePoolSellQuote(); }
             updateSliderUI(pct);
         }
 
@@ -1129,31 +1122,19 @@
             let activeIndex = -1;
             for (let i = positions.length - 1; i >= 0; i--) { if (pct >= positions[i]) { activeIndex = i; break; } }
             fill.style.width = pct + '%';
-            dots.forEach((d, i) => { d.classList.remove('active', 'passed'); if (i <= activeIndex && activeIndex >= 0) { d.classList.add('passed'); } if (i === activeIndex || (activeIndex === -1 && i === 0 && pct === 0)) { d.classList.add('active');
-                    d.classList.remove('passed'); } });
-            labels.forEach((l, i) => { l.classList.remove('active', 'passed'); if (i <= activeIndex && activeIndex >= 0) { l.classList.add('passed'); } if (i === activeIndex || (activeIndex === -1 && i === 0 && pct === 0)) { l.classList.add('active');
-                    l.classList.remove('passed'); } });
+            dots.forEach((d, i) => { d.classList.remove('active', 'passed'); if (i <= activeIndex && activeIndex >= 0) { d.classList.add('passed'); } if (i === activeIndex || (activeIndex === -1 && i === 0 && pct === 0)) { d.classList.add('active'); d.classList.remove('passed'); } });
+            labels.forEach((l, i) => { l.classList.remove('active', 'passed'); if (i <= activeIndex && activeIndex >= 0) { l.classList.add('passed'); } if (i === activeIndex || (activeIndex === -1 && i === 0 && pct === 0)) { l.classList.add('active'); l.classList.remove('passed'); } });
         }
 
         function setupSlider() {
             const track = $('poolSliderTrack');
             const positions = [0, 25, 50, 75, 100];
             const getPctFromX = (clientX) => { const rect = track.getBoundingClientRect(); const x = clientX - rect.left; const pctRaw = Math.max(0, Math.min(100, (x / rect.width) * 100)); let closest = positions[0],
-                    minDiff = Math.abs(pctRaw - positions[0]); for (let i = 1; i < positions.length; i++) { const diff = Math.abs(pctRaw - positions[i]); if (diff < minDiff) { minDiff = diff;
-                            closest = positions[i]; } } return closest; };
+                    minDiff = Math.abs(pctRaw - positions[0]); for (let i = 1; i < positions.length; i++) { const diff = Math.abs(pctRaw - positions[i]); if (diff < minDiff) { minDiff = diff; closest = positions[i]; } } return closest; };
             const onMove = (e) => { e.preventDefault(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const pct = getPctFromX(clientX); if (pct !== currentSliderPct) applySliderPct(pct); };
-            const onEnd = (e) => { document.removeEventListener('mousemove', onMove);
-                document.removeEventListener('mouseup', onEnd);
-                document.removeEventListener('touchmove', onMove);
-                document.removeEventListener('touchend', onEnd); };
-            track.addEventListener('mousedown', (e) => { const pct = getPctFromX(e.clientX);
-                applySliderPct(pct);
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onEnd); });
-            track.addEventListener('touchstart', (e) => { const pct = getPctFromX(e.touches[0].clientX);
-                applySliderPct(pct);
-                document.addEventListener('touchmove', onMove, { passive: false });
-                document.addEventListener('touchend', onEnd); });
+            const onEnd = (e) => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onEnd); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd); };
+            track.addEventListener('mousedown', (e) => { const pct = getPctFromX(e.clientX); applySliderPct(pct); document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd); });
+            track.addEventListener('touchstart', (e) => { const pct = getPctFromX(e.touches[0].clientX); applySliderPct(pct); document.addEventListener('touchmove', onMove, { passive: false }); document.addEventListener('touchend', onEnd); });
         }
 
         async function depositToPool() {
@@ -1178,8 +1159,7 @@
                 el.innerHTML = '✅ 参与做市成功！';
                 el.style.borderLeftColor = '#4ecca3';
                 el.style.background = 'rgba(78,204,163,0.1)';
-                setTimeout(() => { fetchPoolInfo();
-                    fetchHoldingInfo(); }, 3000);
+                setTimeout(() => { fetchPoolInfo(); fetchHoldingInfo(); }, 3000);
             } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { b.disabled = !1;
                 b.textContent = '买入 MYK 参与做市';
                 unlock(); }
@@ -1204,9 +1184,7 @@
                 el.innerHTML = '✅ 交易所卖出成功！USDT 已到钱包';
                 el.style.borderLeftColor = '#f0b90b';
                 el.style.background = 'rgba(240,185,11,0.1)';
-                setTimeout(() => { fetchPoolInfo();
-                    fetchHoldingInfo();
-                    refreshIdentityCard(); }, 3000);
+                setTimeout(() => { fetchPoolInfo(); fetchHoldingInfo(); refreshIdentityCard(); }, 3000);
             } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { b.disabled = !1;
                 b.textContent = '交易所卖出';
                 unlock(); }
@@ -1230,39 +1208,23 @@
                 el.innerHTML = '✅ 退出做市成功！MYK 已到钱包';
                 el.style.borderLeftColor = '#f0b90b';
                 el.style.background = 'rgba(240,185,11,0.1)';
-                setTimeout(() => { fetchPoolInfo();
-                    fetchHoldingInfo();
-                    refreshIdentityCard(); }, 3000);
+                setTimeout(() => { fetchPoolInfo(); fetchHoldingInfo(); refreshIdentityCard(); }, 3000);
             } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { b.disabled = !1;
                 b.textContent = '划入钱包';
                 unlock(); }
         }
 
-        async function updatePoolDepositQuote() { const ua = parseFloat($('poolDepositAmount').value) || 0; if (ua <= 0) { $('poolExpectedMYK').textContent = '--'; return } try { const uw = Web3.utils.toWei(String(ua), 'ether'); const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const ams = await rc.methods.getAmountsOut(uw, [USDT, MYK]).call(); const mo = parseFloat(Web3.utils.fromWei(ams[1], 'ether')) * (1 - poolBuySlippage);
-            $('poolExpectedMYK').textContent = mo.toFixed(4); } catch (e) { $('poolExpectedMYK').textContent = '--'; } }
-        async function updatePoolSellQuote() { const ma = parseFloat($('poolWithdrawAmount').value) || 0; if (ma <= 0) { $('poolExpectedUSDT').textContent = '--'; return } try { const mw = Web3.utils.toWei(String(ma), 'ether'); const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const ams = await rc.methods.getAmountsOut(mw, [MYK, USDT]).call(); const uo = parseFloat(Web3.utils.fromWei(ams[1], 'ether')) * (1 - poolSellSlippage);
-            $('poolExpectedUSDT').textContent = uo.toFixed(6); } catch (e) { $('poolExpectedUSDT').textContent = '--'; } }
-        async function updatePoolOrderPanel() { try { if (!web3) return; const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const oneMYK = Web3.utils.toWei('1', 'ether'); const oneUSDT = Web3.utils.toWei('1', 'ether'); const sellAmounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call(); const sellPrice = parseFloat(Web3.utils.fromWei(sellAmounts[1], 'ether')); const buyAmounts = await rc.methods.getAmountsOut(oneUSDT, [USDT, MYK]).call(); const buyRate = parseFloat(Web3.utils.fromWei(buyAmounts[1], 'ether'));
-            $('poolBuyRateDisplay').textContent = buyRate.toFixed(4);
-            $('poolSellRateDisplay').textContent = sellPrice.toFixed(6);
-            $('poolBuyPriceDisplay').textContent = '$' + sellPrice.toFixed(6);
-            $('poolSellPriceDisplay').textContent = '$' + sellPrice.toFixed(6); const sp = sellPrice; const pcs = await fetchPCSChange(); if (pcs) { updatePoolPriceDisplay(sp, pcs.change); } else { const lr = getLocalChange(sp);
-                updatePoolPriceDisplay(sp, lr.change); } } catch (e) {} }
+        async function updatePoolDepositQuote() { const ua = parseFloat($('poolDepositAmount').value) || 0; if (ua <= 0) { $('poolExpectedMYK').textContent = '--'; return } try { const uw = Web3.utils.toWei(String(ua), 'ether'); const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const ams = await rc.methods.getAmountsOut(uw, [USDT, MYK]).call(); const mo = parseFloat(Web3.utils.fromWei(ams[1], 'ether')) * (1 - poolBuySlippage); $('poolExpectedMYK').textContent = mo.toFixed(4); } catch (e) { $('poolExpectedMYK').textContent = '--'; } }
+        async function updatePoolSellQuote() { const ma = parseFloat($('poolWithdrawAmount').value) || 0; if (ma <= 0) { $('poolExpectedUSDT').textContent = '--'; return } try { const mw = Web3.utils.toWei(String(ma), 'ether'); const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const ams = await rc.methods.getAmountsOut(mw, [MYK, USDT]).call(); const uo = parseFloat(Web3.utils.fromWei(ams[1], 'ether')) * (1 - poolSellSlippage); $('poolExpectedUSDT').textContent = uo.toFixed(6); } catch (e) { $('poolExpectedUSDT').textContent = '--'; } }
+        async function updatePoolOrderPanel() { try { if (!web3) return; const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const oneMYK = Web3.utils.toWei('1', 'ether'); const oneUSDT = Web3.utils.toWei('1', 'ether'); const sellAmounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call(); const sellPrice = parseFloat(Web3.utils.fromWei(sellAmounts[1], 'ether')); const buyAmounts = await rc.methods.getAmountsOut(oneUSDT, [USDT, MYK]).call(); const buyRate = parseFloat(Web3.utils.fromWei(buyAmounts[1], 'ether')); $('poolBuyRateDisplay').textContent = buyRate.toFixed(4); $('poolSellRateDisplay').textContent = sellPrice.toFixed(6); $('poolBuyPriceDisplay').textContent = '$' + sellPrice.toFixed(6); $('poolSellPriceDisplay').textContent = '$' + sellPrice.toFixed(6); const sp = sellPrice; const pcs = await fetchPCSChange(); if (pcs) { updatePoolPriceDisplay(sp, pcs.change); } else { const lr = getLocalChange(sp); updatePoolPriceDisplay(sp, lr.change); } } catch (e) {} }
 
         // ========== 其他 ==========
         async function updateActivateSuggestion() {
-            try { const p = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') }); const contractPrice = parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', p), 'ether')); if (contractPrice > 0) { const s = (2 / contractPrice * 1.05).toFixed(4);
-                    $('suggestedMYK').textContent = s;
-                    $('mykAmount').value = s;
-                    $('mykAmount').setAttribute('data-default', s); return; } } catch (e) {}
-            const p = getSpotPrice(); if (p > 0) { const s = (2 / p * 1.05).toFixed(4);
-                $('suggestedMYK').textContent = s;
-                $('mykAmount').value = s;
-                $('mykAmount').setAttribute('data-default', s); }
+            try { const p = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') }); const contractPrice = parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', p), 'ether')); if (contractPrice > 0) { const s = (2 / contractPrice * 1.05).toFixed(4); $('suggestedMYK').textContent = s; $('mykAmount').value = s; $('mykAmount').setAttribute('data-default', s); return; } } catch (e) {}
+            const p = getSpotPrice(); if (p > 0) { const s = (2 / p * 1.05).toFixed(4); $('suggestedMYK').textContent = s; $('mykAmount').value = s; $('mykAmount').setAttribute('data-default', s); }
         }
 
-        function updateFifthMykSuggestion() { const p = getSpotPrice(); if (p > 0) { const m = (1000 / p * 1.055).toFixed(4);
-                $('fifthMykAmount').textContent = m; } }
+        function updateFifthMykSuggestion() { const p = getSpotPrice(); if (p > 0) { const m = (1000 / p * 1.055).toFixed(4); $('fifthMykAmount').textContent = m; } }
         async function fetchUserGovTier() { if (!web3 || !userAddress) return 0; try { const data = encodeCall('getCommunityTier(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: GOV, data: data }); return parseInt(web3.eth.abi.decodeParameter('uint8', result)); } catch (e) { try { const data = encodeCall('getCommunityTier(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: GOV, data: data }); return parseInt(web3.eth.abi.decodeParameter('uint256', result)); } catch (e2) {} } return 0; }
         async function fetchUserBasic() { if (!web3 || !userAddress) return null; try { const data = encodeCall('getUserBasic(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: RP, data: data }); const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint8', 'uint256', 'bool'], result); return { referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]), role: parseInt(u[3]), activatedAt: parseInt(u[4]), isActive: u[5] }; } catch (e) { try { const data = encodeCall('users(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: RP, data: data }); const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint8', 'bool'], result); return { referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[1]), role: parseInt(u[7]), activatedAt: parseInt(u[4]), isActive: u[8] }; } catch (e2) {} } return null; }
 
@@ -1306,65 +1268,28 @@
                     $('bonusRemaining').textContent = Math.max(0, totalDays - claimedDays) + '天';
                     $('claimBonusBtn').disabled = !isActive || claimedDays >= totalDays;
                     if (!isActive) { $('claimBonusBtn').textContent = '📈 暂无升级奖励'; } else if (claimedDays >= totalDays) { $('claimBonusBtn').textContent = '✅ 已全部领取'; } else { $('claimBonusBtn').textContent = '📈 领取今日升级奖励'; }
-                } catch (e2) { $('bonusPrincipal').textContent = '--';
-                    $('bonusDaily').textContent = '--';
-                    $('bonusClaimed').textContent = '--';
-                    $('bonusRemaining').textContent = '--';
-                    $('claimBonusBtn').disabled = true;
-                    $('claimBonusBtn').textContent = '📈 暂无升级奖励'; }
+                } catch (e2) { $('bonusPrincipal').textContent = '--'; $('bonusDaily').textContent = '--'; $('bonusClaimed').textContent = '--'; $('bonusRemaining').textContent = '--'; $('claimBonusBtn').disabled = true; $('claimBonusBtn').textContent = '📈 暂无升级奖励'; }
             }
         }
 
         async function claimDailyBonus() { if (!userAddress) { alert('请先连接钱包'); return; } if (!lock()) return; const b = $('claimBonusBtn'),
-                el = $('claimBonusResult');
-            el.style.display = 'block';
-            el.innerHTML = '⏳ 领取中...';
-            b.disabled = true; try { const tx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: encodeCall('claimDailyBonus()') }] });
-                el.innerHTML = '⏳ 等待确认...';
-                await waitForTransaction(tx);
-                el.innerHTML = '✅ 领取成功！';
-                el.style.borderLeftColor = '#4ecca3';
-                el.style.background = 'rgba(78,204,163,0.1)';
-                setTimeout(() => { fetchDailyBonusInfo();
-                    fetchHoldingInfo(); }, 3000); } catch (e) { const m = parseError(e);
-                el.innerHTML = m.includes('NothingToClaim') || m.includes('already claimed') ? '⚠️ 今日已领取或无待领奖励' : m.includes('not active') ? '⚠️ 暂无升级奖励' : '❌ ' + m; } finally { b.disabled = false;
-                unlock(); } }
+                el = $('claimBonusResult'); el.style.display = 'block'; el.innerHTML = '⏳ 领取中...'; b.disabled = true; try { const tx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: encodeCall('claimDailyBonus()') }] }); el.innerHTML = '⏳ 等待确认...'; await waitForTransaction(tx); el.innerHTML = '✅ 领取成功！'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)'; setTimeout(() => { fetchDailyBonusInfo(); fetchHoldingInfo(); }, 3000); } catch (e) { const m = parseError(e); el.innerHTML = m.includes('NothingToClaim') || m.includes('already claimed') ? '⚠️ 今日已领取或无待领奖励' : m.includes('not active') ? '⚠️ 暂无升级奖励' : '❌ ' + m; } finally { b.disabled = false; unlock(); } }
 
         async function fetchCommunityExpiry() {
             if (!web3 || !userAddress) return;
             try {
                 const userTier = await fetchUserGovTier();
-                for (const [cardId, elId] of Object.entries(CARD_EXPIRY_MAP)) { const el = $(elId); if (!el) continue; const span = el.querySelector('span'); if (!span) continue;
-                    span.textContent = '永久'; }
+                for (const [cardId, elId] of Object.entries(CARD_EXPIRY_MAP)) { const el = $(elId); if (!el) continue; const span = el.querySelector('span'); if (!span) continue; span.textContent = '永久'; }
                 const tierCards = { 1: ['community1Card', 'community1Status'], 2: ['community2Card', 'community2Status'], 3: ['community3Card', 'community3Status'], 4: ['community4Card', 'community4Status'], 5: ['community5Card', 'community5Status'], 6: ['community5Card', 'community5Status'] };
-                for (let t = 1; t <= 6; t++) { const [cardId, statusId] = tierCards[t] || []; if (cardId && statusId) { $(cardId).classList.add('locked');
-                        $(cardId).classList.remove('unlocked');
-                        $(statusId).textContent = '🔒 未解锁';
-                        $(statusId).style.color = '#a3adc9'; } }
-                if (userTier === 1 || userTier === 2 || userTier === 3 || userTier === 4 || userTier === 5 || userTier === 6) { const tier = userTier >= 5 ? 5 : userTier; const [cardId, statusId] = tierCards[tier]; if (cardId && statusId) { $(cardId).classList.remove('locked');
-                        $(cardId).classList.add('unlocked');
-                        $(statusId).textContent = '🔓 已解锁';
-                        $(statusId).style.color = '#4ecca3'; } }
+                for (let t = 1; t <= 6; t++) { const [cardId, statusId] = tierCards[t] || []; if (cardId && statusId) { $(cardId).classList.add('locked'); $(cardId).classList.remove('unlocked'); $(statusId).textContent = '🔒 未解锁'; $(statusId).style.color = '#a3adc9'; } }
+                if (userTier === 1 || userTier === 2 || userTier === 3 || userTier === 4 || userTier === 5 || userTier === 6) { const tier = userTier >= 5 ? 5 : userTier; const [cardId, statusId] = tierCards[tier]; if (cardId && statusId) { $(cardId).classList.remove('locked'); $(cardId).classList.add('unlocked'); $(statusId).textContent = '🔓 已解锁'; $(statusId).style.color = '#4ecca3'; } }
                 updateRightsCardBorder(userTier);
             } catch (e) {}
         }
 
         function updateRightsCardBorder(userTier) { const outer = $('rightsCardOuter'); if (!outer) return; if (userTier >= 1) { outer.classList.add('glass-card-active'); } else { outer.classList.remove('glass-card-active'); } }
 
-        function setupCopyButtons() { document.querySelectorAll('.contract-addr-copy').forEach(btn => { btn.addEventListener('click', async function() { const addr = this.dataset.addr; if (!addr) return; try { await navigator.clipboard.writeText(addr);
-                        this.textContent = '✅ 已复制';
-                        this.classList.add('copied');
-                        setTimeout(() => { this.textContent = '复制';
-                            this.classList.remove('copied'); }, 2000); } catch (e) { const ta = document.createElement('textarea');
-                        ta.value = addr;
-                        document.body.appendChild(ta);
-                        ta.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(ta);
-                        this.textContent = '✅ 已复制';
-                        this.classList.add('copied');
-                        setTimeout(() => { this.textContent = '复制';
-                            this.classList.remove('copied'); }, 2000); } }); }); }
+        function setupCopyButtons() { document.querySelectorAll('.contract-addr-copy').forEach(btn => { btn.addEventListener('click', async function() { const addr = this.dataset.addr; if (!addr) return; try { await navigator.clipboard.writeText(addr); this.textContent = '✅ 已复制'; this.classList.add('copied'); setTimeout(() => { this.textContent = '复制'; this.classList.remove('copied'); }, 2000); } catch (e) { const ta = document.createElement('textarea'); ta.value = addr; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); this.textContent = '✅ 已复制'; this.classList.add('copied'); setTimeout(() => { this.textContent = '复制'; this.classList.remove('copied'); }, 2000); } }); }); }
         async function waitForTransaction(txHash, maxAttempts = 30) { for (let i = 0; i < maxAttempts; i++) { try { const r = await web3.eth.getTransactionReceipt(txHash); if (r) { if (r.status) return r; else throw new Error('交易失败'); } } catch (e) { if (i === maxAttempts - 1) throw e; } await new Promise(r => setTimeout(r, 2000)); } throw new Error('超时'); }
 
         function calcMinOutput(amountOut, slippage) { const a = BigInt(amountOut); const n = BigInt(Math.round((1 - slippage) * 10000)); return (a * n / BigInt(10000)).toString(); }
@@ -1378,38 +1303,19 @@
             btn.textContent = '处理中...';
             el.style.display = 'block';
             try {
-                if (amount >= 500) { const sp = getSpotPrice(); if (sp <= 0) { alert('无法获取现货价格'); return; } const mykAmount = web3.utils.toWei(String((amount / sp) * 1.055), 'ether');
-                    el.innerHTML = `⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`; const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, mykAmount]) }] });
-                    el.innerHTML = '⏳ 等待授权确认...';
-                    await waitForTransaction(aTx);
-                    el.innerHTML = '⏳ 销毁中...'; const bTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: encodeCall('burnForTier(uint256)', ['uint256'], [mykAmount]) }] });
-                    el.innerHTML = '⏳ 等待销毁确认...';
-                    await waitForTransaction(bTx); } else { const fee = web3.utils.toWei(String(amount), 'ether');
-                    el.innerHTML = `⏳ 正在授权 ${amount} USDT...`; const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, fee]) }] });
-                    el.innerHTML = '⏳ 等待授权确认...';
-                    await waitForTransaction(aTx);
-                    el.innerHTML = '⏳ 升级中（含推荐奖励分发）...'; const uTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: encodeCall('upgradeWithUSDT(uint256)', ['uint256'], [fee]) }] });
-                    el.innerHTML = '⏳ 等待升级确认...';
-                    await waitForTransaction(uTx); }
+                if (amount >= 500) { const sp = getSpotPrice(); if (sp <= 0) { alert('无法获取现货价格'); return; } const mykAmount = web3.utils.toWei(String((amount / sp) * 1.055), 'ether'); el.innerHTML = `⏳ 将销毁 ${n(mykAmount).toFixed(4)} MYK (等值${amount}U+0.5%手续费，可累计)`; const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, mykAmount]) }] }); el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx); el.innerHTML = '⏳ 销毁中...'; const bTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: encodeCall('burnForTier(uint256)', ['uint256'], [mykAmount]) }] }); el.innerHTML = '⏳ 等待销毁确认...'; await waitForTransaction(bTx); } else { const fee = web3.utils.toWei(String(amount), 'ether'); el.innerHTML = `⏳ 正在授权 ${amount} USDT...`; const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, fee]) }] }); el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx); el.innerHTML = '⏳ 升级中（含推荐奖励分发）...'; const uTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: encodeCall('upgradeWithUSDT(uint256)', ['uint256'], [fee]) }] }); el.innerHTML = '⏳ 等待升级确认...'; await waitForTransaction(uTx); }
                 el.innerHTML = '✅ 解锁成功！';
                 el.style.borderLeftColor = '#f0b90b';
                 el.style.background = 'rgba(240,185,11,0.1)';
                 btn.style.display = 'none';
-                setTimeout(() => { fetchUserStats();
-                    fetchHoldingInfo();
-                    refreshIdentityCard();
-                    fetchContractInfo(); }, 3000);
-            } catch (e) { const m = parseError(e);
-                el.innerHTML = m.includes('User denied') || m.includes('rejected') ? '⚠️ 交易已取消' : m.includes('insufficient') ? '⚠️ 余额不足' : '❌ ' + m; } finally { btn.disabled = false;
-                btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益';
-                unlock(); }
+                setTimeout(() => { fetchUserStats(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000);
+            } catch (e) { const m = parseError(e); el.innerHTML = m.includes('User denied') || m.includes('rejected') ? '⚠️ 交易已取消' : m.includes('insufficient') ? '⚠️ 余额不足' : '❌ ' + m; } finally { btn.disabled = false; btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益'; unlock(); }
         }
 
         function setupUpgradeButtons() { document.querySelectorAll('.upgrade-btn').forEach(b => { b.addEventListener('click', function() { upgradeCommunity(parseFloat(this.dataset.amount)); }); }); }
         async function fetchRoleRates() {
             if (!web3) return;
-            try { const p = await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [userAddress]) });
-                $('primaryRate').textContent = (Number(web3.eth.abi.decodeParameter('uint256', p)) / 10).toFixed(1) + '%'; } catch (e) { $('primaryRate').textContent = '1.0%'; }
+            try { const p = await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [userAddress]) }); $('primaryRate').textContent = (Number(web3.eth.abi.decodeParameter('uint256', p)) / 10).toFixed(1) + '%'; } catch (e) { $('primaryRate').textContent = '1.0%'; }
             try { $('middleRate').textContent = '1.3%'; } catch (e) { $('middleRate').textContent = '1.3%'; }
             try { $('communityRate').textContent = '1.6%'; } catch (e) { $('communityRate').textContent = '1.6%'; }
         }
@@ -1419,20 +1325,13 @@
                 const ts = await web3.eth.call({ to: MYK, data: encodeCall('totalSupply()') });
                 $('totalSupply').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', ts)));
                 let ba = 0;
-                try { const d = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [DEAD_ADDR]) });
-                    ba = parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', d), 'ether')); } catch (e) {}
-                try { const z = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR]) });
-                    ba += parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', z), 'ether')); } catch (e) {}
+                try { const d = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [DEAD_ADDR]) }); ba = parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', d), 'ether')); } catch (e) {}
+                try { const z = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR]) }); ba += parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', z), 'ether')); } catch (e) {}
                 $('burnedAmount').textContent = formatM(ba);
-                try { const bp = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [RP]) });
-                    $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', bp))); } catch (e) { $('bonusPool').textContent = '--'; }
-                try { const data = encodeCall('getDividendInfo()'); const result = await web3.eth.call({ to: GOV, data: data }); const info = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], result); const totalDividend = BigInt(info[0]) + BigInt(info[1]) + BigInt(info[2]);
-                    $('govLocked').textContent = formatM(n(totalDividend.toString())); } catch (e) { try { const gb = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) });
-                        $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', gb))); } catch (e2) { $('govLocked').textContent = '--'; } }
-                try { const fb = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [FM]) });
-                    $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', fb))); } catch (e) { $('fundAsset').textContent = '--'; }
-            } catch (e) { $('totalSupply').textContent = '--';
-                $('burnedAmount').textContent = '--'; }
+                try { const bp = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [RP]) }); $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', bp))); } catch (e) { $('bonusPool').textContent = '--'; }
+                try { const data = encodeCall('getDividendInfo()'); const result = await web3.eth.call({ to: GOV, data: data }); const info = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], result); const totalDividend = BigInt(info[0]) + BigInt(info[1]) + BigInt(info[2]); $('govLocked').textContent = formatM(n(totalDividend.toString())); } catch (e) { try { const gb = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) }); $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', gb))); } catch (e2) { $('govLocked').textContent = '--'; } }
+                try { const fb = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [FM]) }); $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', fb))); } catch (e) { $('fundAsset').textContent = '--'; }
+            } catch (e) { $('totalSupply').textContent = '--'; $('burnedAmount').textContent = '--'; }
             fetchRoleRates();
             fetchCommunityExpiry();
             fetchDailyBonusInfo();
@@ -1440,42 +1339,21 @@
         }
 
         async function updateOrderPanel() {
-            try { if (!web3) return; const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const oneMYK = Web3.utils.toWei('1', 'ether'); const oneUSDT = Web3.utils.toWei('1', 'ether'); const sellAmounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call(); const sellPrice = parseFloat(Web3.utils.fromWei(sellAmounts[1], 'ether')); const buyAmounts = await rc.methods.getAmountsOut(oneUSDT, [USDT, MYK]).call(); const buyRate = parseFloat(Web3.utils.fromWei(buyAmounts[1], 'ether'));
-                $('buyRateDisplay').textContent = buyRate.toFixed(4);
-                $('sellRateDisplay').textContent = sellPrice.toFixed(6);
-                $('buyPriceDisplay').textContent = '$' + sellPrice.toFixed(6);
-                $('sellPriceDisplay').textContent = '$' + sellPrice.toFixed(6); } catch (e) {}
+            try { if (!web3) return; const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const oneMYK = Web3.utils.toWei('1', 'ether'); const oneUSDT = Web3.utils.toWei('1', 'ether'); const sellAmounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call(); const sellPrice = parseFloat(Web3.utils.fromWei(sellAmounts[1], 'ether')); const buyAmounts = await rc.methods.getAmountsOut(oneUSDT, [USDT, MYK]).call(); const buyRate = parseFloat(Web3.utils.fromWei(buyAmounts[1], 'ether')); $('buyRateDisplay').textContent = buyRate.toFixed(4); $('sellRateDisplay').textContent = sellPrice.toFixed(6); $('buyPriceDisplay').textContent = '$' + sellPrice.toFixed(6); $('sellPriceDisplay').textContent = '$' + sellPrice.toFixed(6); } catch (e) {}
         }
 
-        function setupSwipeDots() { const c = $('swipeContainer'); const ds = document.querySelectorAll('.swipe-dot');
-            c.addEventListener('scroll', function() { const i = Math.round(c.scrollLeft / c.offsetWidth);
-                ds.forEach((d, j) => d.classList.toggle('active', j === i)); }); }
-        async function connectWallet() { if (!window.ethereum) { alert('请安装MetaMask'); return } const a = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            web3 = new Web3(window.ethereum);
-            userAddress = a[0];
-            $('walletDisplay').textContent = a6(userAddress);
-            $('walletDisplay').style.color = '#4ef0a8';
-            await fetchPrice();
-            fetchAirdrop();
-            fetchUserStats();
-            fetchHoldingInfo();
-            refreshIdentityCard();
-            fetchContractInfo(); }
+        function setupSwipeDots() { const c = $('swipeContainer'); const ds = document.querySelectorAll('.swipe-dot'); c.addEventListener('scroll', function() { const i = Math.round(c.scrollLeft / c.offsetWidth); ds.forEach((d, j) => d.classList.toggle('active', j === i)); }); }
+        async function connectWallet() { if (!window.ethereum) { alert('请安装MetaMask'); return } const a = await window.ethereum.request({ method: 'eth_requestAccounts' }); web3 = new Web3(window.ethereum); userAddress = a[0]; $('walletDisplay').textContent = a6(userAddress); $('walletDisplay').style.color = '#4ef0a8'; await fetchPrice(); fetchAirdrop(); fetchUserStats(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }
 
         async function fetchPrice() {
             try {
                 if (!web3) return;
                 try { activationPrice = (await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') })).toString(); } catch (e1) {}
-                try { const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const oneMYK = Web3.utils.toWei('1', 'ether'); const amounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call(); const priceFromRouter = parseFloat(Web3.utils.fromWei(amounts[1], 'ether'));
-                    spotPrice = Web3.utils.toWei(String(priceFromRouter), 'ether'); } catch (e2) { try { const pa = [{ "constant": true, "inputs": [], "name": "getReserves", "outputs": [{ "internalType": "uint112", "name": "_reserve0", "type": "uint112" }, { "internalType": "uint112", "name": "_reserve1", "type": "uint112" }, { "internalType": "uint32", "name": "_blockTimestampLast", "type": "uint32" }], "type": "function" }, { "constant": true, "inputs": [], "name": "token0", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "type": "function" }]; const pc = new web3.eth.Contract(pa, PAIR); const t0 = await pc.methods.token0().call(); const rv = await pc.methods.getReserves().call(); const r0 = BigInt(rv[0]),
-                            r1 = BigInt(rv[1]); if (r0 === BigInt(0) || r1 === BigInt(0)) throw new Error('0'); let rU, rM; if (t0.toLowerCase() === USDT.toLowerCase()) { rU = r0;
-                            rM = r1; } else { rU = r1;
-                            rM = r0; }
-                        spotPrice = ((rU * BigInt(10 ** 18)) / rM).toString(); } catch (e3) {} }
+                try { const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const oneMYK = Web3.utils.toWei('1', 'ether'); const amounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call(); const priceFromRouter = parseFloat(Web3.utils.fromWei(amounts[1], 'ether')); spotPrice = Web3.utils.toWei(String(priceFromRouter), 'ether'); } catch (e2) { try { const pa = [{ "constant": true, "inputs": [], "name": "getReserves", "outputs": [{ "internalType": "uint112", "name": "_reserve0", "type": "uint112" }, { "internalType": "uint112", "name": "_reserve1", "type": "uint112" }, { "internalType": "uint32", "name": "_blockTimestampLast", "type": "uint32" }], "type": "function" }, { "constant": true, "inputs": [], "name": "token0", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "type": "function" }]; const pc = new web3.eth.Contract(pa, PAIR); const t0 = await pc.methods.token0().call(); const rv = await pc.methods.getReserves().call(); const r0 = BigInt(rv[0]),
+                            r1 = BigInt(rv[1]); if (r0 === BigInt(0) || r1 === BigInt(0)) throw new Error('0'); let rU, rM; if (t0.toLowerCase() === USDT.toLowerCase()) { rU = r0; rM = r1; } else { rU = r1; rM = r0; } spotPrice = ((rU * BigInt(10 ** 18)) / rM).toString(); } catch (e3) {} }
                 const sp = getSpotPrice();
                 const pcs = await fetchPCSChange();
-                if (pcs) { updatePriceDisplay(sp, pcs.change); } else { const lr = getLocalChange(sp);
-                    updatePriceDisplay(sp, lr.change); }
+                if (pcs) { updatePriceDisplay(sp, pcs.change); } else { const lr = getLocalChange(sp); updatePriceDisplay(sp, lr.change); }
                 updateActivateSuggestion();
                 updateFifthMykSuggestion();
                 updateBuyQuote();
@@ -1484,153 +1362,36 @@
                 updatePoolDepositQuote();
                 updatePoolSellQuote();
                 updatePoolOrderPanel();
-            } catch (e) { $('tradePriceDisplay').textContent = '--';
-                $('tradePriceBadge').className = 'trade-price-badge price-change-flat';
-                $('tradeChangeDisplay').textContent = '--';
-                updateActivateSuggestion(); }
+            } catch (e) { $('tradePriceDisplay').textContent = '--'; $('tradePriceBadge').className = 'trade-price-badge price-change-flat'; $('tradeChangeDisplay').textContent = '--'; updateActivateSuggestion(); }
         }
 
-        function startPriceAutoRefresh() { fetchPrice().then(() => { updateBuyQuote();
-                updateSellQuote(); });
-            priceRefreshInterval = setInterval(() => { const s = localStorage.getItem(STORAGE_KEY); if (s) { try { const d = JSON.parse(s); if (d.date !== getTodayKey()) localStorage.removeItem(STORAGE_KEY); } catch (e) {} }
-                fetchPrice().then(() => { updateBuyQuote();
-                    updateSellQuote(); }); }, 30000); }
+        function startPriceAutoRefresh() { fetchPrice().then(() => { updateBuyQuote(); updateSellQuote(); }); priceRefreshInterval = setInterval(() => { const s = localStorage.getItem(STORAGE_KEY); if (s) { try { const d = JSON.parse(s); if (d.date !== getTodayKey()) localStorage.removeItem(STORAGE_KEY); } catch (e) {} } fetchPrice().then(() => { updateBuyQuote(); updateSellQuote(); }); }, 30000); }
         async function getSwapQuote(ai, p) { try { const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }]; const rc = new web3.eth.Contract(ra, ROUTER); const ams = await rc.methods.getAmountsOut(ai, p).call(); return ams[1]; } catch (e) { const pr = getSpotPrice(); if (isNaN(pr) || pr <= 0) return '0'; const an = parseFloat(Web3.utils.fromWei(ai, 'ether')); return p[0].toLowerCase() === USDT.toLowerCase() ? Web3.utils.toWei(String(an / pr), 'ether') : Web3.utils.toWei(String(an * pr), 'ether'); } }
         async function updateBuyQuote() { const ua = parseFloat($('buyUSDTAmount').value) || 0; if (ua <= 0) { $('expectedMYK').textContent = '--'; return } try { const uw = Web3.utils.toWei(String(ua), 'ether'),
                     mo = await getSwapQuote(uw, [USDT, MYK]),
-                    ms = parseFloat(Web3.utils.fromWei(mo, 'ether')) * (1 - buySlippage);
-                $('expectedMYK').textContent = ms.toFixed(4); } catch (e) { $('expectedMYK').textContent = '--'; } }
+                    ms = parseFloat(Web3.utils.fromWei(mo, 'ether')) * (1 - buySlippage); $('expectedMYK').textContent = ms.toFixed(4); } catch (e) { $('expectedMYK').textContent = '--'; } }
         async function updateSellQuote() { const ma = parseFloat($('sellMYKAmount').value) || 0; if (ma <= 0) { $('expectedUSDT').textContent = '--'; return } try { const mw = Web3.utils.toWei(String(ma), 'ether'),
                     uo = await getSwapQuote(mw, [MYK, USDT]),
-                    us = parseFloat(Web3.utils.fromWei(uo, 'ether')) * (1 - sellSlippage);
-                $('expectedUSDT').textContent = us.toFixed(6); } catch (e) { $('expectedUSDT').textContent = '--'; } }
+                    us = parseFloat(Web3.utils.fromWei(uo, 'ether')) * (1 - sellSlippage); $('expectedUSDT').textContent = us.toFixed(6); } catch (e) { $('expectedUSDT').textContent = '--'; } }
         async function buyMYK() { if (!userAddress) { alert('请先连接钱包'); return } if (!lock()) return; const b = $('buyMYKBtn'),
                 el = $('buyResult'),
-                ua = parseFloat($('buyUSDTAmount').value); if (!ua || ua <= 0) { alert('请输入有效的USDT数量'); return }
-            el.style.display = 'block';
-            b.disabled = !0; try { const uw = Web3.utils.toWei(String(ua), 'ether'),
-                    dl = Math.floor(Date.now() / 1000) + 300;
-                el.innerHTML = '⏳ 查询报价...'; const mo = await getSwapQuote(uw, [USDT, MYK]); const mm = calcMinOutput(mo, buySlippage);
-                el.innerHTML = '⏳ 检查余额...'; const br = await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }); if (BigInt(web3.eth.abi.decodeParameter('uint256', br)) < BigInt(uw)) throw new Error('USDT余额不足');
-                el.innerHTML = '⏳ 授权 USDT...'; const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER, uw]) }] });
-                el.innerHTML = '⏳ 等待授权确认...';
-                await waitForTransaction(aTx);
-                el.innerHTML = '⏳ 买入 MYK...'; const sTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [uw, mm, [USDT, MYK], userAddress, String(dl)]) }] });
-                el.innerHTML = '⏳ 等待交易确认...';
-                await waitForTransaction(sTx);
-                el.innerHTML = '✅ 买入成功！';
-                setTimeout(() => { fetchPrice().then(() => { updateBuyQuote();
-                        updateSellQuote(); });
-                    fetchHoldingInfo();
-                    refreshIdentityCard();
-                    fetchContractInfo(); }, 3000); } catch (e) { const m = parseError(e);
-                el.innerHTML = m.includes('User denied') || m.includes('rejected') ? '⚠️ 交易已取消' : m.includes('insufficient') ? '⚠️ 余额不足' : '❌ ' + m; } finally { b.disabled = !1;
-                unlock(); } }
+                ua = parseFloat($('buyUSDTAmount').value); if (!ua || ua <= 0) { alert('请输入有效的USDT数量'); return } el.style.display = 'block'; b.disabled = !0; try { const uw = Web3.utils.toWei(String(ua), 'ether'),
+                    dl = Math.floor(Date.now() / 1000) + 300; el.innerHTML = '⏳ 查询报价...'; const mo = await getSwapQuote(uw, [USDT, MYK]); const mm = calcMinOutput(mo, buySlippage); el.innerHTML = '⏳ 检查余额...'; const br = await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }); if (BigInt(web3.eth.abi.decodeParameter('uint256', br)) < BigInt(uw)) throw new Error('USDT余额不足'); el.innerHTML = '⏳ 授权 USDT...'; const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER, uw]) }] }); el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx); el.innerHTML = '⏳ 买入 MYK...'; const sTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [uw, mm, [USDT, MYK], userAddress, String(dl)]) }] }); el.innerHTML = '⏳ 等待交易确认...'; await waitForTransaction(sTx); el.innerHTML = '✅ 买入成功！'; setTimeout(() => { fetchPrice().then(() => { updateBuyQuote(); updateSellQuote(); }); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000); } catch (e) { const m = parseError(e); el.innerHTML = m.includes('User denied') || m.includes('rejected') ? '⚠️ 交易已取消' : m.includes('insufficient') ? '⚠️ 余额不足' : '❌ ' + m; } finally { b.disabled = !1; unlock(); } }
         async function sellMYK() { if (!userAddress) { alert('请先连接钱包'); return } if (!lock()) return; const b = $('sellMYKBtn'),
                 el = $('sellResult'),
-                ma = parseFloat($('sellMYKAmount').value); if (!ma || ma <= 0) { alert('请输入有效的MYK数量'); return }
-            el.style.display = 'block';
-            b.disabled = !0; try { const mw = Web3.utils.toWei(String(ma), 'ether'),
-                    dl = Math.floor(Date.now() / 1000) + 300;
-                el.innerHTML = '⏳ 查询报价...'; const uo = await getSwapQuote(mw, [MYK, USDT]); const mu = calcMinOutput(uo, sellSlippage);
-                el.innerHTML = '⏳ 检查余额...'; const br = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }); if (BigInt(web3.eth.abi.decodeParameter('uint256', br)) < BigInt(mw)) throw new Error('MYK余额不足');
-                el.innerHTML = '⏳ 授权 MYK...'; const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER, mw]) }] });
-                el.innerHTML = '⏳ 等待授权确认...';
-                await waitForTransaction(aTx);
-                el.innerHTML = '⏳ 卖出 MYK...'; const sTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [mw, mu, [MYK, USDT], userAddress, String(dl)]) }] });
-                el.innerHTML = '⏳ 等待交易确认...';
-                await waitForTransaction(sTx);
-                el.innerHTML = '✅ 卖出成功！';
-                setTimeout(() => { fetchPrice().then(() => { updateBuyQuote();
-                        updateSellQuote(); });
-                    fetchHoldingInfo();
-                    refreshIdentityCard();
-                    fetchContractInfo(); }, 3000); } catch (e) { const m = parseError(e);
-                el.innerHTML = m.includes('User denied') || m.includes('rejected') ? '⚠️ 交易已取消' : m.includes('insufficient') ? '⚠️ 余额不足' : '❌ ' + m; } finally { b.disabled = !1;
-                unlock(); } }
-        async function fetchAirdrop() { if (!web3) return; try { const d = encodeCall('getActivityPoolBalance()'); const r = await web3.eth.call({ to: RP, data: d }); const currentBalance = n(web3.eth.abi.decodeParameter('uint256', r)); const stored = localStorage.getItem('myk_airdrop_total_' + RP); if (!stored) { airdropTotalAmount = Math.max(currentBalance, AIRDROP_INITIAL);
-                    localStorage.setItem('myk_airdrop_total_' + RP, airdropTotalAmount); } else { airdropTotalAmount = parseFloat(stored); if (currentBalance > airdropTotalAmount) { airdropTotalAmount = currentBalance;
-                        localStorage.setItem('myk_airdrop_total_' + RP, airdropTotalAmount); } } const paid = airdropTotalAmount - currentBalance; const pc = Math.min(100, Math.max(0, (paid / airdropTotalAmount) * 100));
-                $('airdropTotal').textContent = formatM(airdropTotalAmount);
-                $('airdropPaid').textContent = formatM(paid);
-                $('airdropRemaining').textContent = formatM(currentBalance);
-                $('airdropProgress').style.width = pc.toFixed(1) + '%';
-                $('airdropPercent').textContent = pc.toFixed(1) + '%';
-                $('airdropPoolBalance').textContent = formatM(currentBalance); } catch (e) { $('airdropTotal').textContent = '--';
-                $('airdropPaid').textContent = '--';
-                $('airdropRemaining').textContent = '--'; } }
-        async function fetchUserStats() { if (!userAddress || !web3) return; try { const basic = await fetchUserBasic(); if (!basic) { $('middleInvitedCount').textContent = '--';
-                    $('streakDays').textContent = '--'; return; } const activatedInvited = basic.activatedInvited;
-                $('middleInvitedCount').textContent = activatedInvited; const progress = Math.min(100, (activatedInvited / 3) * 100);
-                $('middleProgress').style.width = progress.toFixed(1) + '%'; if (basic.role === 2) { $('middleCard').classList.remove('locked');
-                    $('middleCard').classList.add('unlocked');
-                    $('middleStatus').textContent = '🔓 已解锁';
-                    $('middleStatus').style.color = '#4ecca3'; } else { $('middleCard').classList.add('locked');
-                    $('middleCard').classList.remove('unlocked'); if (activatedInvited >= 3 && basic.role === 1) { $('middleStatus').textContent = '⚠️ 条件满足，请检查锁仓状态';
-                        $('middleStatus').style.color = '#f0b90b'; } else { $('middleStatus').textContent = '🔒 未解锁';
-                        $('middleStatus').style.color = '#a3adc9'; } }
-                try { const sl = await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) });
-                    $('streakDays').textContent = web3.eth.abi.decodeParameter('uint256', sl); } catch (e) { $('streakDays').textContent = '0'; } } catch (e) { $('middleInvitedCount').textContent = '--';
-                $('streakDays').textContent = '--'; } }
-        async function refreshIdentityCard() { if (!userAddress || !web3) return; try { const basic = await fetchUserBasic(); if (!basic) return; const govTier = await fetchUserGovTier(); const rpRole = basic.role; let roleName = '无'; if (govTier >= 6) roleName = '👑 SIXTH'; else if (govTier >= 5) roleName = '👑 FIFTH'; else if (govTier >= 4) roleName = '🥇 FOURTH'; else if (govTier >= 3) roleName = '🥇 THIRD'; else if (govTier >= 2) roleName = '🥇 SECOND'; else if (govTier >= 1) roleName = '🥇 FIRST'; else if (rpRole >= 3) roleName = '🥇 COMMUNITY'; else if (rpRole >= 2) roleName = '🥈 MIDDLE'; else if (rpRole >= 1) roleName = '🥉 PRIMARY';
-                $('cardRole').textContent = roleName;
-                $('cardActiveBadge').innerHTML = basic.isActive ? '<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>' : '<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>';
-                $('cardReferrer').textContent = basic.referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(basic.referrer);
-                $('cardReferrer').style.color = basic.referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8';
-                $('cardActivated').textContent = basic.activatedAt > 0 ? new Date(basic.activatedAt * 1000).toLocaleDateString('zh-CN') : '未激活';
-                $('cardInvited').textContent = basic.invited;
-                try { const sl = await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) });
-                    $('cardStreak').textContent = web3.eth.abi.decodeParameter('uint256', sl); } catch (e) { $('cardStreak').textContent = '0'; }
-                try { $('cardMYK').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) { $('cardMYK').textContent = '--'; }
-                try { $('cardUSDT').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) { $('cardUSDT').textContent = '--'; } } catch (e) {} }
+                ma = parseFloat($('sellMYKAmount').value); if (!ma || ma <= 0) { alert('请输入有效的MYK数量'); return } el.style.display = 'block'; b.disabled = !0; try { const mw = Web3.utils.toWei(String(ma), 'ether'),
+                    dl = Math.floor(Date.now() / 1000) + 300; el.innerHTML = '⏳ 查询报价...'; const uo = await getSwapQuote(mw, [MYK, USDT]); const mu = calcMinOutput(uo, sellSlippage); el.innerHTML = '⏳ 检查余额...'; const br = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }); if (BigInt(web3.eth.abi.decodeParameter('uint256', br)) < BigInt(mw)) throw new Error('MYK余额不足'); el.innerHTML = '⏳ 授权 MYK...'; const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER, mw]) }] }); el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx); el.innerHTML = '⏳ 卖出 MYK...'; const sTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [mw, mu, [MYK, USDT], userAddress, String(dl)]) }] }); el.innerHTML = '⏳ 等待交易确认...'; await waitForTransaction(sTx); el.innerHTML = '✅ 卖出成功！'; setTimeout(() => { fetchPrice().then(() => { updateBuyQuote(); updateSellQuote(); }); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000); } catch (e) { const m = parseError(e); el.innerHTML = m.includes('User denied') || m.includes('rejected') ? '⚠️ 交易已取消' : m.includes('insufficient') ? '⚠️ 余额不足' : '❌ ' + m; } finally { b.disabled = !1; unlock(); } }
+        async function fetchAirdrop() { if (!web3) return; try { const d = encodeCall('getActivityPoolBalance()'); const r = await web3.eth.call({ to: RP, data: d }); const currentBalance = n(web3.eth.abi.decodeParameter('uint256', r)); const stored = localStorage.getItem('myk_airdrop_total_' + RP); if (!stored) { airdropTotalAmount = Math.max(currentBalance, AIRDROP_INITIAL); localStorage.setItem('myk_airdrop_total_' + RP, airdropTotalAmount); } else { airdropTotalAmount = parseFloat(stored); if (currentBalance > airdropTotalAmount) { airdropTotalAmount = currentBalance; localStorage.setItem('myk_airdrop_total_' + RP, airdropTotalAmount); } } const paid = airdropTotalAmount - currentBalance; const pc = Math.min(100, Math.max(0, (paid / airdropTotalAmount) * 100)); $('airdropTotal').textContent = formatM(airdropTotalAmount); $('airdropPaid').textContent = formatM(paid); $('airdropRemaining').textContent = formatM(currentBalance); $('airdropProgress').style.width = pc.toFixed(1) + '%'; $('airdropPercent').textContent = pc.toFixed(1) + '%'; $('airdropPoolBalance').textContent = formatM(currentBalance); } catch (e) { $('airdropTotal').textContent = '--'; $('airdropPaid').textContent = '--'; $('airdropRemaining').textContent = '--'; } }
+        async function fetchUserStats() { if (!userAddress || !web3) return; try { const basic = await fetchUserBasic(); if (!basic) { $('middleInvitedCount').textContent = '--'; $('streakDays').textContent = '--'; return; } const activatedInvited = basic.activatedInvited; $('middleInvitedCount').textContent = activatedInvited; const progress = Math.min(100, (activatedInvited / 3) * 100); $('middleProgress').style.width = progress.toFixed(1) + '%'; if (basic.role === 2) { $('middleCard').classList.remove('locked'); $('middleCard').classList.add('unlocked'); $('middleStatus').textContent = '🔓 已解锁'; $('middleStatus').style.color = '#4ecca3'; } else { $('middleCard').classList.add('locked'); $('middleCard').classList.remove('unlocked'); if (activatedInvited >= 3 && basic.role === 1) { $('middleStatus').textContent = '⚠️ 条件满足，请检查锁仓状态'; $('middleStatus').style.color = '#f0b90b'; } else { $('middleStatus').textContent = '🔒 未解锁'; $('middleStatus').style.color = '#a3adc9'; } } try { const sl = await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) }); $('streakDays').textContent = web3.eth.abi.decodeParameter('uint256', sl); } catch (e) { $('streakDays').textContent = '0'; } } catch (e) { $('middleInvitedCount').textContent = '--'; $('streakDays').textContent = '--'; } }
+        async function refreshIdentityCard() { if (!userAddress || !web3) return; try { const basic = await fetchUserBasic(); if (!basic) return; const govTier = await fetchUserGovTier(); const rpRole = basic.role; let roleName = '无'; if (govTier >= 6) roleName = '👑 SIXTH'; else if (govTier >= 5) roleName = '👑 FIFTH'; else if (govTier >= 4) roleName = '🥇 FOURTH'; else if (govTier >= 3) roleName = '🥇 THIRD'; else if (govTier >= 2) roleName = '🥇 SECOND'; else if (govTier >= 1) roleName = '🥇 FIRST'; else if (rpRole >= 3) roleName = '🥇 COMMUNITY'; else if (rpRole >= 2) roleName = '🥈 MIDDLE'; else if (rpRole >= 1) roleName = '🥉 PRIMARY'; $('cardRole').textContent = roleName; $('cardActiveBadge').innerHTML = basic.isActive ? '<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅ 已激活</span>' : '<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌ 未激活</span>'; $('cardReferrer').textContent = basic.referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(basic.referrer); $('cardReferrer').style.color = basic.referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; $('cardActivated').textContent = basic.activatedAt > 0 ? new Date(basic.activatedAt * 1000).toLocaleDateString('zh-CN') : '未激活'; $('cardInvited').textContent = basic.invited; try { const sl = await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) }); $('cardStreak').textContent = web3.eth.abi.decodeParameter('uint256', sl); } catch (e) { $('cardStreak').textContent = '0'; } try { $('cardMYK').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) { $('cardMYK').textContent = '--'; } try { $('cardUSDT').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) { $('cardUSDT').textContent = '--'; } } catch (e) {} }
 
         async function activateMYK() { if (!userAddress) { alert('请先连接钱包'); return } if (!lock()) return; const b = $('activateMYKBtn'),
                 el = $('activateMYKResult'),
-                am = $('mykAmount').value; if (!am || parseFloat(am) <= 0) { alert('请输入有效的MYK数量'); return }
-            b.disabled = !0;
-            b.textContent = '处理中...';
-            el.style.display = 'block'; try { el.innerHTML = '⏳ 获取实时价格...'; const rawPrice = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') }); const contractPrice = parseFloat(Web3.utils.fromWei(rawPrice, 'ether')); if (contractPrice <= 0) throw new Error('无法获取合约价格'); const requiredMYK = (2 / contractPrice * 1.05).toFixed(4);
-                $('suggestedMYK').textContent = requiredMYK;
-                $('mykAmount').setAttribute('data-default', requiredMYK); const userAmount = parseFloat($('mykAmount').value || am); if (userAmount < parseFloat(requiredMYK)) { $('mykAmount').value = requiredMYK;
-                    el.innerHTML = `⚠️ 需至少 ${requiredMYK} MYK，已自动填入，请再次点击`;
-                    el.style.borderLeftColor = '#f0b90b';
-                    el.style.background = 'rgba(240,185,11,0.1)';
-                    b.disabled = !1;
-                    b.textContent = '💸 支付MYK激活';
-                    unlock(); return; }
-                b.textContent = '激活中...';
-                el.innerHTML = '⏳ 激活中...'; const mw = Web3.utils.toWei($('mykAmount').value, 'ether'); const d = encodeCall('transfer(address,uint256)', ['address', 'uint256'], [RP, mw]);
-                await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: d }] });
-                el.innerHTML = '✅ 激活成功！';
-                el.style.borderLeftColor = '#4ecca3';
-                el.style.background = 'rgba(78,204,163,0.1)';
-                setTimeout(() => { fetchUserStats();
-                    fetchAirdrop();
-                    fetchHoldingInfo();
-                    refreshIdentityCard();
-                    fetchContractInfo(); }, 3000); } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { b.disabled = !1;
-                b.textContent = '💸 支付MYK激活';
-                unlock(); } }
+                am = $('mykAmount').value; if (!am || parseFloat(am) <= 0) { alert('请输入有效的MYK数量'); return } b.disabled = !0; b.textContent = '处理中...'; el.style.display = 'block'; try { el.innerHTML = '⏳ 获取实时价格...'; const rawPrice = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') }); const contractPrice = parseFloat(Web3.utils.fromWei(rawPrice, 'ether')); if (contractPrice <= 0) throw new Error('无法获取合约价格'); const requiredMYK = (2 / contractPrice * 1.05).toFixed(4); $('suggestedMYK').textContent = requiredMYK; $('mykAmount').setAttribute('data-default', requiredMYK); const userAmount = parseFloat($('mykAmount').value || am); if (userAmount < parseFloat(requiredMYK)) { $('mykAmount').value = requiredMYK; el.innerHTML = `⚠️ 需至少 ${requiredMYK} MYK，已自动填入，请再次点击`; el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)'; b.disabled = !1; b.textContent = '💸 支付MYK激活'; unlock(); return; } b.textContent = '激活中...'; el.innerHTML = '⏳ 激活中...'; const mw = Web3.utils.toWei($('mykAmount').value, 'ether'); const d = encodeCall('transfer(address,uint256)', ['address', 'uint256'], [RP, mw]); await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: d }] }); el.innerHTML = '✅ 激活成功！'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)'; setTimeout(() => { fetchUserStats(); fetchAirdrop(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000); } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { b.disabled = !1; b.textContent = '💸 支付MYK激活'; unlock(); } }
         async function activateUSDT() { if (!userAddress) { alert('请先连接钱包'); return } if (!lock()) return; const b = $('activateUSDTBtn'),
-                el = $('activateUSDTResult');
-            el.style.display = 'block';
-            el.innerHTML = '⏳ 授权USDT...';
-            b.disabled = !0; try { const f = web3.utils.toWei('2', 'ether'); const ad = encodeCall('approve(address,uint256)', ['address', 'uint256'], [RP, f]); const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: ad }] });
-                el.innerHTML = '⏳ 等待授权确认...';
-                await waitForTransaction(aTx);
-                el.innerHTML = '⏳ 激活中...'; const ac = encodeCall('activateWithUSDT()'); const acTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: ac }] });
-                el.innerHTML = '⏳ 等待激活确认...';
-                await waitForTransaction(acTx);
-                el.innerHTML = '✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励';
-                setTimeout(() => { fetchUserStats();
-                    fetchAirdrop();
-                    fetchHoldingInfo();
-                    refreshIdentityCard();
-                    fetchContractInfo(); }, 3000); } catch (e) { const m = parseError(e);
-                el.innerHTML = m.includes('referrer') ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m; } finally { b.disabled = !1;
-                unlock(); } }
+                el = $('activateUSDTResult'); el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...'; b.disabled = !0; try { const f = web3.utils.toWei('2', 'ether'); const ad = encodeCall('approve(address,uint256)', ['address', 'uint256'], [RP, f]); const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: ad }] }); el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx); el.innerHTML = '⏳ 激活中...'; const ac = encodeCall('activateWithUSDT()'); const acTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: ac }] }); el.innerHTML = '⏳ 等待激活确认...'; await waitForTransaction(acTx); el.innerHTML = '✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励'; setTimeout(() => { fetchUserStats(); fetchAirdrop(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000); } catch (e) { const m = parseError(e); el.innerHTML = m.includes('referrer') ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m; } finally { b.disabled = !1; unlock(); } }
 
-        // 🔥 第五卡片：最近购买改取 lastPancakeBuyValue
+        // 🔥 第五卡片：已领币使用 getTotalDailyRewardClaimed
         async function fetchHoldingInfo() {
             if (!userAddress || !web3) return;
             try {
@@ -1644,9 +1405,9 @@
                     $('streakDays').textContent = web3.eth.abi.decodeParameter('uint256', sl);
                 } catch (e) { $('streakDays').textContent = '0'; }
                 try {
-                    const sb = await web3.eth.call({ to: RP, data: encodeCall('lastSnapshotBalance(address)', ['address'], [userAddress]) });
-                    const snapBalance = n(web3.eth.abi.decodeParameter('uint256', sb));
-                    $('claimedToday').textContent = snapBalance.toFixed(4) + ' MYK';
+                    const tc = await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [userAddress]) });
+                    const totalClaimed = n(web3.eth.abi.decodeParameter('uint256', tc));
+                    $('claimedToday').textContent = totalClaimed.toFixed(4) + ' MYK';
                 } catch (e) { $('claimedToday').textContent = '-- MYK'; }
                 try {
                     const isBuyer = await web3.eth.call({ to: RP, data: encodeCall('isRecentPancakeBuyer(address)', ['address'], [userAddress]) });
@@ -1668,11 +1429,7 @@
             if (!userAddress) { alert('请先连接钱包'); return }
             if (!lock()) return;
             const b = $('claimRewardBtn'),
-                el = $('claimRewardResult');
-            el.style.display = 'block';
-            el.innerHTML = '⏳ 领取中...';
-            b.disabled = !0;
-            b.textContent = '处理中...';
+                el = $('claimRewardResult'); el.style.display = 'block'; el.innerHTML = '⏳ 领取中...'; b.disabled = !0; b.textContent = '处理中...';
             try {
                 const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: encodeCall('claimDailyRewardAuto()'), gas: '0xF4240' }] });
                 el.innerHTML = '⏳ 等待确认...';
@@ -1680,64 +1437,22 @@
                 const snapshotEventSig = web3.eth.abi.encodeEventSignature('SnapshotTaken(address,uint256,uint256)');
                 let isSnapshot = !1;
                 for (const log of receipt.logs || []) { if (log.topics && log.topics[0] === snapshotEventSig) { isSnapshot = !0; break; } }
-                if (isSnapshot) {
-                    el.innerHTML = '📸 快照已更新！请等待115分钟后再次点击领取奖励';
-                    el.style.borderLeftColor = '#f0b90b';
-                    el.style.background = 'rgba(240,185,11,0.1)';
-                    b.disabled = !1;
-                    b.textContent = '领取历史奖励';
-                } else {
-                    el.innerHTML = '✅ 领取成功！奖励已发放';
-                    el.style.borderLeftColor = '#4ecca3';
-                    el.style.background = 'rgba(78,204,163,0.1)';
-                    b.disabled = !0;
-                    b.textContent = '已领取（冷却中）';
-                }
-                setTimeout(() => { fetchHoldingInfo();
-                    fetchUserStats();
-                    refreshIdentityCard();
-                    fetchContractInfo(); }, 3000);
-            } catch (e) {
-                el.style.display = 'block';
-                const m = parseError(e);
-                if (m.includes('NotActive')) { el.innerHTML = '⚠️ 账户未激活，请先激活 PRIMARY'; } else if (m.includes('TooFrequent')) { el.innerHTML = '⚠️ 冷却中，请等待后再试（约115分钟）'; } else if (m.includes('No recent') || m.includes('Pancake')) { el.innerHTML = '⚠️ 7天内无买入记录，请先购买MYK'; } else if (m.includes('User denied') || m.includes('rejected')) { el.innerHTML = '⚠️ 交易已取消'; } else { el.innerHTML = '❌ ' + m; }
-            } finally { b.disabled = !1; if (b.textContent !== '已领取（冷却中）') { b.textContent = '领取历史奖励'; }
-                unlock(); }
+                if (isSnapshot) { el.innerHTML = '📸 快照已更新！请等待115分钟后再次点击领取奖励'; el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)'; b.disabled = !1; b.textContent = '领取历史奖励'; } else { el.innerHTML = '✅ 领取成功！奖励已发放'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)'; b.disabled = !0; b.textContent = '已领取（冷却中）'; }
+                setTimeout(() => { fetchHoldingInfo(); fetchUserStats(); refreshIdentityCard(); fetchContractInfo(); }, 3000);
+            } catch (e) { el.style.display = 'block'; const m = parseError(e); if (m.includes('NotActive')) { el.innerHTML = '⚠️ 账户未激活，请先激活 PRIMARY'; } else if (m.includes('TooFrequent')) { el.innerHTML = '⚠️ 冷却中，请等待后再试（约115分钟）'; } else if (m.includes('No recent') || m.includes('Pancake')) { el.innerHTML = '⚠️ 7天内无买入记录，请先购买MYK'; } else if (m.includes('User denied') || m.includes('rejected')) { el.innerHTML = '⚠️ 交易已取消'; } else { el.innerHTML = '❌ ' + m; } } finally { b.disabled = !1; if (b.textContent !== '已领取（冷却中）') { b.textContent = '领取历史奖励'; } unlock(); }
         }
 
         function setupAllSlippageButtons() {
-            document.querySelectorAll('#panelBuy .slippage-btn').forEach(b => { b.addEventListener('click', function() { document.querySelectorAll('#panelBuy .slippage-btn').forEach(x => x.classList.remove('active'));
-                        this.classList.add('active');
-                        buySlippage = parseFloat(this.dataset.slip) / 100;
-                        updateBuyQuote(); }); });
-            document.querySelectorAll('#panelSell .slippage-btn').forEach(b => { b.addEventListener('click', function() { document.querySelectorAll('#panelSell .slippage-btn').forEach(x => x.classList.remove('active'));
-                        this.classList.add('active');
-                        sellSlippage = parseFloat(this.dataset.slip) / 100;
-                        updateSellQuote(); }); });
-            document.querySelectorAll('#panelPoolDeposit .slippage-btn').forEach(b => { b.addEventListener('click', function() { document.querySelectorAll('#panelPoolDeposit .slippage-btn').forEach(x => x.classList.remove('active'));
-                        this.classList.add('active');
-                        poolBuySlippage = parseFloat(this.dataset.slip) / 100;
-                        updatePoolDepositQuote(); }); });
-            document.querySelectorAll('#panelPoolWithdraw .slippage-btn').forEach(b => { b.addEventListener('click', function() { document.querySelectorAll('#panelPoolWithdraw .slippage-btn').forEach(x => x.classList.remove('active'));
-                        this.classList.add('active');
-                        poolSellSlippage = parseFloat(this.dataset.slip) / 100;
-                        updatePoolSellQuote(); }); });
+            document.querySelectorAll('#panelBuy .slippage-btn').forEach(b => { b.addEventListener('click', function() { document.querySelectorAll('#panelBuy .slippage-btn').forEach(x => x.classList.remove('active')); this.classList.add('active'); buySlippage = parseFloat(this.dataset.slip) / 100; updateBuyQuote(); }); });
+            document.querySelectorAll('#panelSell .slippage-btn').forEach(b => { b.addEventListener('click', function() { document.querySelectorAll('#panelSell .slippage-btn').forEach(x => x.classList.remove('active')); this.classList.add('active'); sellSlippage = parseFloat(this.dataset.slip) / 100; updateSellQuote(); }); });
+            document.querySelectorAll('#panelPoolDeposit .slippage-btn').forEach(b => { b.addEventListener('click', function() { document.querySelectorAll('#panelPoolDeposit .slippage-btn').forEach(x => x.classList.remove('active')); this.classList.add('active'); poolBuySlippage = parseFloat(this.dataset.slip) / 100; updatePoolDepositQuote(); }); });
+            document.querySelectorAll('#panelPoolWithdraw .slippage-btn').forEach(b => { b.addEventListener('click', function() { document.querySelectorAll('#panelPoolWithdraw .slippage-btn').forEach(x => x.classList.remove('active')); this.classList.add('active'); poolSellSlippage = parseFloat(this.dataset.slip) / 100; updatePoolSellQuote(); }); });
         }
 
         function setupTabs() {
-            document.querySelectorAll('#activateTabSwitch .tab').forEach(t => { t.addEventListener('click', function() { document.querySelectorAll('#activateTabSwitch .tab').forEach(x => x.classList.remove('active'));
-                        this.classList.add('active'); const tb = this.dataset.tab;
-                    $('panelUSDT').style.display = tb === 'usdt' ? 'block' : 'none';
-                    $('panelMYK').style.display = tb === 'myk' ? 'block' : 'none'; if (tb === 'myk') updateActivateSuggestion(); }); });
-            document.querySelectorAll('#tradeTabSwitch .tab').forEach(t => { t.addEventListener('click', function() { document.querySelectorAll('#tradeTabSwitch .tab').forEach(x => { x.classList.remove('active', 'tab-buy', 'tab-sell'); });
-                        this.classList.add('active'); const tb = this.dataset.tab; if (tb === 'buy') this.classList.add('tab-buy'); if (tb === 'sell') this.classList.add('tab-sell');
-                    $('panelBuy').style.display = tb === 'buy' ? 'block' : 'none';
-                    $('panelSell').style.display = tb === 'sell' ? 'block' : 'none'; if (tb === 'buy') updateBuyQuote(); if (tb === 'sell') updateSellQuote(); }); });
-            document.querySelectorAll('#poolTabSwitch .tab').forEach(t => { t.addEventListener('click', function() { document.querySelectorAll('#poolTabSwitch .tab').forEach(x => x.classList.remove('active'));
-                        this.classList.add('active'); const tb = this.dataset.tab;
-                    $('panelPoolDeposit').style.display = tb === 'deposit' ? 'block' : 'none';
-                    $('panelPoolWithdraw').style.display = tb === 'withdraw' ? 'block' : 'none'; if (tb == 'deposit') updatePoolDepositQuote(); if (tb == 'withdraw') { updatePoolSellQuote();
-                        applySliderPct(currentSliderPct); } }); });
+            document.querySelectorAll('#activateTabSwitch .tab').forEach(t => { t.addEventListener('click', function() { document.querySelectorAll('#activateTabSwitch .tab').forEach(x => x.classList.remove('active')); this.classList.add('active'); const tb = this.dataset.tab; $('panelUSDT').style.display = tb === 'usdt' ? 'block' : 'none'; $('panelMYK').style.display = tb === 'myk' ? 'block' : 'none'; if (tb === 'myk') updateActivateSuggestion(); }); });
+            document.querySelectorAll('#tradeTabSwitch .tab').forEach(t => { t.addEventListener('click', function() { document.querySelectorAll('#tradeTabSwitch .tab').forEach(x => { x.classList.remove('active', 'tab-buy', 'tab-sell'); }); this.classList.add('active'); const tb = this.dataset.tab; if (tb === 'buy') this.classList.add('tab-buy'); if (tb === 'sell') this.classList.add('tab-sell'); $('panelBuy').style.display = tb === 'buy' ? 'block' : 'none'; $('panelSell').style.display = tb === 'sell' ? 'block' : 'none'; if (tb === 'buy') updateBuyQuote(); if (tb === 'sell') updateSellQuote(); }); });
+            document.querySelectorAll('#poolTabSwitch .tab').forEach(t => { t.addEventListener('click', function() { document.querySelectorAll('#poolTabSwitch .tab').forEach(x => x.classList.remove('active')); this.classList.add('active'); const tb = this.dataset.tab; $('panelPoolDeposit').style.display = tb === 'deposit' ? 'block' : 'none'; $('panelPoolWithdraw').style.display = tb === 'withdraw' ? 'block' : 'none'; if (tb == 'deposit') updatePoolDepositQuote(); if (tb == 'withdraw') { updatePoolSellQuote(); applySliderPct(currentSliderPct); } }); });
         }
 
         window.addEventListener('load', async () => {
@@ -1769,8 +1484,7 @@
                         fetchContractInfo();
                     }
                 } catch (e) {}
-                window.ethereum.on('accountsChanged', () => { fetchPrice().then(() => { updateBuyQuote();
-                        updateSellQuote(); }); });
+                window.ethereum.on('accountsChanged', () => { fetchPrice().then(() => { updateBuyQuote(); updateSellQuote(); }); });
             }
             setInterval(fetchContractInfo, 60000);
             $('connectWalletBtn').addEventListener('click', connectWallet);
@@ -1786,3 +1500,4 @@
     </script>
 </body>
 </html>
+```
