@@ -226,7 +226,7 @@
         <div style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);">
             <div style="font-size:12px; color:#888; margin-bottom:8px;">📋 合约地址</div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔵 MYK</span><span class="contract-addr-value">0xc23CfE...192a</span><button class="contract-addr-copy" data-addr="0xc23CfEeC6D188D627C85106f682D9eb38d94192a">复制</button></div>
-            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0xCB177c...534C</span><button class="contract-addr-copy" data-addr="0xCB177cc632d0F80A56dC06a7CF8DE452F5c4534C">复制</button></div>
+            <div class="contract-addr-row"><span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0xf56C22...4643</span><button class="contract-addr-copy" data-addr="0xf56C22820D4Bb7E6Ad80C3A8a2b606a20b44c643">复制</button></div>
             <div class="contract-addr-row"><span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0x26010B...4657</span><button class="contract-addr-copy" data-addr="0x26010B7b6E873Dba7de3a79E67e0cE31433b4657">复制</button></div>
             <div class="contract-addr-row"><span class="contract-addr-label">🔴 FundManager</span><span class="contract-addr-value">0x97371a...5A1a</span><button class="contract-addr-copy" data-addr="0x97371aaF9CB8DcCa738c1f45ae368eF6e88B5A1a">复制</button></div>
         </div>
@@ -238,7 +238,7 @@
 <script>
 (function() {
     const MYK='0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-    const RP='0xCB177cc632d0F80A56dC06a7CF8DE452F5c4534C';
+    const RP='0xf56C22820D4Bb7E6Ad80C3A8a2b606a20b44c643';
     const GOV='0x26010B7b6E873Dba7de3a79E67e0cE31433b4657';
     const FM='0x97371aaF9CB8DcCa738c1f45ae368eF6e88B5A1a';
     const USDT='0x55d398326f99059fF775485246999027B3197955';
@@ -458,7 +458,6 @@
     async function fetchHoldingInfo(){
         if(!userAddress||!web3)return;
         try{
-            // 最近购买 USDT 价值
             try{
                 const bv=await web3.eth.call({to:RP,data:encodeCall('lastPancakeBuyValue(address)',['address'],[userAddress])});
                 const buyValue=n(web3.eth.abi.decodeParameter('uint256',bv));
