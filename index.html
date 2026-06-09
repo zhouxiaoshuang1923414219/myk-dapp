@@ -652,7 +652,7 @@
             </div>
         </div>
 
-        <!-- 3. 买卖 MYK（一步交易） -->
+        <!-- 3. 买卖 MYK -->
         <div class="glass-card">
             <h2 style="justify-content:space-between;">
                 <span>📈 买卖 MYK</span>
@@ -1174,9 +1174,9 @@
             } catch (e) { el.innerHTML = '❌ ' + parseError(e); } finally { b.disabled = !1; b.textContent = '划入钱包'; unlock(); }
         }
 
-        async function updatePoolDepositQuote() { const ua = parseFloat($('poolDepositAmount').value) || 0; if (ua <= 0) { $('poolExpectedMYK').textContent = '--'; return } try { const uw = Web3.utils.toWei(String(ua), 'ether'); const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}]; const rc = new web3.eth.Contract(ra, ROUTER); const ams = await rc.methods.getAmountsOut(uw, [USDT, MYK]).call(); $('poolExpectedMYK').textContent = (parseFloat(Web3.utils.fromWei(ams[1], 'ether')) * (1 - poolBuySlippage)).toFixed(4); } catch (e) { $('poolExpectedMYK').textContent = '--'; } }
-        async function updatePoolSellQuote() { const ma = parseFloat($('poolWithdrawAmount').value) || 0; if (ma <= 0) { $('poolExpectedUSDT').textContent = '--'; return } try { const mw = Web3.utils.toWei(String(ma), 'ether'); const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}]; const rc = new web3.eth.Contract(ra, ROUTER); const ams = await rc.methods.getAmountsOut(mw, [MYK, USDT]).call(); $('poolExpectedUSDT').textContent = (parseFloat(Web3.utils.fromWei(ams[1], 'ether')) * (1 - poolSellSlippage)).toFixed(6); } catch (e) { $('poolExpectedUSDT').textContent = '--'; } }
-        async function updatePoolOrderPanel() { try { if (!web3) return; const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}]; const rc = new web3.eth.Contract(ra, ROUTER); const oneMYK = Web3.utils.toWei('1', 'ether'); const oneUSDT = Web3.utils.toWei('1', 'ether'); const sellAmounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call(); const sellPrice = parseFloat(Web3.utils.fromWei(sellAmounts[1], 'ether')); const buyAmounts = await rc.methods.getAmountsOut(oneUSDT, [USDT, MYK]).call(); const buyRate = parseFloat(Web3.utils.fromWei(buyAmounts[1], 'ether')); $('poolBuyRateDisplay').textContent = buyRate.toFixed(4); $('poolSellRateDisplay').textContent = sellPrice.toFixed(6); $('poolBuyPriceDisplay').textContent = '$' + sellPrice.toFixed(6); $('poolSellPriceDisplay').textContent = '$' + sellPrice.toFixed(6); const sp = sellPrice; const pcs = await fetchPCSChange(); if (pcs) { updatePoolPriceDisplay(sp, pcs.change); } else { const lr = getLocalChange(sp); updatePoolPriceDisplay(sp, lr.change); } } catch (e) {} }
+        async function updatePoolDepositQuote() { const ua = parseFloat($('poolDepositAmount').value) || 0; if (ua <= 0) { $('poolExpectedMYK').textContent = '--'; return } try { const uw = Web3.utils.toWei(String(ua), 'ether'); const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}]; const rc = new web3.eth.Contract(ra, ROUTER); const ams = await rc.methods.getAmountsOut(uw, [USDT, MYK]).call(); $('poolExpectedMYK').textContent = (n(ams[1]) * (1 - poolBuySlippage)).toFixed(4); } catch (e) { $('poolExpectedMYK').textContent = '--'; } }
+        async function updatePoolSellQuote() { const ma = parseFloat($('poolWithdrawAmount').value) || 0; if (ma <= 0) { $('poolExpectedUSDT').textContent = '--'; return } try { const mw = Web3.utils.toWei(String(ma), 'ether'); const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}]; const rc = new web3.eth.Contract(ra, ROUTER); const ams = await rc.methods.getAmountsOut(mw, [MYK, USDT]).call(); $('poolExpectedUSDT').textContent = (n(ams[1]) * (1 - poolSellSlippage)).toFixed(6); } catch (e) { $('poolExpectedUSDT').textContent = '--'; } }
+        async function updatePoolOrderPanel() { try { if (!web3) return; const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}]; const rc = new web3.eth.Contract(ra, ROUTER); const oneMYK = Web3.utils.toWei('1', 'ether'); const oneUSDT = Web3.utils.toWei('1', 'ether'); const sellAmounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call(); const sellPrice = n(sellAmounts[1]); const buyAmounts = await rc.methods.getAmountsOut(oneUSDT, [USDT, MYK]).call(); const buyRate = n(buyAmounts[1]); $('poolBuyRateDisplay').textContent = buyRate.toFixed(4); $('poolSellRateDisplay').textContent = sellPrice.toFixed(6); $('poolBuyPriceDisplay').textContent = '$' + sellPrice.toFixed(6); $('poolSellPriceDisplay').textContent = '$' + sellPrice.toFixed(6); const sp = sellPrice; const pcs = await fetchPCSChange(); if (pcs) { updatePoolPriceDisplay(sp, pcs.change); } else { const lr = getLocalChange(sp); updatePoolPriceDisplay(sp, lr.change); } } catch (e) {} }
 
         // ========== 其他 ==========
         async function updateActivateSuggestion() {
@@ -1308,24 +1308,29 @@
         async function updateBuyQuote() { const ua = parseFloat($('buyUSDTAmount').value) || 0; if (ua <= 0) { $('expectedMYK').textContent = '--'; return } try { const uw = Web3.utils.toWei(String(ua), 'ether'), mo = await getSwapQuote(uw, [USDT, MYK]), ms = n(mo) * (1 - buySlippage); $('expectedMYK').textContent = ms.toFixed(4); } catch (e) { $('expectedMYK').textContent = '--'; } }
         async function updateSellQuote() { const ma = parseFloat($('sellMYKAmount').value) || 0; if (ma <= 0) { $('expectedUSDT').textContent = '--'; return } try { const mw = Web3.utils.toWei(String(ma), 'ether'), uo = await getSwapQuote(mw, [MYK, USDT]), us = n(uo) * (1 - sellSlippage); $('expectedUSDT').textContent = us.toFixed(6); } catch (e) { $('expectedUSDT').textContent = '--'; } }
 
-        // ========== 第三步：买卖一步交易（无需单独授权） ==========
+        // ========== 第三步：买卖交易（授权+交易） ==========
         async function buyMYK() {
             if (!userAddress) { alert('请先连接钱包'); return }
             if (!lock()) return;
             const b = $('buyMYKBtn'), el = $('buyResult'), ua = parseFloat($('buyUSDTAmount').value);
             if (!ua || ua <= 0) { alert('请输入有效的USDT数量'); return }
-            el.style.display = 'block'; b.disabled = !0; b.textContent = '买入中...';
+            el.style.display = 'block'; b.disabled = !0; b.textContent = '处理中...';
             try {
                 const uw = Web3.utils.toWei(String(ua), 'ether'), dl = Math.floor(Date.now() / 1000) + 300;
                 el.innerHTML = '⏳ 查询报价...';
                 const mo = await getSwapQuote(uw, [USDT, MYK]);
                 const mm = calcMinOutput(mo, buySlippage);
+                el.innerHTML = '⏳ 检查余额...';
+                const br = await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
+                if (BigInt(web3.eth.abi.decodeParameter('uint256', br)) < BigInt(uw)) throw new Error('USDT余额不足');
+                el.innerHTML = '⏳ 授权 USDT...';
+                const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER, uw]) }] });
+                el.innerHTML = '⏳ 等待授权确认...';
+                await waitForTransaction(aTx);
                 el.innerHTML = '⏳ 买入 MYK...';
-                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall('swapExactTokensForETH(uint256,address[],address,uint256)', ['uint256', 'address[]', 'address', 'uint256'], [uw, [USDT, MYK], userAddress, String(dl)]) }] }).catch(async () => {
-                    return await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [uw, mm, [USDT, MYK], userAddress, String(dl)]) }] });
-                });
+                const sTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [uw, mm, [USDT, MYK], userAddress, String(dl)]) }] });
                 el.innerHTML = '⏳ 等待交易确认...';
-                await waitForTransaction(txHash);
+                await waitForTransaction(sTx);
                 el.innerHTML = '✅ 买入成功！';
                 setTimeout(() => { fetchPrice().then(() => { updateBuyQuote(); updateSellQuote(); }); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000);
             } catch (e) { const m = parseError(e); el.innerHTML = m.includes('User denied') || m.includes('rejected') ? '⚠️ 交易已取消' : m.includes('insufficient') ? '⚠️ 余额不足' : '❌ ' + m; } finally { b.disabled = !1; b.textContent = '🟢 买入 MYK'; unlock(); }
@@ -1336,16 +1341,23 @@
             if (!lock()) return;
             const b = $('sellMYKBtn'), el = $('sellResult'), ma = parseFloat($('sellMYKAmount').value);
             if (!ma || ma <= 0) { alert('请输入有效的MYK数量'); return }
-            el.style.display = 'block'; b.disabled = !0; b.textContent = '卖出中...';
+            el.style.display = 'block'; b.disabled = !0; b.textContent = '处理中...';
             try {
                 const mw = Web3.utils.toWei(String(ma), 'ether'), dl = Math.floor(Date.now() / 1000) + 300;
                 el.innerHTML = '⏳ 查询报价...';
                 const uo = await getSwapQuote(mw, [MYK, USDT]);
                 const mu = calcMinOutput(uo, sellSlippage);
+                el.innerHTML = '⏳ 检查余额...';
+                const br = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
+                if (BigInt(web3.eth.abi.decodeParameter('uint256', br)) < BigInt(mw)) throw new Error('MYK余额不足');
+                el.innerHTML = '⏳ 授权 MYK...';
+                const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER, mw]) }] });
+                el.innerHTML = '⏳ 等待授权确认...';
+                await waitForTransaction(aTx);
                 el.innerHTML = '⏳ 卖出 MYK...';
-                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [mw, mu, [MYK, USDT], userAddress, String(dl)]) }] });
+                const sTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [mw, mu, [MYK, USDT], userAddress, String(dl)]) }] });
                 el.innerHTML = '⏳ 等待交易确认...';
-                await waitForTransaction(txHash);
+                await waitForTransaction(sTx);
                 el.innerHTML = '✅ 卖出成功！';
                 setTimeout(() => { fetchPrice().then(() => { updateBuyQuote(); updateSellQuote(); }); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000);
             } catch (e) { const m = parseError(e); el.innerHTML = m.includes('User denied') || m.includes('rejected') ? '⚠️ 交易已取消' : m.includes('insufficient') ? '⚠️ 余额不足' : '❌ ' + m; } finally { b.disabled = !1; b.textContent = '🔴 卖出 MYK'; unlock(); }
