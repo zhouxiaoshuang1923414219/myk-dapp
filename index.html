@@ -1014,8 +1014,8 @@
                 </div>
                 <div class="contract-addr-row">
                     <span class="contract-addr-label">🟢 RewardPool</span>
-                    <span class="contract-addr-value">0xBcfD7a...DbCE</span>
-                    <button class="contract-addr-copy" data-addr="0xBcfD7a6FC97092fDeaC652f7CB8E5A103d4eDbCE">复制</button>
+                    <span class="contract-addr-value">0x7b5b24...198B</span>
+                    <button class="contract-addr-copy" data-addr="0x7b5b246718Bdb45c96141cBB5b6da2f15B12198B">复制</button>
                 </div>
                 <div class="contract-addr-row">
                     <span class="contract-addr-label">🟡 Governance</span>
@@ -1036,7 +1036,7 @@
     <script>
     (function() {
         const MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-        const RP = '0xBcfD7a6FC97092fDeaC652f7CB8E5A103d4eDbCE';
+        const RP = '0x7b5b246718Bdb45c96141cBB5b6da2f15B12198B';
         const GOV = '0x26010B7b6E873Dba7de3a79E67e0cE31433b4657';
         const FM = '0x97371aaF9CB8DcCa738c1f45ae368eF6e88B5A1a';
         const USDT = '0x55d398326f99059fF775485246999027B3197955';
@@ -1237,7 +1237,7 @@
 
         function updateFifthMykSuggestion() { const p = getSpotPrice(); if (p > 0) { const m = (1000 / p * 1.055).toFixed(4); $('fifthMykAmount').textContent = m; } }
         async function fetchUserGovTier() { if (!web3 || !userAddress) return 0; try { const data = encodeCall('getCommunityTier(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: GOV, data: data }); return parseInt(web3.eth.abi.decodeParameter('uint8', result)); } catch (e) { try { const data = encodeCall('getCommunityTier(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: GOV, data: data }); return parseInt(web3.eth.abi.decodeParameter('uint256', result)); } catch (e2) {} } return 0; }
-        async function fetchUserBasic() { if (!web3 || !userAddress) return null; try { const data = encodeCall('getUserBasic(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: RP, data: data }); const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint8', 'uint256', 'bool'], result); return { referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]), role: parseInt(u[3]), activatedAt: parseInt(u[4]), isActive: u[5] }; } catch (e) { try { const data = encodeCall('users(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: RP, data: data }); const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint8', 'bool'], result); return { referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[1]), role: parseInt(u[7]), activatedAt: parseInt(u[4]), isActive: u[8] }; } catch (e2) {} } return null; }
+        async function fetchUserBasic() { if (!web3 || !userAddress) return null; try { const data = encodeCall('getUserBasic(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: RP, data: data }); const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint8', 'uint256', 'bool', 'uint256', 'uint256'], result); return { referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]), role: parseInt(u[3]), activatedAt: parseInt(u[4]), isActive: u[5], pendingActivationMYK: u[6], activityBalance: u[7] }; } catch (e) { try { const data = encodeCall('users(address)', ['address'], [userAddress]); const result = await web3.eth.call({ to: RP, data: data }); const u = web3.eth.abi.decodeParameters(['address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint8', 'bool'], result); return { referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[1]), role: parseInt(u[7]), activatedAt: parseInt(u[4]), isActive: u[8] }; } catch (e2) {} } return null; }
 
         async function fetchDailyBonusInfo() {
             if (!web3 || !userAddress) return;
@@ -1435,12 +1435,14 @@
         async function activateUSDT() { if (!userAddress) { alert('请先连接钱包'); return } if (!lock()) return; const b = $('activateUSDTBtn'),
                 el = $('activateUSDTResult'); el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...'; b.disabled = !0; try { const f = web3.utils.toWei('2', 'ether'); const ad = encodeCall('approve(address,uint256)', ['address', 'uint256'], [RP, f]); const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: ad }] }); el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx); el.innerHTML = '⏳ 激活中...'; const ac = encodeCall('activateWithUSDT()'); const acTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: ac }] }); el.innerHTML = '⏳ 等待激活确认...'; await waitForTransaction(acTx); el.innerHTML = '✅ 激活成功！已获得 2 USDT 等值 MYK 空投奖励'; setTimeout(() => { fetchUserStats(); fetchAirdrop(); fetchHoldingInfo(); refreshIdentityCard(); fetchContractInfo(); }, 3000); } catch (e) { const m = parseError(e); el.innerHTML = m.includes('referrer') ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m; } finally { b.disabled = !1; unlock(); } }
 
-        // ========== 第五卡片：新版持币奖励逻辑（每天一次，买入即领，当前余额计算） ==========
+        // ========== 第五卡片：完整持币奖励逻辑（买入金额锁定 + 余额比例 + 每天一次） ==========
         async function fetchHoldingInfo() {
             if (!userAddress || !web3) return;
             try {
                 let isActive = false;
                 let isRecent = false;
+                let buyAmount = 0;
+                let buyValue = 0;
                 let streak = 0;
                 let lastSnapshotDayVal = 0;
                 let currentDay = getCurrentDay();
@@ -1460,16 +1462,17 @@
                     isRecent = web3.eth.abi.decodeParameter('bool', ir);
                 } catch (e) {}
 
-                // 3. 获取买入信息
+                // 3. 获取买入信息（买入量 + 买入金额）
                 try {
                     const bi = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]) });
                     const info = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256'], bi);
-                    const buyValue = n(info[1]);
+                    buyAmount = n(info[0]);
+                    buyValue = n(info[1]);
                     $('holdingBalance').textContent = buyValue.toFixed(2) + ' USDT';
                 } catch (e) {
                     try {
                         const bv = await web3.eth.call({ to: RP, data: encodeCall('lastPancakeBuyValue(address)', ['address'], [userAddress]) });
-                        const buyValue = n(web3.eth.abi.decodeParameter('uint256', bv));
+                        buyValue = n(web3.eth.abi.decodeParameter('uint256', bv));
                         $('holdingBalance').textContent = buyValue.toFixed(2) + ' USDT';
                     } catch (e2) { $('holdingBalance').textContent = '--'; }
                 }
@@ -1484,7 +1487,7 @@
                 // 5. 上次快照周期
                 try {
                     const lsd = await web3.eth.call({ to: RP, data: encodeCall('lastSnapshotDay(address)', ['address'], [userAddress]) });
-                    lastSnapshotDayVal = parseInt(web3.eth.abi.decodeParameter('uint256', lsd));
+                    lastSnapshotDayVal = parseInt(web3.eth.abi.decodeParameter('uint40', lsd));
                 } catch (e) {}
 
                 // 6. 累计已领
@@ -1494,7 +1497,7 @@
                     $('claimedToday').textContent = totalClaimed.toFixed(4) + ' MYK';
                 } catch (e) { $('claimedToday').textContent = '-- MYK'; }
 
-                // 7. 判断条件和计算可领
+                // 7. 判断条件和计算可领（与合约 claimDailyRewardAuto 逻辑一致）
                 if (!isActive) {
                     errorMsg = '请先激活 PRIMARY 身份';
                     btnDisabled = true;
@@ -1507,29 +1510,61 @@
                     errorMsg = '今天已领取，请明天再来';
                     btnDisabled = true;
                     $('todayReward').textContent = '已领取';
+                } else if (buyAmount === 0 || buyValue === 0) {
+                    errorMsg = '无有效买入数据';
+                    btnDisabled = true;
+                    $('todayReward').textContent = '无买入数据';
                 } else {
-                    // 可领取：用当前余额实时计算
+                    // 可领取：按合约 _getRewardBase 逻辑
                     try {
-                        const priceRaw = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
-                        const price = n(web3.eth.abi.decodeParameter('uint256', priceRaw));
-                        let currentBalance = 0;
+                        // 获取价格
+                        let price = 0;
                         try {
-                            const cb = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
-                            currentBalance = n(web3.eth.abi.decodeParameter('uint256', cb));
+                            const priceRaw = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
+                            price = n(web3.eth.abi.decodeParameter('uint256', priceRaw));
                         } catch (e) {}
-                        let balanceUSDT = currentBalance * price;
-                        if (balanceUSDT > 50) balanceUSDT = 50;
-                        let rate = 10;
-                        try {
-                            const rr = await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [userAddress]) });
-                            rate = parseInt(web3.eth.abi.decodeParameter('uint256', rr));
-                        } catch (e) {}
-                        const missedDays = Math.max(0, currentDay - lastSnapshotDayVal - 1);
-                        const totalDays = missedDays + 1;
-                        const rewardUSDT = (balanceUSDT * rate) / 1000 * totalDays;
-                        const todayMYK = price > 0 ? (rewardUSDT / price) : 0;
-                        $('todayReward').textContent = todayMYK.toFixed(6) + ' MYK';
-                        btnText = '领取奖励';
+                        if (price <= 0) {
+                            errorMsg = '价格获取失败';
+                            btnDisabled = true;
+                            $('todayReward').textContent = '价格异常';
+                        } else {
+                            // 奖励基数 = 买入金额（上限50U）
+                            let baseValue = buyValue > 50 ? 50 : buyValue;
+                            // 余额 < 买入量 → 按比例
+                            if (buyAmount > 0) {
+                                let currentBalance = 0;
+                                try {
+                                    const cb = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
+                                    currentBalance = n(web3.eth.abi.decodeParameter('uint256', cb));
+                                } catch (e) {}
+                                if (currentBalance < buyAmount) {
+                                    baseValue = (baseValue * currentBalance) / buyAmount;
+                                }
+                            }
+                            if (baseValue === 0) {
+                                errorMsg = '买入数据异常';
+                                btnDisabled = true;
+                                $('todayReward').textContent = '数据异常';
+                            } else {
+                                // 自费率
+                                let rate = 10;
+                                try {
+                                    const rr = await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [userAddress]) });
+                                    rate = parseInt(web3.eth.abi.decodeParameter('uint256', rr));
+                                } catch (e) {}
+                                // 累计天数（与合约一致：lastDay==0→1，否则 currentDay-lastDay）
+                                let totalDays;
+                                if (lastSnapshotDayVal === 0) {
+                                    totalDays = 1;
+                                } else {
+                                    totalDays = currentDay - lastSnapshotDayVal;
+                                }
+                                const rewardUSDT = (baseValue * rate * totalDays) / 1000;
+                                const todayMYK = rewardUSDT / price;
+                                $('todayReward').textContent = todayMYK.toFixed(6) + ' MYK';
+                                btnText = '领取奖励';
+                            }
+                        }
                     } catch (e) {
                         $('todayReward').textContent = '计算中...';
                     }
@@ -1548,7 +1583,7 @@
             } catch (e) { $('holdingBalance').textContent = '--'; }
         }
 
-        // claimDailyRewardAuto（修复：检测 DailyRewardClaimed 事件）
+        // claimDailyRewardAuto
         async function claimDailyReward() {
             if (!userAddress) { alert('请先连接钱包'); return }
             if (!lock()) return;
