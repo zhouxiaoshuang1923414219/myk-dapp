@@ -789,12 +789,12 @@
             <h2>🏆 做市7天·天天都赚</h2>
             <div class="desc">持币就赚，<span class="highlight">币增长更赚</span></div>
             <div class="stat-row">
-                <span>最近购买：<span class="stat-value" id="holdingBalance">--</span> USDT</span>
+                <span>最近购买：<span class="stat-value" id="holdingBalance">--</span><span style="color:#888;font-size:10px;" id="holdingDaysAgo"></span></span>
                 <span>连续已领：<span class="stat-value" id="streakDays">--</span> 天</span>
             </div>
             <div class="stat-row" style="margin-top:8px;">
                 <span>今天可领：<span class="stat-value" id="todayReward">--</span></span>
-                <span>已领币：<span class="stat-value" id="claimedToday">--</span> MYK</span>
+                <span>已领币：<span class="stat-value" id="claimedToday">--</span></span>
             </div>
             <button class="btn btn-green" id="claimRewardBtn">领取奖励</button>
             <div class="reward-rule-text">买入即领 · 每天一次 · 持有越多领越多 · 卖出重置 · 跳过可补领</div>
@@ -1394,7 +1394,7 @@
         async function fetchHoldingInfo() {
             if (!userAddress || !web3) return;
             try {
-                let isActive = false, isRecent = false, buyAmount = 0, buyValue = 0, streak = 0, lastSnapshotDayVal = 0;
+                let isActive = false, isRecent = false, buyAmount = 0, buyValue = 0, buyTimestamp = 0, streak = 0, lastSnapshotDayVal = 0;
                 let currentDay = getCurrentDay();
                 let errorMsg = '', btnText = '领取奖励', btnDisabled = false;
 
@@ -1404,9 +1404,28 @@
                 try {
                     const bi = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]) });
                     const info = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256'], bi);
-                    buyAmount = n(info[0]); buyValue = n(info[1]);
+                    buyAmount = n(info[0]); buyValue = n(info[1]); buyTimestamp = parseInt(info[2]);
                     $('holdingBalance').textContent = buyValue.toFixed(2) + ' USDT';
-                } catch (e) { try { const bv = await web3.eth.call({ to: RP, data: encodeCall('lastPancakeBuyValue(address)', ['address'], [userAddress]) }); buyValue = n(web3.eth.abi.decodeParameter('uint256', bv)); $('holdingBalance').textContent = buyValue.toFixed(2) + ' USDT'; } catch (e2) { $('holdingBalance').textContent = '--'; } }
+                    // 计算几天前
+                    if (buyTimestamp > 0) {
+                        const nowSec = Math.floor(Date.now() / 1000);
+                        const diffSec = nowSec - buyTimestamp;
+                        const diffDays = Math.floor(diffSec / 86400);
+                        if (diffDays <= 0) {
+                            const diffHours = Math.floor(diffSec / 3600);
+                            if (diffHours <= 0) {
+                                const diffMins = Math.floor(diffSec / 60);
+                                $('holdingDaysAgo').textContent = diffMins <= 1 ? '(刚刚)' : '(' + diffMins + '分钟前)';
+                            } else {
+                                $('holdingDaysAgo').textContent = '(' + diffHours + '小时前)';
+                            }
+                        } else {
+                            $('holdingDaysAgo').textContent = '(' + diffDays + '天前)';
+                        }
+                    } else {
+                        $('holdingDaysAgo').textContent = '';
+                    }
+                } catch (e) { try { const bv = await web3.eth.call({ to: RP, data: encodeCall('lastPancakeBuyValue(address)', ['address'], [userAddress]) }); buyValue = n(web3.eth.abi.decodeParameter('uint256', bv)); $('holdingBalance').textContent = buyValue.toFixed(2) + ' USDT'; $('holdingDaysAgo').textContent = ''; } catch (e2) { $('holdingBalance').textContent = '--'; $('holdingDaysAgo').textContent = ''; } }
 
                 try { const sl = await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) }); streak = parseInt(web3.eth.abi.decodeParameter('uint256', sl)); $('streakDays').textContent = streak; } catch (e) { $('streakDays').textContent = '0'; }
                 try { const lsd = await web3.eth.call({ to: RP, data: encodeCall('lastSnapshotDay(address)', ['address'], [userAddress]) }); lastSnapshotDayVal = parseInt(web3.eth.abi.decodeParameter('uint40', lsd)); } catch (e) {}
@@ -1441,7 +1460,7 @@
                 if (btnDisabled) { $('claimRewardBtn').textContent = errorMsg; $('claimRewardBtn').style.fontSize = '12px'; }
                 else { $('claimRewardBtn').textContent = btnText; $('claimRewardBtn').style.fontSize = '15px'; }
                 $('claimRewardBtn').style.opacity = btnDisabled ? '0.6' : '1';
-            } catch (e) { $('holdingBalance').textContent = '--'; }
+            } catch (e) { $('holdingBalance').textContent = '--'; $('holdingDaysAgo').textContent = ''; }
         }
 
         async function claimDailyReward() {
