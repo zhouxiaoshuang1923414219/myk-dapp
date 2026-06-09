@@ -797,7 +797,7 @@
                 <span>已领币：<span class="stat-value" id="claimedToday">--</span></span>
             </div>
             <button class="btn btn-green" id="claimRewardBtn">领取奖励</button>
-            <div class="reward-rule-text">买入即领 · 每天一次 · 持有越多领越多 · 卖出重置 · 跳过可补领</div>
+            <div class="reward-rule-text">每天一次 · 可累计领取 · 订单上限50U · 卖出重置 · 跳过可补领</div>
             <div class="info-box" id="claimRewardResult" style="display:none;"></div>
         </div>
 
@@ -1422,7 +1422,7 @@
                 else {
                     try {
                         const claimable = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [userAddress]) })));
-                        if (claimable <= 0) { errorMsg = '当前周期已领取或无待领奖励'; btnDisabled = true; $('todayReward').textContent = '已领取'; }
+                        if (claimable <= 0) { errorMsg = '每天0点结算后再来领取'; btnDisabled = true; $('todayReward').textContent = '已领取'; }
                         else { $('todayReward').textContent = claimable.toFixed(6) + ' MYK'; btnText = '领取奖励'; }
                     } catch (e) { $('todayReward').textContent = '查询失败'; btnDisabled = true; errorMsg = '查询失败'; }
                 }
