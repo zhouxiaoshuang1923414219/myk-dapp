@@ -2,255 +2,219 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BSC 实时行情</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>去中心化 OTC 端到端加密通信测试</title>
     <style>
-        /* ================= 基础变量与重置 ================= */
-        :root {
-            --bg-primary: #0F111D;
-            --bg-card: #1A1D2E;
-            --bg-search: #1A1D2E;
-            --bg-tag: #252A40;
-            --text-white: #EAECF0;
-            --text-grey: #6B7394;
-            --text-light-grey: #8E94B2;
-            --divider: #1E2139;
-            --loss-red: #E8455B;    /* 跌 */
-            --gain-green: #26A69A;  /* 涨 */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #0f111a; color: #e0e0e0; 
+            max-width: 800px; margin: 20px auto; padding: 0 20px;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-white);
-            min-height: 100vh;
-            max-width: 480px;
-            margin: 0 auto;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* ================= 顶部搜索 ================= */
-        .header { padding: 12px 16px; position: sticky; top: 0; background: var(--bg-primary); z-index: 10; }
-        .search-bar {
-            display: flex; align-items: center; background: var(--bg-search);
-            border-radius: 8px; padding: 0 12px; height: 40px;
-        }
-        .search-bar input {
-            flex: 1; background: transparent; border: none; outline: none;
-            color: var(--text-white); font-size: 14px;
-        }
-        .search-bar input::placeholder { color: var(--text-grey); }
-        .search-bar .icon { color: var(--text-grey); font-size: 18px; margin: 0 4px; }
-
-        /* ================= 导航与标签 ================= */
-        .nav-main { display: flex; padding: 8px 16px; gap: 20px; overflow-x: auto; scrollbar-width: none; }
-        .nav-main::-webkit-scrollbar { display: none; }
-        .nav-item { font-size: 16px; white-space: nowrap; color: var(--text-grey); cursor: pointer; }
-        .nav-item.active { color: var(--text-white); font-weight: 700; }
-
-        .tags-row { display: flex; align-items: center; padding: 8px 16px; gap: 16px; }
-        .tags-scroll { display: flex; flex: 1; gap: 16px; overflow-x: auto; scrollbar-width: none; }
-        .tags-scroll::-webkit-scrollbar { display: none; }
-        .tag-item { font-size: 14px; white-space: nowrap; color: var(--text-light-grey); cursor: pointer; }
-        .tag-item.active { color: var(--text-white); }
-
-        /* ================= 列表表头 ================= */
-        .table-header {
-            display: flex; padding: 8px 16px; font-size: 12px; color: var(--text-light-grey);
-            border-bottom: 0.5px solid var(--divider);
-        }
-        .col-name { flex: 4; display: flex; align-items: center; gap: 4px; }
-        .col-price { flex: 3; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
-        .col-change { flex: 2; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
-
-        /* ================= 币种列表 ================= */
-        .coin-list { padding: 0; }
-        .coin-item {
-            display: flex; padding: 14px 16px; border-bottom: 0.5px solid var(--divider);
-            transition: background 0.2s;
-        }
-        .coin-item:nth-child(even) { background-color: #131626; } /* 极细微的隔行变色 */
+        h1 { text-align: center; color: #f0b90b; border-bottom: 1px solid #2b3139; padding-bottom: 10px; }
+        .container { display: flex; flex-direction: column; gap: 20px; }
         
-        .coin-name-section { flex: 4; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-        .coin-symbol-row { display: flex; align-items: center; gap: 6px; }
-        .coin-symbol { font-size: 15px; font-weight: 500; }
-        .leverage-tag {
-            font-size: 10px; background: var(--bg-tag); color: var(--text-light-grey);
-            padding: 1px 5px; border-radius: 4px;
+        .key-box { 
+            background: #1e2329; padding: 15px; border-radius: 8px; border: 1px solid #2b3139;
+            word-break: break-all;
         }
-        .coin-volume { font-size: 12px; color: var(--text-grey); }
+        .key-label { color: #848e9c; font-size: 0.9em; margin-bottom: 5px; display: block; }
+        .key-content { font-family: monospace; font-size: 12px; color: #eaecef; }
 
-        .coin-price-section { flex: 3; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 4px; }
-        .coin-price { font-size: 15px; font-weight: 500; }
-        .coin-cny { font-size: 12px; color: var(--text-light-grey); }
+        .chat-box { 
+            background: #161a1e; border: 1px solid #2b3139; border-radius: 8px; 
+            height: 300px; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .message { padding: 8px 12px; border-radius: 12px; max-width: 70%; line-height: 1.4; }
+        .msg-sender { align-self: flex-end; background: #0ecb81; color: #000; }
+        .msg-receiver { align-self: flex-start; background: #2b3139; color: #fff; }
+        .msg-meta { font-size: 10px; color: #848e9c; margin-top: 2px; text-align: right; }
 
-        .coin-change-section { flex: 2; display: flex; align-items: center; justify-content: flex-end; }
-        .change-badge {
-            padding: 4px 0; border-radius: 4px; font-size: 13px; font-weight: 500;
-            text-align: center; width: 70px; color: var(--text-white);
-        }
-        .change-badge.up { background: var(--gain-green); }
-        .change-badge.down { background: var(--loss-red); }
+        .controls { display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #2b3139; background: #1e2329; color: #eaecef; outline: none; }
+        input:focus { border-color: #f0b90b; }
+        button { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-primary { background: #f0b90b; color: #0f111a; }
+        .btn-primary:hover { background: #d4a20a; }
+        .btn-danger { background: #f6465d; color: white; }
 
-        /* ================= 底部导航 ================= */
-        .bottom-nav {
-            position: sticky; bottom: 0; display: flex; background: var(--bg-primary);
-            padding: 8px 0; border-top: 0.5px solid var(--divider);
-        }
-        .bottom-nav-item {
-            flex: 1; display: flex; flex-direction: column; align-items: center;
-            gap: 4px; font-size: 10px; color: var(--text-grey); cursor: pointer;
-        }
-        .bottom-nav-item.active { color: #4A9DFF; }
-        .bottom-nav-item .nav-icon { font-size: 20px; }
+        .status { text-align: center; font-size: 14px; color: #848e9c; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- 顶部区域 -->
-    <div class="header">
-        <div class="search-bar">
-            <span class="icon">🔍</span>
-            <input type="text" placeholder="搜索币种/币对/合约" readonly>
-            <span class="icon">⋯</span>
-        </div>
-    </div>
-    <div class="nav-main">
-        <span class="nav-item active">自选</span>
-        <span class="nav-item">市场</span>
-        <span class="nav-item">Alpha</span>
-        <span class="nav-item">金融增长</span>
-        <span class="nav-item">大数据</span>
-    </div>
-    <div class="tags-row">
-        <div class="tags-scroll">
-            <span class="tag-item active">全部</span>
-            <span class="tag-item">现货</span>
-            <span class="tag-item">Alpha</span>
-            <span class="tag-item">合约</span>
-            <span class="tag-item">期权</span>
-        </div>
-    </div>
-
-    <!-- 表头 -->
-    <div class="table-header">
-        <div class="col-name">名称 ⇅ 成交额</div>
-        <div class="col-price">最新价格 ⇅</div>
-        <div class="col-change">24h涨跌 ⇅</div>
-    </div>
-
-    <!-- 数据列表容器 -->
-    <div class="coin-list" id="coinList">
-        <div style="text-align: center; padding: 40px; color: var(--text-light-grey);">正在加载 BSC 实时行情数据...</div>
-    </div>
-
-    <!-- 底部导航 -->
-    <div class="bottom-nav">
-        <div class="bottom-nav-item"><span class="nav-icon">🏠</span><span>首页</span></div>
-        <div class="bottom-nav-item active"><span class="nav-icon">📈</span><span>行情</span></div>
-        <div class="bottom-nav-item"><span class="nav-icon">⇆</span><span>交易</span></div>
-        <div class="bottom-nav-item"><span class="nav-icon">📄</span><span>合约</span></div>
-        <div class="bottom-nav-item"><span class="nav-icon">👛</span><span>资产</span></div>
-    </div>
-
-    <!-- ================= 核心数据 Javascript ================= -->
-    <script>
-        // 1. 定义在 BSC 链上极其活跃的币种 (使用币安的 API 查询 USDT 交易对)
-        // 为了更贴合原图，列表包含 BTC, ETH, BNB, DOGE, SOL, XRP
-        const SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'XRPUSDT', 'SOLUSDT', 'DOGEUSDT'];
+    <div class="container">
+        <h1>🔐 OTC 加密通信原型 (E2EE)</h1>
         
-        // 汇率 (后续可以考虑加一个实时的 CNY/USD API)
-        const CNY_RATE = 7.25; 
+        <div class="key-box">
+            <span class="key-label">🔑 买家公钥 (发送者)</span>
+            <div class="key-content" id="pubKeySender">生成中...</div>
+        </div>
+        <div class="key-box">
+            <span class="key-label">🔑 卖家公钥 (接收者)</span>
+            <div class="key-content" id="pubKeyReceiver">生成中...</div>
+        </div>
 
-        // 2. 核心渲染函数
-        function renderCoins(dataList) {
-            const container = document.getElementById('coinList');
-            container.innerHTML = ''; // 清空 Loading 或旧数据
+        <div class="chat-box" id="chatBox">
+            <div style="color:#848e9c; text-align:center;">系统：加密通道已建立，请开始安全通信。</div>
+        </div>
 
-            dataList.forEach(coin => {
-                // 提取 API 数据
-                const rawPrice = parseFloat(coin.lastPrice);
-                const changePercent = parseFloat(coin.priceChangePercent);
-                const isUp = changePercent >= 0;
-                const quoteVol = parseFloat(coin.quoteVolume); // 成交量 (USDT)
+        <div class="controls">
+            <input type="text" id="messageInput" placeholder="输入秘密信息 (如: 银行尾号 8888)" />
+            <button class="btn-primary" onclick="sendEncryptedMessage()">发送 (加密)</button>
+            <button class="btn-danger" onclick="clearChat()">清空记录</button>
+        </div>
+        <div class="status" id="statusMsg">等待发送消息...</div>
+    </div>
 
-                // 格式化数据
-                let priceStr = rawPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-                if(rawPrice < 0.01) priceStr = rawPrice.toFixed(8); // 极低价币种展示更多小数位
-                
-                let changeStr = changePercent.toFixed(2) + '%';
-                if(isUp) changeStr = '+' + changeStr;
+    <script>
+        // ================= 1. 密钥生成 (RSA-OAEP) =================
+        let senderKeyPair, receiverKeyPair;
+        let receiverPublicKeyExported;
 
-                // 成交量自动转换单位：若大于1亿显示亿，若大于1万显示万
-                let volStr = '';
-                if(quoteVol >= 100000000) {
-                    volStr = (quoteVol / 100000000).toFixed(2) + '亿';
-                } else if(quoteVol >= 10000) {
-                    volStr = (quoteVol / 10000).toFixed(2) + '万';
-                } else {
-                    volStr = quoteVol.toFixed(0);
-                }
-
-                // 人民币参考价
-                const cnyStr = '≈ ¥' + (rawPrice * CNY_RATE).toFixed(2);
-                
-                // 解析显示的币对名称 (去除 USDT 后缀)
-                const displaySymbol = coin.symbol.replace('USDT', '/USDT');
-
-                // 3. 生成 DOM 节点
-                const item = document.createElement('div');
-                item.className = 'coin-item';
-                item.innerHTML = `
-                    <div class="coin-name-section">
-                        <div class="coin-symbol-row">
-                            <span class="coin-symbol">${displaySymbol}</span>
-                            <span class="leverage-tag">10x</span>
-                        </div>
-                        <div class="coin-volume">${volStr}</div>
-                    </div>
-                    <div class="coin-price-section">
-                        <div class="coin-price">${priceStr}</div>
-                        <div class="coin-cny">${cnyStr}</div>
-                    </div>
-                    <div class="coin-change-section">
-                        <div class="change-badge ${isUp ? 'up' : 'down'}">${changeStr}</div>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        // 4. 获取 API 数据的方法
-        async function fetchMarketData() {
+        // 生成 RSA 密钥对 (浏览器原生支持)
+        async function generateKeys() {
             try {
-                // 使用 Promise.all 并行请求所有币种数据，提高速度
-                const fetchPromises = SYMBOLS.map(symbol => 
-                    fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
-                        .then(res => {
-                            if(!res.ok) throw new Error('API Request Failed');
-                            return res.json();
-                        })
+                // 生成发送方密钥
+                senderKeyPair = await crypto.subtle.generateKey(
+                    { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
+                    true,
+                    ["encrypt", "decrypt"]
                 );
+                // 生成接收方密钥
+                receiverKeyPair = await crypto.subtle.generateKey(
+                    { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
+                    true,
+                    ["encrypt", "decrypt"]
+                );
+
+                // 导出公钥供展示和加密使用
+                const senderPub = await crypto.subtle.exportKey("spki", senderKeyPair.publicKey);
+                const receiverPub = await crypto.subtle.exportKey("spki", receiverKeyPair.publicKey);
+
+                document.getElementById('pubKeySender').innerText = arrayBufferToBase64(senderPub).substring(0, 60) + "...";
+                document.getElementById('pubKeyReceiver').innerText = arrayBufferToBase64(receiverPub).substring(0, 60) + "...";
+
+                // 存储接收方公钥用于加密信息 (模拟发消息给卖家)
+                receiverPublicKeyExported = receiverKeyPair.publicKey;
                 
-                const results = await Promise.all(fetchPromises);
-                renderCoins(results);
-                
-            } catch (error) {
-                console.error('数据获取失败:', error);
-                const container = document.getElementById('coinList');
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--loss-red);">
-                        ⚠️ 数据加载失败，请检查网络后刷新重试<br>
-                        <span style="font-size: 12px; color: var(--text-light-grey); margin-top:8px; display:block;">${error.message}</span>
-                    </div>
-                `;
+                console.log("🔑 密钥生成成功");
+            } catch (e) {
+                console.error("密钥生成失败:", e);
+                alert("您的浏览器可能不支持 Web Crypto API 或处于非安全环境（需 HTTPS 或 localhost）");
             }
         }
 
-        // 5. 程序入口：立即加载 + 每 10 秒定时刷新
-        fetchMarketData();
-        setInterval(fetchMarketData, 10000);
+        // ================= 2. 加密与解密逻辑 =================
+        // ArrayBuffer 转 Base64 (用于存储传输)
+        function arrayBufferToBase64(buffer) {
+            const binary = String.fromCharCode(...new Uint8Array(buffer));
+            return btoa(binary);
+        }
+        // Base64 转 ArrayBuffer
+        function base64ToArrayBuffer(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        // 加密消息 (使用接收者的公钥加密)
+        async function encryptMessage(text, publicKey) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const encrypted = await crypto.subtle.encrypt(
+                { name: "RSA-OAEP" },
+                publicKey,
+                data
+            );
+            return arrayBufferToBase64(encrypted);
+        }
+
+        // 解密消息 (使用接收者的私钥解密)
+        async function decryptMessage(encryptedBase64, privateKey) {
+            const encryptedData = base64ToArrayBuffer(encryptedBase64);
+            const decrypted = await crypto.subtle.decrypt(
+                { name: "RSA-OAEP" },
+                privateKey,
+                encryptedData
+            );
+            const decoder = new TextDecoder();
+            return decoder.decode(decrypted);
+        }
+
+        // ================= 3. 聊天交互逻辑 =================
+        async function sendEncryptedMessage() {
+            const input = document.getElementById('messageInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const chatBox = document.getElementById('chatBox');
+            const status = document.getElementById('statusMsg');
+
+            try {
+                status.innerText = "⏳ 正在加密消息...";
+
+                // 1. 加密消息 (模拟买家发给卖家，使用卖家的公钥)
+                const encryptedMsg = await encryptMessage(msg, receiverPublicKeyExported);
+
+                status.innerText = `✅ 消息已加密 (密文长度: ${encryptedMsg.length} 字符)`;
+
+                // 2. 在 UI 展示加密后的传输数据 (模拟网络传输过程)
+                const senderDiv = document.createElement('div');
+                senderDiv.className = 'message msg-sender';
+                senderDiv.innerHTML = `
+                    <div>📤 [加密传输中]</div>
+                    <div style="font-size: 10px; color: #555; word-break: break-all;">密文: ${encryptedMsg.substring(0, 30)}...</div>
+                `;
+                chatBox.appendChild(senderDiv);
+
+                // 3. 模拟网络延迟，然后接收端解密
+                setTimeout(async () => {
+                    status.innerText = "🔓 接收者正在解密...";
+                    
+                    // 卖家收到密文，用自己的私钥解密 (模拟卖家收到消息)
+                    const decryptedMsg = await decryptMessage(encryptedMsg, receiverKeyPair.privateKey);
+
+                    // 展示解密后的明文 (只有卖家能看到)
+                    const receiverDiv = document.createElement('div');
+                    receiverDiv.className = 'message msg-receiver';
+                    receiverDiv.innerHTML = `
+                        <div>📥 [解密成功]</div>
+                        <div style="font-weight: bold; font-size: 16px;">${decryptedMsg}</div>
+                        <div class="msg-meta">卖家已读取 (端到端加密)</div>
+                    `;
+                    chatBox.appendChild(receiverDiv);
+                    
+                    status.innerText = "💬 通信安全，已保护隐私。";
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }, 1500); // 模拟 1.5 秒网络延迟
+
+                input.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+            } catch (e) {
+                console.error(e);
+                status.innerText = "❌ 加密失败: " + e.message;
+            }
+        }
+
+        function clearChat() {
+            document.getElementById('chatBox').innerHTML = `
+                <div style="color:#848e9c; text-align:center;">系统：加密通道已重置。</div>
+            `;
+            document.getElementById('statusMsg').innerText = "聊天记录已清除";
+        }
+
+        // ================= 4. 初始化 =================
+        window.onload = function() {
+            // 注意：Web Crypto API 在本地 file:// 协议下会被浏览器安全策略拦截！
+            // 必须通过 http://localhost 或 https:// 打开才能运行加密逻辑。
+            if (window.location.protocol === 'file:') {
+                document.getElementById('statusMsg').innerText = "⚠️ 安全警告：请使用本地服务器 (如 Live Server) 打开此页面，否则加密功能将被浏览器阻止。";
+            } else {
+                generateKeys();
+            }
+        };
     </script>
 </body>
 </html>
