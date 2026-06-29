@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ETH/USDT 实时行情</title>
+    <title>ETH/USDT 实时K线 (链上真实数据)</title>
     
     <!-- 引入高性能轻量级K线库 -->
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
@@ -22,7 +22,6 @@
             --yellow-gold: #f0b90b;
             --border-color: #2b3139;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -31,315 +30,245 @@
             max-width: 480px; margin: 0 auto; min-height: 100vh;
             display: flex; flex-direction: column; position: relative;
         }
-
-        /* ============ 头部导航 ============ */
-        .header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 12px 16px; 
-        }
-        .header-left { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 600; }
-        .header-left span { font-size: 14px; color: var(--text-secondary); }
-        .header-right { display: flex; gap: 16px; font-size: 20px; color: var(--text-primary); }
-
-        /* ============ 顶部Tab导航 ============ */
+        
+        /* 底部和状态栏简写 */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; }
         .tabs { display: flex; padding: 0 16px; border-bottom: 1px solid var(--border-color); }
-        .tab-item { 
-            padding: 12px 0; margin-right: 20px; font-size: 15px; color: var(--text-secondary); 
-            cursor: pointer; position: relative;
-        }
-        .tab-item.active { color: var(--text-primary); font-weight: 500; }
-        .tab-item.active::after {
-            content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--yellow-gold);
-        }
-
-        /* ============ 价格信息区域 ============ */
+        .tab-item { padding: 12px 0; margin-right: 20px; font-size: 15px; color: var(--text-secondary); cursor: pointer; position: relative; }
+        .tab-item.active { color: var(--text-primary); font-weight: 500; border-bottom: 2px solid var(--yellow-gold); }
         .price-info { padding: 12px 16px; display: flex; justify-content: space-between; }
-        .price-left { display: flex; flex-direction: column; gap: 4px; }
         .price-main { font-size: 28px; font-weight: 600; }
         .price-sub { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-secondary); }
-        .price-sub .change.up { color: var(--up-green); }
-        .price-sub .change.down { color: var(--down-red); }
-        
-        .price-right { display: flex; gap: 24px; font-size: 12px; color: var(--text-secondary); }
-        .price-item { display: flex; flex-direction: column; gap: 4px; }
-        .price-item .val { color: var(--text-primary); font-weight: 500; font-size: 13px; }
-
-        /* ============ 时间周期栏 ============ */
-        .timeframe-bar { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 8px 16px; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color);
-        }
-        .tf-items { display: flex; gap: 16px; }
+        .timeframe-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); }
         .tf-item { cursor: pointer; padding: 2px 0; }
         .tf-item.active { color: var(--text-primary); font-weight: 500; }
-        .tf-actions { display: flex; gap: 12px; font-size: 18px; }
-
-        /* ============ 图表容器 (核心) ============ */
-        .chart-container { 
-            flex: 1; background: var(--bg-primary); display: flex; flex-direction: column; position: relative;
-        }
-        .chart-box { flex: 1; width: 100%; position: relative; min-height: 250px; }
-        /* 指标图 (成交量 + MACD) */
-        .indicator-box { height: 120px; width: 100%; border-top: 1px solid var(--border-color); }
         
-        .ma-legend {
-            position: absolute; top: 4px; left: 8px; display: flex; gap: 12px; font-size: 11px; color: var(--text-secondary);
-            pointer-events: none; z-index: 10;
-        }
+        /* 图表容器 */
+        .chart-container { flex: 1; background: var(--bg-primary); display: flex; flex-direction: column; position: relative; min-height: 400px;}
+        .chart-box { flex: 1; width: 100%; position: relative; min-height: 250px; }
+        .indicator-box { height: 100px; width: 100%; border-top: 1px solid var(--border-color); }
+        
+        /* 均线图例 */
+        .ma-legend { position: absolute; top: 4px; left: 8px; display: flex; gap: 12px; font-size: 11px; color: var(--text-secondary); pointer-events: none; z-index: 10; }
         .ma-legend span b { font-weight: 500; }
-
-        /* ============ 底部操作栏 ============ */
-        .bottom-actions {
-            display: flex; padding: 12px 16px 16px; gap: 12px; background: var(--bg-primary);
-            border-top: 1px solid var(--border-color); align-items: center;
-        }
-        .action-icons { display: flex; gap: 16px; color: var(--text-secondary); font-size: 18px; margin-right: 4px; }
-        .btn { flex: 1; border: none; border-radius: 6px; color: white; font-size: 16px; font-weight: 600; padding: 12px 0; cursor: pointer;}
+        
+        /* 底部操作 */
+        .bottom-actions { display: flex; padding: 12px 16px 16px; gap: 12px; background: var(--bg-primary); border-top: 1px solid var(--border-color); align-items: center; }
+        .btn { flex: 1; border: none; border-radius: 6px; color: white; font-size: 16px; font-weight: 600; padding: 12px 0; cursor: pointer; }
         .btn-buy { background: var(--up-green); }
         .btn-sell { background: var(--down-red); }
-
-        /* 底部系统导航 */
-        .bottom-nav {
-            display: flex; background: var(--bg-card); padding: 6px 0 12px; border-top: 1px solid var(--border-color);
-        }
-        .bottom-nav-item {
-            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: var(--text-secondary); cursor: pointer;
-        }
-        .bottom-nav-item.active { color: var(--yellow-gold); }
-        .bottom-nav-item .nav-icon { font-size: 20px; }
+        .bottom-nav { display: flex; background: var(--bg-card); padding: 6px 0 12px; border-top: 1px solid var(--border-color); }
+        .bottom-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: var(--text-secondary); cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <!-- 头部 -->
+    <!-- 顶部状态栏 -->
     <div class="header">
         <div class="header-left">← ETH/USDT <span>▼</span></div>
-        <div class="header-right">
-            <span>✨</span> <span>★</span> <span>🔗</span> <span>🔔</span>
-        </div>
+        <div class="header-right">✨ ★ 🔗 🔔</div>
     </div>
-
-    <!-- Tabs -->
     <div class="tabs">
         <div class="tab-item active">报价</div>
         <div class="tab-item">信息</div>
         <div class="tab-item">交易数据</div>
-        <div class="tab-item">交易 <span style="font-size:10px; color:var(--yellow-gold); border:1px solid var(--yellow-gold); border-radius:2px; padding:0 2px;">New</span></div>
     </div>
 
-    <!-- 价格 -->
+    <!-- 价格信息 -->
     <div class="price-info">
         <div class="price-left">
-            <div class="price-main" id="priceMain">1,585.70</div>
+            <div class="price-main" id="priceMain">--</div>
             <div class="price-sub">
-                <span>¥10,782.76</span>
-                <span class="change up" id="priceChange">+0.73%</span>
+                <span id="priceCny">--</span>
+                <span class="change" id="priceChange">--</span>
             </div>
         </div>
-        <div class="price-right">
-            <div class="price-item"><span>24h最高价</span><span class="val">1,589.75</span></div>
-            <div class="price-item"><span>24h最低价</span><span class="val">1,548.37</span></div>
+        <div class="price-right" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; color: var(--text-secondary);">
+            <div><div>24h最高</div><div class="val" id="high24" style="color: var(--text-primary);">--</div></div>
+            <div><div>24h最低</div><div class="val" id="low24" style="color: var(--text-primary);">--</div></div>
+            <div><div>24h量(ETH)</div><div class="val" id="vol24" style="color: var(--text-primary);">--</div></div>
+            <div><div>24h额(USDT)</div><div class="val" id="quoteVol24" style="color: var(--text-primary);">--</div></div>
         </div>
     </div>
 
-    <!-- 时间周期 -->
+    <!-- 时间选择 -->
     <div class="timeframe-bar">
         <div class="tf-items">
-            <span class="tf-item">分时</span>
-            <span class="tf-item">15分</span>
-            <span class="tf-item">1小时</span>
-            <span class="tf-item">4小时</span>
-            <span class="tf-item active">日线</span>
-            <span class="tf-item">月线 ▼</span>
+            <span class="tf-item" onclick="changeInterval('1m')">1分</span>
+            <span class="tf-item" onclick="changeInterval('15m')">15分</span>
+            <span class="tf-item" onclick="changeInterval('1h')">1小时</span>
+            <span class="tf-item" onclick="changeInterval('4h')">4小时</span>
+            <span class="tf-item active" onclick="changeInterval('1d')">日线</span>
         </div>
-        <div class="tf-actions">
-            <span>⛶</span> <span>≡</span>
-        </div>
+        <div class="tf-actions">⛶ ≡</div>
     </div>
 
     <!-- 图表区域 -->
     <div class="chart-container">
-        <!-- 均线图例 -->
-        <div class="ma-legend" id="maLegend">
-            <span style="color:#f4b042;">MA(7): <b id="ma7">2,191.96</b></span>
-            <span style="color:#d279f7;">MA(25): <b id="ma25">2,797.31</b></span>
-            <span style="color:#f23645;">MA(99): <b id="ma99">1,762.69</b></span>
+        <div class="ma-legend">
+            <span style="color:#f4b042;">MA(7): <b id="ma7">--</b></span>
+            <span style="color:#d279f7;">MA(25): <b id="ma25">--</b></span>
+            <span style="color:#f23645;">MA(99): <b id="ma99">--</b></span>
         </div>
-        
-        <!-- 主K线图 -->
         <div class="chart-box" id="mainChart"></div>
-        <!-- 副指标图 (成交量/均量) -->
         <div class="indicator-box" id="volumeChart"></div>
     </div>
 
-    <!-- 底部操作 -->
     <div class="bottom-actions">
-        <div class="action-icons">
-            <span>•••</span>
-            <span>⚒</span>
-            <span>⚖</span>
-        </div>
         <button class="btn btn-buy">买入</button>
         <button class="btn btn-sell">卖出</button>
     </div>
 
-    <!-- 底部导航 -->
-    <div class="bottom-nav">
-        <div class="bottom-nav-item"><span class="nav-icon">☰</span><span>首页</span></div>
-        <div class="bottom-nav-item active"><span class="nav-icon">⬆</span><span>行情</span></div>
-        <div class="bottom-nav-item"><span class="nav-icon">⤵</span><span>交易</span></div>
-        <div class="bottom-nav-item"><span class="nav-icon">⊞</span><span>合约</span></div>
-        <div class="bottom-nav-item"><span class="nav-icon">□</span><span>资产</span></div>
-    </div>
-
     <script>
-        // ================= 1. 数据生成与模拟 =================
-        // 为了浏览器能直接运行，这里使用随机算法生成逼真的K线数据
-        function generateMockData(count = 150) {
-            let data = [];
-            let price = 1585;
-            let time = new Date('2026-06-01').getTime() / 1000;
-            
-            for (let i = 0; i < count; i++) {
-                const change = (Math.random() - 0.5) * 30;
-                const open = price;
-                const close = price + change;
-                const high = Math.max(open, close) + Math.random() * 10;
-                const low = Math.min(open, close) - Math.random() * 10;
-                data.push({ time: time + i * 86400, open, high, low, close });
-                price = close;
-            }
-            return data;
-        }
+        // ================= 1. 全局配置 =================
+        let currentSymbol = 'ETHUSDT';
+        let currentInterval = '1d'; // 默认日线
+        let chartData = [];
 
-        // ================= 2. 初始化图表库 (Lightweight Charts) =================
+        // ================= 2. 图表初始化 (同之前) =================
         const mainChartContainer = document.getElementById('mainChart');
         const volumeChartContainer = document.getElementById('volumeChart');
-
-        // 设置主图风格 (完美复刻截图深色模式)
         const chartOptions = {
-            layout: { 
-                background: { color: '#161a1e' }, 
-                textColor: '#848e9c',
-                fontSize: 11
-            },
-            grid: { 
-                vertLines: { color: 'rgba(42, 46, 57, 0.8)' }, 
-                horzLines: { color: 'rgba(42, 46, 57, 0.8)' } 
-            },
-            timeScale: { 
-                timeVisible: true, 
-                secondsVisible: false,
-                borderColor: '#2b3139' 
-            },
+            layout: { background: { color: '#161a1e' }, textColor: '#848e9c', fontSize: 11 },
+            grid: { vertLines: { color: 'rgba(42, 46, 57, 0.8)' }, horzLines: { color: 'rgba(42, 46, 57, 0.8)' } },
+            timeScale: { timeVisible: true, secondsVisible: false, borderColor: '#2b3139' },
             rightPriceScale: { borderColor: '#2b3139' }
         };
-
-        // 主图表
         const mainChart = LightweightCharts.createChart(mainChartContainer, chartOptions);
         const mainSeries = mainChart.addCandlestickSeries({
             upColor: '#0ecb81', downColor: '#f6465d', borderVisible: false, wickUpColor: '#0ecb81', wickDownColor: '#f6465d'
         });
 
-        // 设置均线 (MA)
         const ma7Series = mainChart.addLineSeries({ color: '#f4b042', lineWidth: 1.5 });
         const ma25Series = mainChart.addLineSeries({ color: '#d279f7', lineWidth: 1.5 });
         const ma99Series = mainChart.addLineSeries({ color: '#f23645', lineWidth: 1.5 });
 
-        // 副图 - 成交量
-        const volChartOptions = { ...chartOptions, height: 120, layout: { ...chartOptions.layout, background: { color: 'transparent' } } };
+        const volChartOptions = { ...chartOptions, height: 100, layout: { ...chartOptions.layout, background: { color: 'transparent' } } };
         const volumeChart = LightweightCharts.createChart(volumeChartContainer, volChartOptions);
         const volumeSeries = volumeChart.addHistogramSeries({
             color: '#26a69a', priceFormat: { type: 'volume' }, 
         });
 
-        // 成交量均线 (MA)
-        const volMa5Series = volumeChart.addLineSeries({ color: '#8e94b2', lineWidth: 1 });
-        const volMa10Series = volumeChart.addLineSeries({ color: '#f4b042', lineWidth: 1 });
+        // ================= 3. 核心：获取真实 K 线数据 (Binance API) =================
+        async function fetchKlines() {
+            try {
+                // 限制获取最近 200 条数据，速度快且够用
+                const url = `https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${currentInterval}&limit=200`;
+                const response = await fetch(url);
+                const rawData = await response.json();
 
-        // ================= 3. 数据注入与联动 =================
-        const candleData = generateMockData(200);
-        mainSeries.setData(candleData);
+                // Binance API 返回的数据结构为数组，按顺序提取：
+                // 0: 开盘时间, 1: 开盘价, 2: 最高价, 3: 最低价, 4: 收盘价, 5: 成交量, ...
+                const formattedData = rawData.map(item => ({
+                    time: Math.floor(item[0] / 1000), // 毫秒转秒 (Lightweight Charts 要求时间戳为秒)
+                    open: parseFloat(item[1]),
+                    high: parseFloat(item[2]),
+                    low: parseFloat(item[3]),
+                    close: parseFloat(item[4]),
+                    volume: parseFloat(item[5])
+                }));
 
-        // 计算均线数据
-        const calcMA = (data, period) => {
-            return data.map((item, index) => {
-                if (index < period - 1) return null;
-                let sum = 0;
-                for (let i = index - period + 1; i <= index; i++) sum += data[i].close;
-                return { time: item.time, value: sum / period };
-            }).filter(item => item !== null);
-        };
+                chartData = formattedData;
+                updateChart();
+                updatePriceInfo();
+            } catch (error) {
+                console.error("K线数据拉取失败", error);
+                document.getElementById('priceMain').innerText = "加载失败";
+            }
+        }
 
-        const ma7 = calcMA(candleData, 7);
-        const ma25 = calcMA(candleData, 25);
-        const ma99 = calcMA(candleData, 99);
-        ma7Series.setData(ma7);
-        ma25Series.setData(ma25);
-        ma99Series.setData(ma99);
+        // ================= 4. 更新图表 =================
+        function updateChart() {
+            if (chartData.length === 0) return;
 
-        // 更新顶部图例数值
-        const getLast = (arr) => arr.length > 0 ? arr[arr.length - 1].value.toFixed(2) : '--';
-        document.getElementById('ma7').innerText = getLast(ma7);
-        document.getElementById('ma25').innerText = getLast(ma25);
-        document.getElementById('ma99').innerText = getLast(ma99);
+            // 更新主图和成交量
+            mainSeries.setData(chartData);
+            const volData = chartData.map(item => ({
+                time: item.time,
+                value: item.volume,
+                color: item.close > item.open ? '#0ecb81' : '#f6465d'
+            }));
+            volumeSeries.setData(volData);
 
-        // 生成成交量数据 (Mock)
-        const volData = candleData.map(item => ({ 
-            time: item.time, 
-            value: Math.floor(Math.random() * 30000000 + 8000000),
-            color: item.close > item.open ? '#0ecb81' : '#f6465d' 
-        }));
-        volumeSeries.setData(volData);
+            // 计算并更新均线
+            const calcMA = (period) => {
+                return chartData.map((item, index) => {
+                    if (index < period - 1) return null;
+                    let sum = 0;
+                    for (let i = index - period + 1; i <= index; i++) sum += chartData[i].close;
+                    return { time: item.time, value: sum / period };
+                }).filter(item => item !== null);
+            };
 
-        // 计算成交量均线
-        const calcVolMA = (data, period) => {
-            return data.map((item, index) => {
-                if (index < period - 1) return null;
-                let sum = 0;
-                for (let i = index - period + 1; i <= index; i++) sum += data[i].value;
-                return { time: item.time, value: sum / period };
-            }).filter(item => item !== null);
-        };
-        const volMa5 = calcVolMA(volData, 5);
-        const volMa10 = calcVolMA(volData, 10);
-        volMa5Series.setData(volMa5);
-        volMa10Series.setData(volMa10);
+            const ma7 = calcMA(7), ma25 = calcMA(25), ma99 = calcMA(99);
+            ma7Series.setData(ma7);
+            ma25Series.setData(ma25);
+            ma99Series.setData(ma99);
 
-        // 联动滚轮和十字光标
-        mainChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
-            volumeChart.timeScale().setVisibleRange(range);
-        });
-        mainChart.subscribeCrosshairMove((param) => {
-            if (param.time) volumeChart.setCrosshairPosition(param.point?.x || 0, param.time);
-        });
-        
-        // 初始让它们的时间轴对齐
-        volumeChart.timeScale().setVisibleRange(mainChart.timeScale().getVisibleRange());
+            // 更新图例数字
+            const getLast = (arr) => arr.length > 0 ? arr[arr.length - 1].value.toFixed(2) : '--';
+            document.getElementById('ma7').innerText = getLast(ma7);
+            document.getElementById('ma25').innerText = getLast(ma25);
+            document.getElementById('ma99').innerText = getLast(ma99);
 
-        // ================= 4. 自适应屏幕 =================
+            // 图表联动 (确保副图跟主图X轴对齐)
+            volumeChart.timeScale().setVisibleRange(mainChart.timeScale().getVisibleRange());
+        }
+
+        // ================= 5. 更新顶部价格、24h数据 =================
+        async function updatePriceInfo() {
+            try {
+                // 获取24小时精简行情统计
+                const tickerUrl = `https://api.binance.com/api/v3/ticker/24hr?symbol=${currentSymbol}`;
+                const tickerRes = await fetch(tickerUrl);
+                const ticker = await tickerRes.json();
+
+                const currentPrice = parseFloat(ticker.lastPrice);
+                const changePercent = parseFloat(ticker.priceChangePercent);
+                const isUp = changePercent >= 0;
+                const cnyRate = 7.25; // 固定汇率
+
+                document.getElementById('priceMain').innerText = currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById('priceCny').innerText = '¥' + (currentPrice * cnyRate).toFixed(2);
+                document.getElementById('priceChange').innerHTML = (isUp ? '+' : '') + changePercent.toFixed(2) + '%';
+                document.getElementById('priceChange').className = isUp ? 'change up' : 'change down';
+                
+                document.getElementById('high24').innerText = parseFloat(ticker.highPrice).toFixed(2);
+                document.getElementById('low24').innerText = parseFloat(ticker.lowPrice).toFixed(2);
+                document.getElementById('vol24').innerText = parseFloat(ticker.volume).toFixed(2);
+                document.getElementById('quoteVol24').innerText = parseFloat(ticker.quoteVolume).toFixed(2);
+            } catch (e) {
+                console.warn("24h数据更新失败", e);
+            }
+        }
+
+        // ================= 6. 周期切换功能 =================
+        function changeInterval(interval) {
+            currentInterval = interval;
+            // 更新 UI 选中样式
+            document.querySelectorAll('.tf-item').forEach(el => el.classList.remove('active'));
+            const target = Array.from(document.querySelectorAll('.tf-item')).find(el => el.innerText.includes(interval));
+            if(target) target.classList.add('active');
+            
+            fetchKlines(); // 拉取新周期的数据
+        }
+
+        // ================= 7. 启动与轮询 (真正的实时) =================
+        // 初次加载
+        fetchKlines();
+
+        // 每 15 秒刷新一次顶部 24h 数据，并且更新最新的一根 K 线
+        setInterval(() => {
+            updatePriceInfo();
+            fetchKlines(); // 重新拉取最新K线数据，处理闭市状态的最后一根线
+        }, 15000);
+
+        // 窗口自适应
         window.addEventListener('resize', () => {
             mainChart.resize(mainChartContainer.clientWidth, mainChartContainer.clientHeight);
             volumeChart.resize(volumeChartContainer.clientWidth, volumeChartContainer.clientHeight);
         });
-        // 强制初始化触发一次 resize 适应父容器
-        setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
 
-        // ================= 5. 模拟价格跳动 (可选) =================
-        setInterval(() => {
-            const last = candleData[candleData.length - 1];
-            const change = (Math.random() - 0.5) * 8;
-            const newClose = last.close + change;
-            last.close = newClose;
-            if(newClose > last.high) last.high = newClose;
-            if(newClose < last.low) last.low = newClose;
-            
-            // 更新主图
-            mainSeries.update(last);
-            // 更新顶部价格数字
-            document.getElementById('priceMain').innerText = newClose.toLocaleString('en-US', { minimumFractionDigits: 2 });
-            document.getElementById('priceChange').innerText = (newClose > 1585 ? '+' : '') + ((newClose - 1585) / 15.85).toFixed(2) + '%';
-        }, 3000); // 每3秒跳动一次
     </script>
 </body>
 </html>
