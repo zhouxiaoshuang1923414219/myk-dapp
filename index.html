@@ -2,32 +2,26 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>加密货币行情</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BSC 实时行情</title>
     <style>
-        /* ============ 统一色彩系统 ============ */
+        /* ================= 基础变量与重置 ================= */
         :root {
             --bg-primary: #0F111D;
             --bg-card: #1A1D2E;
             --bg-search: #1A1D2E;
             --bg-tag: #252A40;
-            --accent-blue: #4A9DFF;
             --text-white: #EAECF0;
             --text-grey: #6B7394;
             --text-light-grey: #8E94B2;
             --divider: #1E2139;
-            --loss-red: #E8455B;
-            --gain-green: #26A69A;
+            --loss-red: #E8455B;    /* 跌 */
+            --gain-green: #26A69A;  /* 涨 */
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-primary);
             color: var(--text-white);
             min-height: 100vh;
@@ -36,281 +30,92 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ============ 顶部搜索栏 ============ */
-        .header {
-            padding: 12px 16px;
-            position: sticky;
-            top: 0;
-            background: var(--bg-primary);
-            z-index: 10;
-        }
-
+        /* ================= 顶部搜索 ================= */
+        .header { padding: 12px 16px; position: sticky; top: 0; background: var(--bg-primary); z-index: 10; }
         .search-bar {
-            display: flex;
-            align-items: center;
-            background: var(--bg-search);
-            border-radius: 8px;
-            padding: 0 12px;
-            height: 40px;
+            display: flex; align-items: center; background: var(--bg-search);
+            border-radius: 8px; padding: 0 12px; height: 40px;
         }
-
-        .search-bar .icon-search {
-            color: var(--text-grey);
-            font-size: 18px;
-            margin-right: 8px;
-        }
-
         .search-bar input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-white);
-            font-size: 14px;
+            flex: 1; background: transparent; border: none; outline: none;
+            color: var(--text-white); font-size: 14px;
         }
+        .search-bar input::placeholder { color: var(--text-grey); }
+        .search-bar .icon { color: var(--text-grey); font-size: 18px; margin: 0 4px; }
 
-        .search-bar input::placeholder {
-            color: var(--text-grey);
-        }
+        /* ================= 导航与标签 ================= */
+        .nav-main { display: flex; padding: 8px 16px; gap: 20px; overflow-x: auto; scrollbar-width: none; }
+        .nav-main::-webkit-scrollbar { display: none; }
+        .nav-item { font-size: 16px; white-space: nowrap; color: var(--text-grey); cursor: pointer; }
+        .nav-item.active { color: var(--text-white); font-weight: 700; }
 
-        .search-bar .icon-more {
-            color: var(--text-grey);
-            font-size: 20px;
-        }
+        .tags-row { display: flex; align-items: center; padding: 8px 16px; gap: 16px; }
+        .tags-scroll { display: flex; flex: 1; gap: 16px; overflow-x: auto; scrollbar-width: none; }
+        .tags-scroll::-webkit-scrollbar { display: none; }
+        .tag-item { font-size: 14px; white-space: nowrap; color: var(--text-light-grey); cursor: pointer; }
+        .tag-item.active { color: var(--text-white); }
 
-        /* ============ 主导航 ============ */
-        .nav-main {
-            display: flex;
-            padding: 8px 16px;
-            gap: 20px;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-
-        .nav-main::-webkit-scrollbar {
-            display: none;
-        }
-
-        .nav-item {
-            font-size: 16px;
-            white-space: nowrap;
-            cursor: pointer;
-            color: var(--text-grey);
-            font-weight: 400;
-            transition: color 0.2s;
-        }
-
-        .nav-item.active {
-            color: var(--text-white);
-            font-weight: 700;
-        }
-
-        /* ============ 分类标签 ============ */
-        .tags-row {
-            display: flex;
-            align-items: center;
-            padding: 8px 16px;
-            gap: 16px;
-        }
-
-        .tags-scroll {
-            display: flex;
-            flex: 1;
-            gap: 16px;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-
-        .tags-scroll::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tag-item {
-            font-size: 14px;
-            white-space: nowrap;
-            cursor: pointer;
-            color: var(--text-light-grey);
-        }
-
-        .tag-item.active {
-            color: var(--text-white);
-        }
-
-        .tags-actions {
-            display: flex;
-            gap: 12px;
-            color: var(--text-light-grey);
-            font-size: 18px;
-        }
-
-        /* ============ 表头 ============ */
+        /* ================= 列表表头 ================= */
         .table-header {
-            display: flex;
-            padding: 8px 16px;
-            font-size: 12px;
-            color: var(--text-light-grey);
-        }
-
-        .col-name {
-            flex: 4;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
-
-        .col-price {
-            flex: 3;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 2px;
-        }
-
-        .col-change {
-            flex: 2;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 2px;
-        }
-
-        .sort-icon {
-            font-size: 10px;
-        }
-
-        /* ============ 币种列表 ============ */
-        .coin-list {
-            padding: 0;
-        }
-
-        .coin-item {
-            display: flex;
-            padding: 14px 16px;
+            display: flex; padding: 8px 16px; font-size: 12px; color: var(--text-light-grey);
             border-bottom: 0.5px solid var(--divider);
-            cursor: pointer;
-            transition: background 0.15s;
         }
+        .col-name { flex: 4; display: flex; align-items: center; gap: 4px; }
+        .col-price { flex: 3; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+        .col-change { flex: 2; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
 
-        .coin-item:active {
-            background: var(--bg-card);
+        /* ================= 币种列表 ================= */
+        .coin-list { padding: 0; }
+        .coin-item {
+            display: flex; padding: 14px 16px; border-bottom: 0.5px solid var(--divider);
+            transition: background 0.2s;
         }
-
-        .coin-name-section {
-            flex: 4;
-        }
-
-        .coin-symbol-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 4px;
-        }
-
-        .coin-symbol {
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--text-white);
-        }
-
+        .coin-item:nth-child(even) { background-color: #131626; } /* 极细微的隔行变色 */
+        
+        .coin-name-section { flex: 4; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+        .coin-symbol-row { display: flex; align-items: center; gap: 6px; }
+        .coin-symbol { font-size: 15px; font-weight: 500; }
         .leverage-tag {
-            font-size: 10px;
-            font-weight: 500;
-            background: var(--bg-tag);
-            color: var(--text-light-grey);
-            padding: 2px 5px;
-            border-radius: 4px;
+            font-size: 10px; background: var(--bg-tag); color: var(--text-light-grey);
+            padding: 1px 5px; border-radius: 4px;
         }
+        .coin-volume { font-size: 12px; color: var(--text-grey); }
 
-        .coin-volume {
-            font-size: 12px;
-            color: var(--text-grey);
-        }
+        .coin-price-section { flex: 3; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 4px; }
+        .coin-price { font-size: 15px; font-weight: 500; }
+        .coin-cny { font-size: 12px; color: var(--text-light-grey); }
 
-        .coin-price-section {
-            flex: 3;
-            text-align: right;
-        }
-
-        .coin-price {
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--text-white);
-            margin-bottom: 4px;
-        }
-
-        .coin-cny {
-            font-size: 12px;
-            color: var(--text-light-grey);
-        }
-
-        .coin-change-section {
-            flex: 2;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-        }
-
+        .coin-change-section { flex: 2; display: flex; align-items: center; justify-content: flex-end; }
         .change-badge {
-            padding: 6px 10px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-white);
-            text-align: center;
-            min-width: 65px;
+            padding: 4px 0; border-radius: 4px; font-size: 13px; font-weight: 500;
+            text-align: center; width: 70px; color: var(--text-white);
         }
+        .change-badge.up { background: var(--gain-green); }
+        .change-badge.down { background: var(--loss-red); }
 
-        .change-badge.up {
-            background: var(--gain-green);
-        }
-
-        .change-badge.down {
-            background: var(--loss-red);
-        }
-
-        /* ============ 底部导航 ============ */
+        /* ================= 底部导航 ================= */
         .bottom-nav {
-            position: sticky;
-            bottom: 0;
-            display: flex;
-            background: var(--bg-primary);
-            padding: 8px 0;
-            border-top: 0.5px solid var(--divider);
+            position: sticky; bottom: 0; display: flex; background: var(--bg-primary);
+            padding: 8px 0; border-top: 0.5px solid var(--divider);
         }
-
         .bottom-nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            font-size: 10px;
-            color: var(--text-grey);
-            cursor: pointer;
-            padding: 4px 0;
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            gap: 4px; font-size: 10px; color: var(--text-grey); cursor: pointer;
         }
-
-        .bottom-nav-item.active {
-            color: var(--accent-blue);
-        }
-
-        .bottom-nav-item .nav-icon {
-            font-size: 20px;
-        }
+        .bottom-nav-item.active { color: #4A9DFF; }
+        .bottom-nav-item .nav-icon { font-size: 20px; }
     </style>
 </head>
 <body>
 
-    <!-- 搜索栏 -->
+    <!-- 顶部区域 -->
     <div class="header">
         <div class="search-bar">
-            <span class="icon-search">🔍</span>
+            <span class="icon">🔍</span>
             <input type="text" placeholder="搜索币种/币对/合约" readonly>
-            <span class="icon-more">⋯</span>
+            <span class="icon">⋯</span>
         </div>
     </div>
-
-    <!-- 主导航 -->
     <div class="nav-main">
         <span class="nav-item active">自选</span>
         <span class="nav-item">市场</span>
@@ -318,8 +123,6 @@
         <span class="nav-item">金融增长</span>
         <span class="nav-item">大数据</span>
     </div>
-
-    <!-- 分类标签 -->
     <div class="tags-row">
         <div class="tags-scroll">
             <span class="tag-item active">全部</span>
@@ -328,83 +131,126 @@
             <span class="tag-item">合约</span>
             <span class="tag-item">期权</span>
         </div>
-        <div class="tags-actions">
-            <span>⊞</span>
-            <span>✎</span>
-        </div>
     </div>
 
     <!-- 表头 -->
     <div class="table-header">
-        <div class="col-name">名称<span class="sort-icon">⇅</span> 成交额</div>
-        <div class="col-price">最新价格<span class="sort-icon">⇅</span></div>
-        <div class="col-change">24h涨跌<span class="sort-icon">⇅</span></div>
+        <div class="col-name">名称 ⇅ 成交额</div>
+        <div class="col-price">最新价格 ⇅</div>
+        <div class="col-change">24h涨跌 ⇅</div>
     </div>
 
-    <!-- 币种列表 -->
-    <div class="coin-list" id="coinList"></div>
+    <!-- 数据列表容器 -->
+    <div class="coin-list" id="coinList">
+        <div style="text-align: center; padding: 40px; color: var(--text-light-grey);">正在加载 BSC 实时行情数据...</div>
+    </div>
 
     <!-- 底部导航 -->
     <div class="bottom-nav">
-        <div class="bottom-nav-item">
-            <span class="nav-icon">🏠</span>
-            <span>首页</span>
-        </div>
-        <div class="bottom-nav-item active">
-            <span class="nav-icon">📈</span>
-            <span>行情</span>
-        </div>
-        <div class="bottom-nav-item">
-            <span class="nav-icon">⇆</span>
-            <span>交易</span>
-        </div>
-        <div class="bottom-nav-item">
-            <span class="nav-icon">📄</span>
-            <span>合约</span>
-        </div>
-        <div class="bottom-nav-item">
-            <span class="nav-icon">👛</span>
-            <span>资产</span>
-        </div>
+        <div class="bottom-nav-item"><span class="nav-icon">🏠</span><span>首页</span></div>
+        <div class="bottom-nav-item active"><span class="nav-icon">📈</span><span>行情</span></div>
+        <div class="bottom-nav-item"><span class="nav-icon">⇆</span><span>交易</span></div>
+        <div class="bottom-nav-item"><span class="nav-icon">📄</span><span>合约</span></div>
+        <div class="bottom-nav-item"><span class="nav-icon">👛</span><span>资产</span></div>
     </div>
 
+    <!-- ================= 核心数据 Javascript ================= -->
     <script>
-        // 模拟数据
-        const coins = [
-            { symbol: 'BNB/USDT', leverage: '10x', price: '553.07', cny: '¥3,760.87', change: '-1.71%', volume: '3,772.42万', isUp: false },
-            { symbol: 'BTC/USDT', leverage: '10x', price: '59,508.00', cny: '¥404,654.39', change: '-1.79%', volume: '4.89亿', isUp: false },
-            { symbol: 'ETH/USDT', leverage: '10x', price: '1,568.67', cny: '¥10,666.95', change: '-1.65%', volume: '2.08亿', isUp: false },
-            { symbol: 'DOGE/USDT', leverage: '10x', price: '0.07309', cny: '¥0.49701', change: '-3.08%', volume: '2,423.78万', isUp: false },
-            { symbol: 'SOL/USDT', leverage: '10x', price: '70.98', cny: '¥482.66', change: '+1.38%', volume: '1.18亿', isUp: true },
-            { symbol: 'BARD/USDT', leverage: '5x', price: '0.1340', cny: '¥0.9112', change: '-0.30%', volume: '197,701.00', isUp: false },
-            { symbol: 'XPL/USDT', leverage: '5x', price: '0.09637', cny: '¥0.65531', change: '-6.10%', volume: '553.81万', isUp: false },
-            { symbol: 'XRP/USDT', leverage: '10x', price: '1.0440', cny: '¥7.09', change: '+1.48%', volume: '4,393.68万', isUp: true },
-        ];
+        // 1. 定义在 BSC 链上极其活跃的币种 (使用币安的 API 查询 USDT 交易对)
+        // 为了更贴合原图，列表包含 BTC, ETH, BNB, DOGE, SOL, XRP
+        const SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'XRPUSDT', 'SOLUSDT', 'DOGEUSDT'];
+        
+        // 汇率 (后续可以考虑加一个实时的 CNY/USD API)
+        const CNY_RATE = 7.25; 
 
-        // 渲染列表
-        const container = document.getElementById('coinList');
-        coins.forEach(coin => {
-            const item = document.createElement('div');
-            item.className = 'coin-item';
-            item.innerHTML = `
-                <div class="coin-name-section">
-                    <div class="coin-symbol-row">
-                        <span class="coin-symbol">${coin.symbol}</span>
-                        <span class="leverage-tag">${coin.leverage}</span>
+        // 2. 核心渲染函数
+        function renderCoins(dataList) {
+            const container = document.getElementById('coinList');
+            container.innerHTML = ''; // 清空 Loading 或旧数据
+
+            dataList.forEach(coin => {
+                // 提取 API 数据
+                const rawPrice = parseFloat(coin.lastPrice);
+                const changePercent = parseFloat(coin.priceChangePercent);
+                const isUp = changePercent >= 0;
+                const quoteVol = parseFloat(coin.quoteVolume); // 成交量 (USDT)
+
+                // 格式化数据
+                let priceStr = rawPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+                if(rawPrice < 0.01) priceStr = rawPrice.toFixed(8); // 极低价币种展示更多小数位
+                
+                let changeStr = changePercent.toFixed(2) + '%';
+                if(isUp) changeStr = '+' + changeStr;
+
+                // 成交量自动转换单位：若大于1亿显示亿，若大于1万显示万
+                let volStr = '';
+                if(quoteVol >= 100000000) {
+                    volStr = (quoteVol / 100000000).toFixed(2) + '亿';
+                } else if(quoteVol >= 10000) {
+                    volStr = (quoteVol / 10000).toFixed(2) + '万';
+                } else {
+                    volStr = quoteVol.toFixed(0);
+                }
+
+                // 人民币参考价
+                const cnyStr = '≈ ¥' + (rawPrice * CNY_RATE).toFixed(2);
+                
+                // 解析显示的币对名称 (去除 USDT 后缀)
+                const displaySymbol = coin.symbol.replace('USDT', '/USDT');
+
+                // 3. 生成 DOM 节点
+                const item = document.createElement('div');
+                item.className = 'coin-item';
+                item.innerHTML = `
+                    <div class="coin-name-section">
+                        <div class="coin-symbol-row">
+                            <span class="coin-symbol">${displaySymbol}</span>
+                            <span class="leverage-tag">10x</span>
+                        </div>
+                        <div class="coin-volume">${volStr}</div>
                     </div>
-                    <div class="coin-volume">${coin.volume}</div>
-                </div>
-                <div class="coin-price-section">
-                    <div class="coin-price">${coin.price}</div>
-                    <div class="coin-cny">${coin.cny}</div>
-                </div>
-                <div class="coin-change-section">
-                    <div class="change-badge ${coin.isUp ? 'up' : 'down'}">${coin.change}</div>
-                </div>
-            `;
-            container.appendChild(item);
-        });
-    </script>
+                    <div class="coin-price-section">
+                        <div class="coin-price">${priceStr}</div>
+                        <div class="coin-cny">${cnyStr}</div>
+                    </div>
+                    <div class="coin-change-section">
+                        <div class="change-badge ${isUp ? 'up' : 'down'}">${changeStr}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
 
+        // 4. 获取 API 数据的方法
+        async function fetchMarketData() {
+            try {
+                // 使用 Promise.all 并行请求所有币种数据，提高速度
+                const fetchPromises = SYMBOLS.map(symbol => 
+                    fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
+                        .then(res => {
+                            if(!res.ok) throw new Error('API Request Failed');
+                            return res.json();
+                        })
+                );
+                
+                const results = await Promise.all(fetchPromises);
+                renderCoins(results);
+                
+            } catch (error) {
+                console.error('数据获取失败:', error);
+                const container = document.getElementById('coinList');
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--loss-red);">
+                        ⚠️ 数据加载失败，请检查网络后刷新重试<br>
+                        <span style="font-size: 12px; color: var(--text-light-grey); margin-top:8px; display:block;">${error.message}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // 5. 程序入口：立即加载 + 每 10 秒定时刷新
+        fetchMarketData();
+        setInterval(fetchMarketData, 10000);
+    </script>
 </body>
 </html>
