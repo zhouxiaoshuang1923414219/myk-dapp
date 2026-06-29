@@ -1,392 +1,410 @@
-import 'package:flutter/material.dart';
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密货币行情</title>
+    <style>
+        /* ============ 统一色彩系统 ============ */
+        :root {
+            --bg-primary: #0F111D;
+            --bg-card: #1A1D2E;
+            --bg-search: #1A1D2E;
+            --bg-tag: #252A40;
+            --accent-blue: #4A9DFF;
+            --text-white: #EAECF0;
+            --text-grey: #6B7394;
+            --text-light-grey: #8E94B2;
+            --divider: #1E2139;
+            --loss-red: #E8455B;
+            --gain-green: #26A69A;
+        }
 
-void main() {
-  runApp(const CryptoApp());
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-class CryptoApp extends StatelessWidget {
-  const CryptoApp({super.key});
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-white);
+            min-height: 100vh;
+            max-width: 480px;
+            margin: 0 auto;
+            -webkit-font-smoothing: antialiased;
+        }
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Crypto Market',
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0F111D), // 统一深色主背景
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0F111D),
-          elevation: 0,
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Color(0xFF0F111D),
-          selectedItemColor: Color(0xFF4A9DFF), // 蓝色强调
-          unselectedItemColor: Color(0xFF6B7394),
-        ),
-      ),
-      home: const MarketScreen(),
-    );
-  }
-}
+        /* ============ 顶部搜索栏 ============ */
+        .header {
+            padding: 12px 16px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 10;
+        }
 
-class MarketScreen extends StatefulWidget {
-  const MarketScreen({super.key});
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: var(--bg-search);
+            border-radius: 8px;
+            padding: 0 12px;
+            height: 40px;
+        }
 
-  @override
-  State<MarketScreen> createState() => _MarketScreenState();
-}
+        .search-bar .icon-search {
+            color: var(--text-grey);
+            font-size: 18px;
+            margin-right: 8px;
+        }
 
-class _MarketScreenState extends State<MarketScreen> {
-  // 统一色彩系统
-  static const Color primaryBackground = Color(0xFF0F111D);
-  static const Color cardBackground = Color(0xFF1A1D2E);
-  static const Color searchBarBackground = Color(0xFF1A1D2E);
-  static const Color accentBlue = Color(0xFF4A9DFF);
-  static const Color textWhite = Color(0xFFEAECF0);
-  static const Color textGrey = Color(0xFF6B7394);
-  static const Color textLightGrey = Color(0xFF8E94B2);
-  static const Color dividerColor = Color(0xFF1E2139);
-  static const Color lossRed = Color(0xFFE8455B);
-  static const Color gainGreen = Color(0xFF26A69A);
-  static const Color tagBackground = Color(0xFF252A40);
+        .search-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-white);
+            font-size: 14px;
+        }
 
-  // 模拟数据模型
-  final List<Map<String, dynamic>> _coins = [
-    {
-      'symbol': 'BNB/USDT',
-      'leverage': '10x',
-      'price': '553.07',
-      'cny': '¥3,760.87',
-      'change': '-1.71%',
-      'volume': '3,772.42万',
-      'isGain': false,
-    },
-    {
-      'symbol': 'BTC/USDT',
-      'leverage': '10x',
-      'price': '59,508.00',
-      'cny': '¥404,654.39',
-      'change': '-1.79%',
-      'volume': '4.89亿',
-      'isGain': false,
-    },
-    {
-      'symbol': 'ETH/USDT',
-      'leverage': '10x',
-      'price': '1,568.67',
-      'cny': '¥10,666.95',
-      'change': '-1.65%',
-      'volume': '2.08亿',
-      'isGain': false,
-    },
-    {
-      'symbol': 'DOGE/USDT',
-      'leverage': '10x',
-      'price': '0.07309',
-      'cny': '¥0.49701',
-      'change': '-3.08%',
-      'volume': '2,423.78万',
-      'isGain': false,
-    },
-    {
-      'symbol': 'SOL/USDT',
-      'leverage': '10x',
-      'price': '70.98',
-      'cny': '¥482.66',
-      'change': '+1.38%',
-      'volume': '1.18亿',
-      'isGain': true,
-    },
-    {
-      'symbol': 'BARD/USDT',
-      'leverage': '5x',
-      'price': '0.1340',
-      'cny': '¥0.9112',
-      'change': '-0.30%',
-      'volume': '197,701.00',
-      'isGain': false,
-    },
-    {
-      'symbol': 'XPL/USDT',
-      'leverage': '5x',
-      'price': '0.09637',
-      'cny': '¥0.65531',
-      'change': '-6.10%',
-      'volume': '553.81万',
-      'isGain': false,
-    },
-    {
-      'symbol': 'XRP/USDT',
-      'leverage': '10x',
-      'price': '1.0440',
-      'cny': '¥7.09',
-      'change': '+1.48%',
-      'volume': '4,393.68万',
-      'isGain': true,
-    },
-  ];
+        .search-bar input::placeholder {
+            color: var(--text-grey);
+        }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: searchBarBackground,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              const Icon(Icons.search, color: textGrey, size: 20),
-              const SizedBox(width: 8),
-              const Text(
-                '搜索币种/币对/合约',
-                style: TextStyle(color: textGrey, fontSize: 14),
-              ),
-              const Spacer(),
-              const Icon(Icons.more_horiz, color: textGrey, size: 20),
-            ],
-          ),
-        ),
-        centerTitle: false,
-      ),
-      body: Column(
-        children: [
-          const SizedBox(height: 8),
-          // 顶部导航
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                _buildNavItem('自选', true),
-                _buildNavItem('市场', false),
-                _buildNavItem('Alpha', false),
-                _buildNavItem('金融增长', false),
-                _buildNavItem('大数据', false),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          // 分类导航
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildTagNav('全部', true),
-                        _buildTagNav('现货', false),
-                        _buildTagNav('Alpha', false),
-                        _buildTagNav('合约', false),
-                        _buildTagNav('期权', false),
-                      ],
-                    ),
-                  ),
-                ),
-                Icon(Icons.grid_view, color: textLightGrey, size: 20),
-                const SizedBox(width: 12),
-                Icon(Icons.edit, color: textLightGrey, size: 20),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // 列表表头
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Expanded(
-                  flex: 4,
-                  child: Row(
-                    children: [
-                      Text('名称', style: TextStyle(color: Color(0xFF8E94B2), fontSize: 12)),
-                      Icon(Icons.swap_vert, color: Color(0xFF8E94B2), size: 12),
-                      SizedBox(width: 4),
-                      Text('成交额', style: TextStyle(color: Color(0xFF8E94B2), fontSize: 12)),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text('最新价格', style: TextStyle(color: Color(0xFF8E94B2), fontSize: 12)),
-                      Icon(Icons.swap_vert, color: Color(0xFF8E94B2), size: 12),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text('24h涨跌', style: TextStyle(color: Color(0xFF8E94B2), fontSize: 12)),
-                      Icon(Icons.swap_vert, color: Color(0xFF8E94B2), size: 12),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // 币种列表
-          Expanded(
-            child: ListView.builder(
-              itemCount: _coins.length,
-              itemBuilder: (context, index) {
-                final coin = _coins[index];
-                return _buildCoinItem(coin);
-              },
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: primaryBackground,
-        selectedItemColor: accentBlue,
-        unselectedItemColor: textGrey,
-        type: BottomNavigationBarType.fixed,
-        currentIndex: 1,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
-          BottomNavigationBarItem(icon: Icon(Icons.show_chart), label: '行情'),
-          BottomNavigationBarItem(icon: Icon(Icons.sync_alt), label: '交易'),
-          BottomNavigationBarItem(icon: Icon(Icons.description), label: '合约'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: '资产'),
-        ],
-      ),
-    );
-  }
+        .search-bar .icon-more {
+            color: var(--text-grey);
+            font-size: 20px;
+        }
 
-  Widget _buildNavItem(String text, bool isSelected) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 20),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isSelected ? textWhite : textGrey,
-          fontSize: 16,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
-  }
+        /* ============ 主导航 ============ */
+        .nav-main {
+            display: flex;
+            padding: 8px 16px;
+            gap: 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
 
-  Widget _buildTagNav(String text, bool isSelected) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isSelected ? textWhite : textLightGrey,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
+        .nav-main::-webkit-scrollbar {
+            display: none;
+        }
 
-  Widget _buildCoinItem(Map<String, dynamic> coin) {
-    final isGain = coin['isGain'] as bool;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: dividerColor, width: 0.5)),
-      ),
-      child: Row(
-        children: [
-          // 名称和杠杆
-          Expanded(
-            flex: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      coin['symbol'],
-                      style: const TextStyle(
-                        color: textWhite,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: tagBackground,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        coin['leverage'],
-                        style: const TextStyle(
-                          color: textLightGrey,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  coin['volume'],
-                  style: const TextStyle(color: textGrey, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          // 价格
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  coin['price'],
-                  style: const TextStyle(
-                    color: textWhite,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  coin['cny'],
-                  style: const TextStyle(color: textLightGrey, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          // 涨跌幅
-          Expanded(
-            flex: 2,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: isGain ? gainGreen : lossRed, // 统一使用绿涨红跌
-                borderRadius: BorderRadius.circular(4),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                coin['change'],
-                style: const TextStyle(
-                  color: textWhite,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+        .nav-item {
+            font-size: 16px;
+            white-space: nowrap;
+            cursor: pointer;
+            color: var(--text-grey);
+            font-weight: 400;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--text-white);
+            font-weight: 700;
+        }
+
+        /* ============ 分类标签 ============ */
+        .tags-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            gap: 16px;
+        }
+
+        .tags-scroll {
+            display: flex;
+            flex: 1;
+            gap: 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tags-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tag-item {
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            color: var(--text-light-grey);
+        }
+
+        .tag-item.active {
+            color: var(--text-white);
+        }
+
+        .tags-actions {
+            display: flex;
+            gap: 12px;
+            color: var(--text-light-grey);
+            font-size: 18px;
+        }
+
+        /* ============ 表头 ============ */
+        .table-header {
+            display: flex;
+            padding: 8px 16px;
+            font-size: 12px;
+            color: var(--text-light-grey);
+        }
+
+        .col-name {
+            flex: 4;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .col-price {
+            flex: 3;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 2px;
+        }
+
+        .col-change {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 2px;
+        }
+
+        .sort-icon {
+            font-size: 10px;
+        }
+
+        /* ============ 币种列表 ============ */
+        .coin-list {
+            padding: 0;
+        }
+
+        .coin-item {
+            display: flex;
+            padding: 14px 16px;
+            border-bottom: 0.5px solid var(--divider);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .coin-item:active {
+            background: var(--bg-card);
+        }
+
+        .coin-name-section {
+            flex: 4;
+        }
+
+        .coin-symbol-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .coin-symbol {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-white);
+        }
+
+        .leverage-tag {
+            font-size: 10px;
+            font-weight: 500;
+            background: var(--bg-tag);
+            color: var(--text-light-grey);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .coin-volume {
+            font-size: 12px;
+            color: var(--text-grey);
+        }
+
+        .coin-price-section {
+            flex: 3;
+            text-align: right;
+        }
+
+        .coin-price {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-white);
+            margin-bottom: 4px;
+        }
+
+        .coin-cny {
+            font-size: 12px;
+            color: var(--text-light-grey);
+        }
+
+        .coin-change-section {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .change-badge {
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-white);
+            text-align: center;
+            min-width: 65px;
+        }
+
+        .change-badge.up {
+            background: var(--gain-green);
+        }
+
+        .change-badge.down {
+            background: var(--loss-red);
+        }
+
+        /* ============ 底部导航 ============ */
+        .bottom-nav {
+            position: sticky;
+            bottom: 0;
+            display: flex;
+            background: var(--bg-primary);
+            padding: 8px 0;
+            border-top: 0.5px solid var(--divider);
+        }
+
+        .bottom-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: var(--text-grey);
+            cursor: pointer;
+            padding: 4px 0;
+        }
+
+        .bottom-nav-item.active {
+            color: var(--accent-blue);
+        }
+
+        .bottom-nav-item .nav-icon {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 搜索栏 -->
+    <div class="header">
+        <div class="search-bar">
+            <span class="icon-search">🔍</span>
+            <input type="text" placeholder="搜索币种/币对/合约" readonly>
+            <span class="icon-more">⋯</span>
+        </div>
+    </div>
+
+    <!-- 主导航 -->
+    <div class="nav-main">
+        <span class="nav-item active">自选</span>
+        <span class="nav-item">市场</span>
+        <span class="nav-item">Alpha</span>
+        <span class="nav-item">金融增长</span>
+        <span class="nav-item">大数据</span>
+    </div>
+
+    <!-- 分类标签 -->
+    <div class="tags-row">
+        <div class="tags-scroll">
+            <span class="tag-item active">全部</span>
+            <span class="tag-item">现货</span>
+            <span class="tag-item">Alpha</span>
+            <span class="tag-item">合约</span>
+            <span class="tag-item">期权</span>
+        </div>
+        <div class="tags-actions">
+            <span>⊞</span>
+            <span>✎</span>
+        </div>
+    </div>
+
+    <!-- 表头 -->
+    <div class="table-header">
+        <div class="col-name">名称<span class="sort-icon">⇅</span> 成交额</div>
+        <div class="col-price">最新价格<span class="sort-icon">⇅</span></div>
+        <div class="col-change">24h涨跌<span class="sort-icon">⇅</span></div>
+    </div>
+
+    <!-- 币种列表 -->
+    <div class="coin-list" id="coinList"></div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="bottom-nav-item">
+            <span class="nav-icon">🏠</span>
+            <span>首页</span>
+        </div>
+        <div class="bottom-nav-item active">
+            <span class="nav-icon">📈</span>
+            <span>行情</span>
+        </div>
+        <div class="bottom-nav-item">
+            <span class="nav-icon">⇆</span>
+            <span>交易</span>
+        </div>
+        <div class="bottom-nav-item">
+            <span class="nav-icon">📄</span>
+            <span>合约</span>
+        </div>
+        <div class="bottom-nav-item">
+            <span class="nav-icon">👛</span>
+            <span>资产</span>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据
+        const coins = [
+            { symbol: 'BNB/USDT', leverage: '10x', price: '553.07', cny: '¥3,760.87', change: '-1.71%', volume: '3,772.42万', isUp: false },
+            { symbol: 'BTC/USDT', leverage: '10x', price: '59,508.00', cny: '¥404,654.39', change: '-1.79%', volume: '4.89亿', isUp: false },
+            { symbol: 'ETH/USDT', leverage: '10x', price: '1,568.67', cny: '¥10,666.95', change: '-1.65%', volume: '2.08亿', isUp: false },
+            { symbol: 'DOGE/USDT', leverage: '10x', price: '0.07309', cny: '¥0.49701', change: '-3.08%', volume: '2,423.78万', isUp: false },
+            { symbol: 'SOL/USDT', leverage: '10x', price: '70.98', cny: '¥482.66', change: '+1.38%', volume: '1.18亿', isUp: true },
+            { symbol: 'BARD/USDT', leverage: '5x', price: '0.1340', cny: '¥0.9112', change: '-0.30%', volume: '197,701.00', isUp: false },
+            { symbol: 'XPL/USDT', leverage: '5x', price: '0.09637', cny: '¥0.65531', change: '-6.10%', volume: '553.81万', isUp: false },
+            { symbol: 'XRP/USDT', leverage: '10x', price: '1.0440', cny: '¥7.09', change: '+1.48%', volume: '4,393.68万', isUp: true },
+        ];
+
+        // 渲染列表
+        const container = document.getElementById('coinList');
+        coins.forEach(coin => {
+            const item = document.createElement('div');
+            item.className = 'coin-item';
+            item.innerHTML = `
+                <div class="coin-name-section">
+                    <div class="coin-symbol-row">
+                        <span class="coin-symbol">${coin.symbol}</span>
+                        <span class="leverage-tag">${coin.leverage}</span>
+                    </div>
+                    <div class="coin-volume">${coin.volume}</div>
+                </div>
+                <div class="coin-price-section">
+                    <div class="coin-price">${coin.price}</div>
+                    <div class="coin-cny">${coin.cny}</div>
+                </div>
+                <div class="coin-change-section">
+                    <div class="change-badge ${coin.isUp ? 'up' : 'down'}">${coin.change}</div>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    </script>
+
+</body>
+</html>
